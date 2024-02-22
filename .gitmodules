@@ -1,0 +1,3 @@
+[submodule "proto-sources"]
+	path = proto-source
+	url = https://github.com/prefab-cloud/prefab-cloud.git
