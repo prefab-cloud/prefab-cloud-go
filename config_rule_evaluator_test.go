@@ -47,25 +47,105 @@ type ConfigRuleTestSuite struct {
 	nonBoolReturnSimpleConfig *prefabProto.Config
 }
 
-func (suite *ConfigRuleTestSuite) SetupSuite() {
+func (suite *ConfigRuleTestSuite) SetupTest() {
+	suite.mockConfigStoreGetter = MockConfigStoreGetter{}
 	suite.projectEnvId = 101
 	suite.evaluator = NewConfigRuleEvaluator(&suite.mockConfigStoreGetter, suite.projectEnvId)
-	suite.nonBoolReturnSimpleConfig = &prefabProto.Config{
+}
+
+func (suite *ConfigRuleTestSuite) TestFullRuleEvaluation() {
+	matchingProjectEnvId := int64(101)
+	mismatchingProjectEnvId := int64(102)
+	departmentNameEndsWithIngCriterion := &prefabProto.Criterion{
+		Operator:     prefabProto.Criterion_PROP_ENDS_WITH_ONE_OF,
+		ValueToMatch: internal.CreateConfigValue([]string{"ing"}),
+		PropertyName: "department.name",
+	}
+
+	departmentNameIsComplianceOrSecurity := &prefabProto.Criterion{
+		Operator:     prefabProto.Criterion_PROP_IS_ONE_OF,
+		ValueToMatch: internal.CreateConfigValue([]string{"compliance", "security"}),
+		PropertyName: "department.name",
+	}
+
+	departmentNameIsAliens := &prefabProto.Criterion{
+		Operator:     prefabProto.Criterion_PROP_IS_ONE_OF,
+		ValueToMatch: internal.CreateConfigValue([]string{"aliens"}),
+		PropertyName: "department.name",
+	}
+
+	securityClearance := &prefabProto.Criterion{
+		Operator:     prefabProto.Criterion_PROP_IS_ONE_OF,
+		ValueToMatch: internal.CreateConfigValue([]string{"top secret", "top top secret"}),
+		PropertyName: "security.clearance",
+	}
+
+	config := &prefabProto.Config{
 		Id:              1,
 		ProjectId:       1,
-		Key:             "non.bool.simple",
+		Key:             "test.rule",
 		ConfigType:      prefabProto.ConfigType_CONFIG,
-		ValueType:       prefabProto.Config_BOOL,
+		ValueType:       prefabProto.Config_INT,
 		SendToClientSdk: false,
 		Rows: []*prefabProto.ConfigRow{
 			{
+				ProjectEnvId: Int64Ptr(matchingProjectEnvId),
 				Values: []*prefabProto.ConditionalValue{
 					{
-						Value: internal.CreateConfigValue(100),
+						Criteria: []*prefabProto.Criterion{departmentNameEndsWithIngCriterion, securityClearance},
+						Value:    internal.CreateConfigValue(1),
+					},
+					{
+						Criteria: []*prefabProto.Criterion{departmentNameEndsWithIngCriterion},
+						Value:    internal.CreateConfigValue(2),
+					},
+					{
+						Criteria: []*prefabProto.Criterion{departmentNameIsComplianceOrSecurity},
+						Value:    internal.CreateConfigValue(3),
+					},
+				},
+			},
+			{
+				Values: []*prefabProto.ConditionalValue{
+					{
+						Criteria: []*prefabProto.Criterion{departmentNameIsAliens},
+						Value:    internal.CreateConfigValue(10),
+					},
+					{
+						Value: internal.CreateConfigValue(11),
 					},
 				},
 			},
 		},
+	}
+
+	tests := []struct {
+		name                          string
+		projectEnvId                  int64
+		expectedValue                 *prefabProto.ConfigValue
+		expectedRowIndex              int
+		expectedConditionalValueIndex int
+		contextMockings               []ContextMocking
+	}{
+		{"returns 1 for high security clearance mining department with matching projectEnv", matchingProjectEnvId, internal.CreateConfigValue(1), 0, 0, []ContextMocking{{contextPropertyName: "department.name", value: "mining", exists: true}, {contextPropertyName: "security.clearance", value: "top secret", exists: true}}},
+		{"returns 2 for no security clearance mining department with matching projectEnv", matchingProjectEnvId, internal.CreateConfigValue(2), 0, 1, []ContextMocking{{contextPropertyName: "department.name", value: "mining", exists: true}, {contextPropertyName: "security.clearance", value: nil, exists: false}}},
+		{"returns 3 for security department with matching projectEnv", matchingProjectEnvId, internal.CreateConfigValue(3), 0, 2, []ContextMocking{{contextPropertyName: "department.name", value: "security", exists: true}}},
+		{"returns 10 for aliens department with matching projectEnv", matchingProjectEnvId, internal.CreateConfigValue(10), 1, 0, []ContextMocking{{contextPropertyName: "department.name", value: "aliens", exists: true}}},
+		{"returns 11 for cleanup department with matching projectEnv", matchingProjectEnvId, internal.CreateConfigValue(11), 1, 1, []ContextMocking{{contextPropertyName: "department.name", value: "cleanup", exists: true}}},
+		{"returns 10 for aliens department with mismatching projectEnv", mismatchingProjectEnvId, internal.CreateConfigValue(10), 1, 0, []ContextMocking{{contextPropertyName: "department.name", value: "aliens", exists: true}}},
+		{"returns 11 for cleanup department with mismatching projectEnv", mismatchingProjectEnvId, internal.CreateConfigValue(11), 1, 1, []ContextMocking{{contextPropertyName: "department.name", value: "cleanup", exists: true}}},
+		{"returns 11 for high security clearance mining department with matching projectEnv", mismatchingProjectEnvId, internal.CreateConfigValue(1), 0, 0, []ContextMocking{{contextPropertyName: "department.name", value: "mining", exists: true}, {contextPropertyName: "security.clearance", value: "top secret", exists: true}}},
+	}
+
+	for _, tt := range tests {
+		suite.Run(tt.name, func() {
+			suite.evaluator = NewConfigRuleEvaluator(&suite.mockConfigStoreGetter, suite.projectEnvId)
+			mockContext, _ := suite.setupMockContextWithMultipleValues(tt.contextMockings)
+			conditionMatch := suite.evaluator.EvaluateConfig(config, mockContext)
+			suite.Equal(tt.expectedValue, conditionMatch.match, "value should match")
+			suite.Equal(tt.expectedRowIndex, conditionMatch.rowIndex, "rowIndex should match")
+			suite.Equal(tt.expectedConditionalValueIndex, conditionMatch.conditionalValueIndex, "conditionalValueIndex should match")
+		})
 	}
 }
 
@@ -398,6 +478,33 @@ func (suite *ConfigRuleTestSuite) setupMockContext(contextPropertyName string, c
 		mockContext.AssertExpectations(suite.T())
 	}
 	return &mockContext, cleanupFunc
+}
+
+type ContextMocking struct {
+	contextPropertyName string
+	value               interface{}
+	exists              bool
+}
+
+func (suite *ConfigRuleTestSuite) setupMockContextWithMultipleValues(mockings []ContextMocking) (mockedContext *MockContextGetter, cleanup func()) {
+	mockContext := &MockContextGetter{}
+
+	for _, mocking := range mockings {
+		contextValue := mocking.value
+		contextExistsValue := mocking.exists
+
+		if contextExistsValue {
+			mockContext.On("GetValue", mocking.contextPropertyName).Return(contextValue, true)
+		} else {
+			mockContext.On("GetValue", mocking.contextPropertyName).Return(nil, false)
+		}
+	}
+
+	cleanupFunc := func() {
+		mockContext.AssertExpectations(suite.T())
+	}
+
+	return mockContext, cleanupFunc
 }
 
 func (suite *ConfigRuleTestSuite) setupMockConfigStoreGetter(configKey string, config *prefabProto.Config, configExists bool) (cleanup func()) {
