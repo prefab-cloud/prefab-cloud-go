@@ -6,6 +6,10 @@ import (
 	"strings"
 )
 
+type ContextGetter interface {
+	GetValue(propertyName string) (value interface{}, valueExists bool)
+}
+
 type NamedContext struct {
 	Name string
 	Data map[string]interface{}
@@ -53,7 +57,7 @@ func NewContextSetFromProto(protoContextSet *prefabProto.ContextSet) *ContextSet
 	return contextSet
 }
 
-func (c *ContextSet) getValue(propertyName string) (interface{}, bool) {
+func (c *ContextSet) GetValue(propertyName string) (value interface{}, valueExists bool) {
 	contextName, key := splitAtFirstDot(propertyName)
 	if namedContext, namedContextExists := c.Data[contextName]; namedContextExists {
 		value, valueExists := namedContext.Data[key]
@@ -70,7 +74,7 @@ func (c *ContextSet) SetNamedContext(newNamedContext *NamedContext) {
 // two strings: the part before the dot and the part after the dot.
 // If the string starts with ".", the first return value is "" and the second is the rest of the string.
 // If there is no ".", it returns "", and the whole string as the second part.
-func splitAtFirstDot(input string) (string, string) {
+func splitAtFirstDot(input string) (prefix string, suffix string) {
 	// Special case for strings starting with "."
 	if strings.HasPrefix(input, ".") {
 		return "", input[1:]
