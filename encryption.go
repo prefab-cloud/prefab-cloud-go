@@ -8,10 +8,6 @@ import (
 	"strings"
 )
 
-type Decrypter interface {
-	DecryptValue(secretKeyString, value string) (decryptedValue string, err error)
-}
-
 type Encryption struct {
 }
 
