@@ -6,10 +6,6 @@ import (
 	"strings"
 )
 
-type ContextGetter interface {
-	GetValue(propertyName string) (value interface{}, valueExists bool)
-}
-
 type NamedContext struct {
 	Name string
 	Data map[string]interface{}
