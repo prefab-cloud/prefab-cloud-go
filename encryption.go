@@ -11,7 +11,7 @@ import (
 type Encryption struct {
 }
 
-func (d *Encryption) DecryptValue(secretKeyString, value string) (decryptedValue string, err error) {
+func (d *Encryption) DecryptValue(secretKeyString string, value string) (decryptedValue string, err error) {
 	// Decode the hex-encoded secret key
 	secretKey, err := hex.DecodeString(strings.ToUpper(secretKeyString))
 	if err != nil {
