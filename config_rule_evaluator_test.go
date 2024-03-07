@@ -2,27 +2,13 @@ package prefab
 
 import (
 	"github.com/prefab-cloud/prefab-cloud-go/internal"
+	"github.com/prefab-cloud/prefab-cloud-go/mocks"
 	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
 	"github.com/stretchr/testify/mock"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
 )
-
-type MockConfigStoreGetter struct {
-	mock.Mock
-}
-
-func (m *MockConfigStoreGetter) GetConfig(key string) (config *prefabProto.Config, configExists bool) {
-	args := m.Called(key)
-	if args.Get(0) != nil {
-		config = args.Get(0).(*prefabProto.Config)
-	} else {
-		config = nil
-	}
-	configExists = args.Bool(1)
-	return config, configExists
-}
 
 type MockContextGetter struct {
 	mock.Mock
@@ -43,12 +29,12 @@ type ConfigRuleTestSuite struct {
 	suite.Suite
 	evaluator                 *ConfigRuleEvaluator
 	projectEnvId              int64
-	mockConfigStoreGetter     MockConfigStoreGetter
+	mockConfigStoreGetter     mocks.MockConfigStoreGetter
 	nonBoolReturnSimpleConfig *prefabProto.Config
 }
 
 func (suite *ConfigRuleTestSuite) SetupTest() {
-	suite.mockConfigStoreGetter = MockConfigStoreGetter{}
+	suite.mockConfigStoreGetter = mocks.MockConfigStoreGetter{}
 	suite.projectEnvId = 101
 	suite.evaluator = NewConfigRuleEvaluator(&suite.mockConfigStoreGetter, suite.projectEnvId)
 }
