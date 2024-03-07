@@ -12,6 +12,10 @@ func Int64Ptr(val int64) *int64 {
 	return &val
 }
 
+func intPtr(val int) *int {
+	return &val
+}
+
 func RunTests(t *testing.T) {
 
 	configFoo := &prefabProto.Config{
