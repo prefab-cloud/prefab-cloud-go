@@ -17,14 +17,12 @@ type ConditionMatch struct {
 }
 
 type ConfigRuleEvaluator struct {
-	configStore  ConfigStoreGetter
-	projectEnvId int64
+	configStore ConfigStoreGetter
 }
 
-func NewConfigRuleEvaluator(configStore ConfigStoreGetter, projectEnvId int64) *ConfigRuleEvaluator {
+func NewConfigRuleEvaluator(configStore ConfigStoreGetter) *ConfigRuleEvaluator {
 	return &ConfigRuleEvaluator{
-		configStore:  configStore,
-		projectEnvId: projectEnvId,
+		configStore: configStore,
 	}
 }
 
@@ -34,7 +32,7 @@ func (cve *ConfigRuleEvaluator) EvaluateConfig(config *prefabProto.Config, conte
 	// iterate over conditional values in rows
 	// evaluate criterion
 	noEnvRowIndex := 0
-	envRow, envRowExists := rowWithMatchingEnvId(config, cve.projectEnvId)
+	envRow, envRowExists := rowWithMatchingEnvId(config, cve.configStore.GetProjectEnvId())
 	if envRowExists {
 		noEnvRowIndex = 1
 		match := cve.EvaluateRow(envRow, contextSet, 0)
