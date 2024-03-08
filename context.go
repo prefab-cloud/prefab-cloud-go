@@ -66,6 +66,16 @@ func (c *ContextSet) SetNamedContext(newNamedContext *NamedContext) {
 	c.Data[newNamedContext.Name] = newNamedContext
 }
 
+func (c *ContextSet) WithNamedContext(newNamedContext *NamedContext) *ContextSet {
+	c.Data[newNamedContext.Name] = newNamedContext
+	return c
+}
+
+func (c *ContextSet) WithNamedContextValues(name string, values map[string]interface{}) *ContextSet {
+	c.Data[name] = NewNamedContextWithValues(name, values)
+	return c
+}
+
 // splitAtFirstDot splits the input string at the first occurrence of "." and returns
 // two strings: the part before the dot and the part after the dot.
 // If the string starts with ".", the first return value is "" and the second is the rest of the string.
