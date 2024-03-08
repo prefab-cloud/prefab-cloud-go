@@ -12,6 +12,7 @@ type ApiConfigStore struct {
 	configMap     map[string]*prefabProto.Config
 	initialized   bool
 	highWatermark int64
+	projectEnvId  int64
 	sync.RWMutex
 }
 
@@ -20,20 +21,22 @@ func BuildApiConfigStore() *ApiConfigStore {
 		configMap:     make(map[string]*prefabProto.Config),
 		initialized:   false,
 		highWatermark: 0,
+		projectEnvId:  0,
 	}
 }
 
-func (cs *ApiConfigStore) SetConfigs(configs []*prefabProto.Config) {
+func (cs *ApiConfigStore) SetConfigs(configs []*prefabProto.Config, envId int64) {
 	cs.Lock()
 	defer cs.Unlock()
 	cs.initialized = true
+	cs.projectEnvId = envId
 	for _, config := range configs {
 		cs.setConfig(config)
 	}
 }
 
 func (cs *ApiConfigStore) SetFromConfigsProto(configs *prefabProto.Configs) {
-	cs.SetConfigs(configs.Configs)
+	cs.SetConfigs(configs.Configs, configs.ConfigServicePointer.GetProjectEnvId())
 }
 
 func (cs *ApiConfigStore) Len() int {
@@ -63,4 +66,10 @@ func (cs *ApiConfigStore) GetConfig(key string) (*prefabProto.Config, bool) {
 	defer cs.RUnlock()
 	config, exists := cs.configMap[key]
 	return config, exists
+}
+
+func (cs *ApiConfigStore) GetProjectEnvId() int64 {
+	cs.RLock()
+	defer cs.RUnlock()
+	return cs.projectEnvId
 }
