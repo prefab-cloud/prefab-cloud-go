@@ -5,6 +5,7 @@ import (
 	"github.com/prefab-cloud/prefab-cloud-go/internal"
 	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
 	"os"
+	"time"
 )
 
 type ConfigMatch struct {
@@ -42,6 +43,17 @@ type ConfigResolver struct {
 	weightedValueResolver WeightedValueResolverIF
 	decrypter             Decrypter
 	envLookup             EnvLookup
+}
+
+func NewConfigResolver(configStore ConfigStoreGetter) *ConfigResolver {
+	return &ConfigResolver{
+		configStore:           configStore,
+		ruleEvaluator:         NewConfigRuleEvaluator(configStore),
+		weightedValueResolver: NewWeightedValueResolver(time.Now().UnixNano(), &Hashing{}),
+		decrypter:             &Encryption{},
+		envLookup:             &RealEnvLookup{},
+	}
+
 }
 
 func (c *ConfigResolver) ResolveValue(key string, contextSet ContextGetter) (configMatch ConfigMatch, err error) {
