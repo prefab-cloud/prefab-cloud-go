@@ -3,6 +3,7 @@ package prefab
 import (
 	"errors"
 	"fmt"
+	"github.com/prefab-cloud/prefab-cloud-go/internal"
 	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
 	"sync"
 	"time"
@@ -24,7 +25,7 @@ func NewClient(options Options) (*Client, error) {
 	}
 
 	configStore := BuildApiConfigStore()
-	configResolver := NewConfigResolver(configStore)
+	configResolver := NewConfigResolver(configStore, configStore)
 
 	client := Client{options: &options, httpClient: httpClient, configStore: configStore, configResolver: configResolver, initializationComplete: make(chan struct{})}
 	go client.fetchFromServer(0)

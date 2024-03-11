@@ -369,7 +369,7 @@ func TestConfigResolver_ResolveValue(t *testing.T) {
 					config: emptyConfigInstance,
 					match: ConditionMatch{
 						isMatch:               true,
-						match:                 weightedValuesConfigValue, // points at "decrypt.with.me"
+						match:                 decryptWithConfigValue, // points at "decrypt.with.me"
 						rowIndex:              1,
 						conditionalValueIndex: 1,
 					},

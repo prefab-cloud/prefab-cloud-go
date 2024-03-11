@@ -45,10 +45,10 @@ type ConfigResolver struct {
 	envLookup             EnvLookup
 }
 
-func NewConfigResolver(configStore ConfigStoreGetter) *ConfigResolver {
+func NewConfigResolver(configStore ConfigStoreGetter, supplier ProjectEnvIdSupplier) *ConfigResolver {
 	return &ConfigResolver{
 		configStore:           configStore,
-		ruleEvaluator:         NewConfigRuleEvaluator(configStore),
+		ruleEvaluator:         NewConfigRuleEvaluator(configStore, supplier),
 		weightedValueResolver: NewWeightedValueResolver(time.Now().UnixNano(), &Hashing{}),
 		decrypter:             &Encryption{},
 		envLookup:             &RealEnvLookup{},

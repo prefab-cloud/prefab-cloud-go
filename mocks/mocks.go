@@ -84,6 +84,21 @@ func NewMockConfigStoreGetter(args []ConfigMockingArgs) *MockConfigStoreGetter {
 	return &mockConfigStoreGetter
 }
 
+type MockProjectEnvIdSupplier struct {
+	mock.Mock
+}
+
+func (m *MockProjectEnvIdSupplier) GetProjectEnvId() int64 {
+	args := m.Called()
+	return args.Get(0).(int64)
+}
+
+func NewMockProjectEnvIdSupplier(envId int64) *MockProjectEnvIdSupplier {
+	mockInstance := MockProjectEnvIdSupplier{}
+	mockInstance.On("GetProjectEnvId").Return(envId)
+	return &mockInstance
+}
+
 type MockEnvLookup struct {
 	mock.Mock
 }
