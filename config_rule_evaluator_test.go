@@ -30,13 +30,15 @@ type ConfigRuleTestSuite struct {
 	evaluator                 *ConfigRuleEvaluator
 	projectEnvId              int64
 	mockConfigStoreGetter     mocks.MockConfigStoreGetter
+	mockProjectEnvIdSupplier  mocks.MockProjectEnvIdSupplier
 	nonBoolReturnSimpleConfig *prefabProto.Config
 }
 
 func (suite *ConfigRuleTestSuite) SetupTest() {
 	suite.mockConfigStoreGetter = mocks.MockConfigStoreGetter{}
 	suite.projectEnvId = 101
-	suite.evaluator = NewConfigRuleEvaluator(&suite.mockConfigStoreGetter, suite.projectEnvId)
+	suite.mockProjectEnvIdSupplier = *mocks.NewMockProjectEnvIdSupplier(suite.projectEnvId)
+	suite.evaluator = NewConfigRuleEvaluator(&suite.mockConfigStoreGetter, &suite.mockProjectEnvIdSupplier)
 }
 
 func (suite *ConfigRuleTestSuite) TestFullRuleEvaluation() {
@@ -118,14 +120,14 @@ func (suite *ConfigRuleTestSuite) TestFullRuleEvaluation() {
 		{"returns 3 for security department with matching projectEnv", matchingProjectEnvId, internal.CreateConfigValue(3), 0, 2, []ContextMocking{{contextPropertyName: "department.name", value: "security", exists: true}}},
 		{"returns 10 for aliens department with matching projectEnv", matchingProjectEnvId, internal.CreateConfigValue(10), 1, 0, []ContextMocking{{contextPropertyName: "department.name", value: "aliens", exists: true}}},
 		{"returns 11 for cleanup department with matching projectEnv", matchingProjectEnvId, internal.CreateConfigValue(11), 1, 1, []ContextMocking{{contextPropertyName: "department.name", value: "cleanup", exists: true}}},
-		{"returns 10 for aliens department with mismatching projectEnv", mismatchingProjectEnvId, internal.CreateConfigValue(10), 1, 0, []ContextMocking{{contextPropertyName: "department.name", value: "aliens", exists: true}}},
-		{"returns 11 for cleanup department with mismatching projectEnv", mismatchingProjectEnvId, internal.CreateConfigValue(11), 1, 1, []ContextMocking{{contextPropertyName: "department.name", value: "cleanup", exists: true}}},
-		{"returns 11 for high security clearance mining department with matching projectEnv", mismatchingProjectEnvId, internal.CreateConfigValue(1), 0, 0, []ContextMocking{{contextPropertyName: "department.name", value: "mining", exists: true}, {contextPropertyName: "security.clearance", value: "top secret", exists: true}}},
+		{"returns 10 for aliens department with mismatching projectEnv", mismatchingProjectEnvId, internal.CreateConfigValue(10), 0, 0, []ContextMocking{{contextPropertyName: "department.name", value: "aliens", exists: true}}},
+		{"returns 11 for cleanup department with mismatching projectEnv", mismatchingProjectEnvId, internal.CreateConfigValue(11), 0, 1, []ContextMocking{{contextPropertyName: "department.name", value: "cleanup", exists: true}}},
+		{"returns 11 for high security clearance mining department with mismatching projectEnv", mismatchingProjectEnvId, internal.CreateConfigValue(11), 0, 1, []ContextMocking{{contextPropertyName: "department.name", value: "mining", exists: true}, {contextPropertyName: "security.clearance", value: "top secret", exists: true}}},
 	}
 
 	for _, tt := range tests {
 		suite.Run(tt.name, func() {
-			suite.evaluator = NewConfigRuleEvaluator(&suite.mockConfigStoreGetter, suite.projectEnvId)
+			suite.evaluator = NewConfigRuleEvaluator(&suite.mockConfigStoreGetter, mocks.NewMockProjectEnvIdSupplier(tt.projectEnvId))
 			mockContext, _ := suite.setupMockContextWithMultipleValues(tt.contextMockings)
 			conditionMatch := suite.evaluator.EvaluateConfig(config, mockContext)
 			suite.Equal(tt.expectedValue, conditionMatch.match, "value should match")
