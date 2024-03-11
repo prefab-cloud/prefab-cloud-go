@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"errors"
 	"fmt"
 	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
 	"reflect"
@@ -61,5 +62,61 @@ func UnpackConfigValue(cv *prefabProto.ConfigValue) (interface{}, bool) {
 	default:
 		// For other types, return the protobuf value itself and false.
 		return v, false
+	}
+}
+
+type ConfigValueParseFunction func(*prefabProto.ConfigValue) (interface{}, error)
+
+func ParseIntValue(cv *prefabProto.ConfigValue) (interface{}, error) {
+	switch v := cv.Type.(type) {
+	case *prefabProto.ConfigValue_Int:
+		return v.Int, nil
+	default:
+		return nil, errors.New("config did not produce the correct type for Int")
+	}
+}
+
+func ParseStringValue(cv *prefabProto.ConfigValue) (interface{}, error) {
+	switch v := cv.Type.(type) {
+	case *prefabProto.ConfigValue_String_:
+		return v.String_, nil
+	default:
+		return nil, errors.New("config did not produce the correct type for String")
+	}
+}
+
+func ParseFloatValue(cv *prefabProto.ConfigValue) (interface{}, error) {
+	switch v := cv.Type.(type) {
+	case *prefabProto.ConfigValue_Double:
+		return v.Double, nil
+	default:
+		return nil, errors.New("config did not produce the correct type for Float")
+	}
+}
+
+func ParseBoolValue(cv *prefabProto.ConfigValue) (interface{}, error) {
+	switch v := cv.Type.(type) {
+	case *prefabProto.ConfigValue_Bool:
+		return v.Bool, nil
+	default:
+		return nil, errors.New("config did not produce the correct type for Bool")
+	}
+}
+
+func parseStringListValue(cv *prefabProto.ConfigValue) (interface{}, error) {
+	switch v := cv.Type.(type) {
+	case *prefabProto.ConfigValue_StringList:
+		return v.StringList.Values, nil
+	default:
+		return nil, errors.New("config did not produce the correct type for StringList")
+	}
+}
+
+func parseBytesValue(cv *prefabProto.ConfigValue) (interface{}, error) {
+	switch v := cv.Type.(type) {
+	case *prefabProto.ConfigValue_Bytes:
+		return v.Bytes, nil
+	default:
+		return nil, errors.New("config did not produce the correct type for Bytes")
 	}
 }
