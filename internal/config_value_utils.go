@@ -65,6 +65,34 @@ func UnpackConfigValue(cv *prefabProto.ConfigValue) (interface{}, bool) {
 	}
 }
 
+// ValueTypeFromConfigValue returns the value type we'd expect the config containing this value to have
+func ValueTypeFromConfigValue(cv *prefabProto.ConfigValue) (prefabProto.Config_ValueType, error) {
+	if cv == nil {
+		return prefabProto.Config_NOT_SET_VALUE_TYPE, errors.New("config value was nil")
+	}
+
+	switch cv.Type.(type) {
+	case *prefabProto.ConfigValue_Int:
+		return prefabProto.Config_INT, nil
+	case *prefabProto.ConfigValue_String_:
+		return prefabProto.Config_STRING, nil
+	case *prefabProto.ConfigValue_Bytes:
+		return prefabProto.Config_BYTES, nil
+	case *prefabProto.ConfigValue_Double:
+		return prefabProto.Config_DOUBLE, nil
+	case *prefabProto.ConfigValue_Bool:
+		return prefabProto.Config_BOOL, nil
+	case *prefabProto.ConfigValue_StringList:
+		// StringList is considered a simple type for this example, returning the slice of strings directly.
+		return prefabProto.Config_STRING_LIST, nil
+	case *prefabProto.ConfigValue_LogLevel:
+		return prefabProto.Config_LOG_LEVEL, nil
+	default:
+		// For other types, return the protobuf value itself and false.
+		return prefabProto.Config_NOT_SET_VALUE_TYPE, nil
+	}
+}
+
 type ConfigValueParseFunction func(*prefabProto.ConfigValue) (interface{}, error)
 
 func ParseIntValue(cv *prefabProto.ConfigValue) (interface{}, error) {
