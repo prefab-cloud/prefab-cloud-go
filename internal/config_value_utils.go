@@ -31,6 +31,8 @@ func CreateConfigValue(value interface{}) *prefabProto.ConfigValue {
 	case float64, float32:
 		val := reflect.ValueOf(value)
 		configValue.Type = &prefabProto.ConfigValue_Double{Double: val.Float()}
+	case *prefabProto.ConfigValue_LogLevel:
+		configValue.Type = v
 	default:
 		fmt.Printf("Unsupported type: %v\n", reflect.TypeOf(value))
 	}
