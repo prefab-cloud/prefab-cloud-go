@@ -1,8 +1,8 @@
 package prefab
 
 import (
-	"github.com/prefab-cloud/prefab-cloud-go/internal"
 	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
+	"github.com/prefab-cloud/prefab-cloud-go/utils"
 	"math"
 	"reflect"
 	"strings"
@@ -82,7 +82,7 @@ func (cve *ConfigRuleEvaluator) EvaluateConditionalValue(conditionalValue *prefa
 func (cve *ConfigRuleEvaluator) EvaluateCriterion(criterion *prefabProto.Criterion, contextSet ContextGetter) bool {
 	// get the value from context
 	contextValue, contextValueExists := contextSet.GetValue(criterion.GetPropertyName())
-	matchValue, _ := internal.UnpackConfigValue(criterion.GetValueToMatch())
+	matchValue, _ := utils.UnpackConfigValue(criterion.GetValueToMatch())
 
 	switch criterion.GetOperator() {
 	case prefabProto.Criterion_NOT_SET:

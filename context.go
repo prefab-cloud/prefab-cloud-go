@@ -1,8 +1,8 @@
 package prefab
 
 import (
-	"github.com/prefab-cloud/prefab-cloud-go/internal"
 	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
+	"github.com/prefab-cloud/prefab-cloud-go/utils"
 	"strings"
 )
 
@@ -28,7 +28,7 @@ func NewNamedContext() *NamedContext {
 func NewNamedContextFromProto(ctx *prefabProto.Context) *NamedContext {
 	values := make(map[string]interface{})
 	for key, value := range ctx.Values {
-		nativeValue, _ := internal.UnpackConfigValue(value)
+		nativeValue, _ := utils.UnpackConfigValue(value)
 		values[key] = nativeValue
 	}
 	return NewNamedContextWithValues(ctx.GetType(), values)
