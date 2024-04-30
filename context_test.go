@@ -4,8 +4,8 @@ import (
 	"github.com/mohae/deepcopy"
 	"testing"
 
-	"github.com/prefab-cloud/prefab-cloud-go/internal"
 	"github.com/prefab-cloud/prefab-cloud-go/proto"
+	"github.com/prefab-cloud/prefab-cloud-go/utils"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -77,24 +77,24 @@ func (suite *ContextTestSuite) TestContextConversionFromProto() {
 				{
 					Type: stringPtr("user"),
 					Values: map[string]*proto.ConfigValue{
-						"key":   internal.CreateConfigValue("u123"),
-						"email": internal.CreateConfigValue("me@example.com"),
-						"admin": internal.CreateConfigValue(true),
-						"age":   internal.CreateConfigValue(42),
+						"key":   utils.CreateConfigValue("u123"),
+						"email": utils.CreateConfigValue("me@example.com"),
+						"admin": utils.CreateConfigValue(true),
+						"age":   utils.CreateConfigValue(42),
 					},
 				},
 				{
 					Type: stringPtr("team"),
 					Values: map[string]*proto.ConfigValue{
-						"key":  internal.CreateConfigValue("t123"),
-						"name": internal.CreateConfigValue("dev ops"),
+						"key":  utils.CreateConfigValue("t123"),
+						"name": utils.CreateConfigValue("dev ops"),
 					},
 				},
 				{
 					Type: stringPtr(""),
 					Values: map[string]*proto.ConfigValue{
-						"key": internal.CreateConfigValue("?234"),
-						"id":  internal.CreateConfigValue(3456),
+						"key": utils.CreateConfigValue("?234"),
+						"id":  utils.CreateConfigValue(3456),
 					},
 				},
 			},

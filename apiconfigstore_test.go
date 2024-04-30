@@ -1,8 +1,8 @@
 package prefab
 
 import (
-	"github.com/prefab-cloud/prefab-cloud-go/internal"
 	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
+	"github.com/prefab-cloud/prefab-cloud-go/utils"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/protobuf/proto"
 	"testing"
@@ -29,7 +29,7 @@ func RunTests(t *testing.T) {
 				ProjectEnvId: Int64Ptr(101),
 				Values: []*prefabProto.ConditionalValue{
 					{
-						Value: internal.CreateConfigValue("foo-value"),
+						Value: utils.CreateConfigValue("foo-value"),
 					},
 				},
 			},
@@ -55,7 +55,7 @@ func RunTests(t *testing.T) {
 				ProjectEnvId: Int64Ptr(101),
 				Values: []*prefabProto.ConditionalValue{
 					{
-						Value: internal.CreateConfigValue("foo-value-two"),
+						Value: utils.CreateConfigValue("foo-value-two"),
 					},
 				},
 			},
@@ -73,7 +73,7 @@ func RunTests(t *testing.T) {
 				ProjectEnvId: Int64Ptr(101),
 				Values: []*prefabProto.ConditionalValue{
 					{
-						Value: internal.CreateConfigValue(1234),
+						Value: utils.CreateConfigValue(1234),
 					},
 				},
 			},

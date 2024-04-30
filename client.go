@@ -3,8 +3,8 @@ package prefab
 import (
 	"errors"
 	"fmt"
-	"github.com/prefab-cloud/prefab-cloud-go/internal"
 	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
+	"github.com/prefab-cloud/prefab-cloud-go/utils"
 	"sync"
 	"time"
 )
@@ -71,7 +71,7 @@ func (c *Client) internalGetIntValue(key string, contextSet ContextSet, defaultV
 		defaultVal = &val
 	}
 	fetchResult, fetchErr := c.fetchAndProcessValue(key, contextSet, defaultVal, func(cv *prefabProto.ConfigValue) (value interface{}, err error) {
-		pVal, pErr := parseValueWrapper(cv, internal.ParseIntValue, defaultVal, 0)
+		pVal, pErr := parseValueWrapper(cv, utils.ParseIntValue, defaultVal, 0)
 		return pVal, pErr
 	})
 	if fetchErr != nil {
@@ -97,7 +97,7 @@ func (c *Client) internalGetStringValue(key string, contextSet ContextSet, defau
 		defaultVal = &val
 	}
 	fetchResult, fetchErr := c.fetchAndProcessValue(key, contextSet, defaultVal, func(cv *prefabProto.ConfigValue) (value interface{}, err error) {
-		pVal, pErr := parseValueWrapper(cv, internal.ParseStringValue, defaultVal, "")
+		pVal, pErr := parseValueWrapper(cv, utils.ParseStringValue, defaultVal, "")
 		return pVal, pErr
 	})
 	if fetchErr != nil {
@@ -123,7 +123,7 @@ func (c *Client) internalGetBoolValue(key string, contextSet ContextSet, default
 		defaultVal = &val
 	}
 	fetchResult, fetchErr := c.fetchAndProcessValue(key, contextSet, defaultVal, func(cv *prefabProto.ConfigValue) (value interface{}, err error) {
-		pVal, pErr := parseValueWrapper(cv, internal.ParseBoolValue, defaultVal, false)
+		pVal, pErr := parseValueWrapper(cv, utils.ParseBoolValue, defaultVal, false)
 		return pVal, pErr
 	})
 	if fetchErr != nil {
@@ -149,7 +149,7 @@ func (c *Client) internalGetFloatValue(key string, contextSet ContextSet, defaul
 		defaultVal = &val
 	}
 	fetchResult, fetchErr := c.fetchAndProcessValue(key, contextSet, defaultVal, func(cv *prefabProto.ConfigValue) (value interface{}, err error) {
-		pVal, pErr := parseValueWrapper(cv, internal.ParseFloatValue, defaultVal, 0)
+		pVal, pErr := parseValueWrapper(cv, utils.ParseFloatValue, defaultVal, 0)
 		return pVal, pErr
 	})
 	if fetchErr != nil {
@@ -176,7 +176,7 @@ func (c *Client) internalGetStringSliceValue(key string, contextSet ContextSet, 
 	}
 	zeroValue := returnZeroValue[[]string]()
 	fetchResult, fetchErr := c.fetchAndProcessValue(key, contextSet, defaultVal, func(cv *prefabProto.ConfigValue) (value interface{}, err error) {
-		pVal, pErr := parseValueWrapper(cv, internal.ParseFloatValue, defaultVal, zeroValue)
+		pVal, pErr := parseValueWrapper(cv, utils.ParseFloatValue, defaultVal, zeroValue)
 		return pVal, pErr
 	})
 	if fetchErr != nil {
@@ -185,7 +185,7 @@ func (c *Client) internalGetStringSliceValue(key string, contextSet ContextSet, 
 	return fetchResult.([]string), nil
 }
 
-func parseValueWrapper(cv *prefabProto.ConfigValue, parseFunc internal.ConfigValueParseFunction, defaultValue *interface{}, zeroValue interface{}) (interface{}, error) {
+func parseValueWrapper(cv *prefabProto.ConfigValue, parseFunc utils.ConfigValueParseFunction, defaultValue *interface{}, zeroValue interface{}) (interface{}, error) {
 	if cv != nil {
 		pValue, pErr := parseFunc(cv)
 		if pErr != nil {
@@ -203,7 +203,7 @@ func parseValueWrapper(cv *prefabProto.ConfigValue, parseFunc internal.ConfigVal
 	}
 }
 
-func (c *Client) fetchAndProcessValue(key string, contextSet ContextSet, defaultValue *interface{}, parser internal.ConfigValueParseFunction) (interface{}, error) {
+func (c *Client) fetchAndProcessValue(key string, contextSet ContextSet, defaultValue *interface{}, parser utils.ConfigValueParseFunction) (interface{}, error) {
 	getResult, err := c.internalGetValue(key, contextSet)
 	if err != nil {
 		return nil, err

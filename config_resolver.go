@@ -2,8 +2,8 @@ package prefab
 
 import (
 	"errors"
-	"github.com/prefab-cloud/prefab-cloud-go/internal"
 	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
+	"github.com/prefab-cloud/prefab-cloud-go/utils"
 	"os"
 	"time"
 )
@@ -75,7 +75,7 @@ func (c *ConfigResolver) ResolveValue(key string, contextSet ContextGetter) (con
 		if provided != nil {
 			envValue, envValueExists := c.handleProvided(provided)
 			if envValueExists {
-				configMatch.match = internal.CreateConfigValue(envValue)
+				configMatch.match = utils.CreateConfigValue(envValue)
 			} else {
 				return configMatch, ErrEnvVarNotExist
 			}
@@ -84,7 +84,7 @@ func (c *ConfigResolver) ResolveValue(key string, contextSet ContextGetter) (con
 		if ruleMatchResults.match.GetDecryptWith() != "" {
 			decryptedValue, err := c.handleDecryption(ruleMatchResults.match, contextSet)
 			if err == nil {
-				configMatch.match = internal.CreateConfigValue(decryptedValue)
+				configMatch.match = utils.CreateConfigValue(decryptedValue)
 				configMatch.match.Confidential = boolPtr(true)
 			} else {
 				return configMatch, err

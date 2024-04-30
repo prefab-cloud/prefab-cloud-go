@@ -3,8 +3,8 @@ package prefab
 import (
 	"errors"
 	"fmt"
-	"github.com/prefab-cloud/prefab-cloud-go/internal"
 	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
+	"github.com/prefab-cloud/prefab-cloud-go/utils"
 	"gopkg.in/yaml.v3"
 	"reflect"
 	"strings"
@@ -48,7 +48,7 @@ func (p *LocalConfigYamlParser) handleMapKeyValue(keyPath []string, mapKey strin
 				if !configValueExists {
 					return nil, errors.New("yaml must contain 'value' key")
 				}
-				newConfig, newConfigErr := p.createConfig(mapKey, internal.CreateConfigValue(configValueValue), configType)
+				newConfig, newConfigErr := p.createConfig(mapKey, utils.CreateConfigValue(configValueValue), configType)
 				if newConfigErr != nil {
 					return nil, newConfigErr
 				}
@@ -108,18 +108,18 @@ func (p *LocalConfigYamlParser) createConfig(key string, value interface{}, conf
 			if !ok {
 				return nil, fmt.Errorf("invalid log level: %s", v)
 			}
-			configValue = internal.CreateConfigValue(&prefabProto.ConfigValue_LogLevel{LogLevel: prefabProto.LogLevel(logLevel)})
+			configValue = utils.CreateConfigValue(&prefabProto.ConfigValue_LogLevel{LogLevel: prefabProto.LogLevel(logLevel)})
 		default:
 			return nil, fmt.Errorf("invalid value type for log-level: %T", value)
 		}
 	} else {
-		configValue = internal.CreateConfigValue(value)
+		configValue = utils.CreateConfigValue(value)
 	}
 
 	row := &prefabProto.ConfigRow{
 		Values: []*prefabProto.ConditionalValue{{Value: configValue}},
 	}
-	valueType, valueTypeErr := internal.ValueTypeFromConfigValue(configValue)
+	valueType, valueTypeErr := utils.ValueTypeFromConfigValue(configValue)
 	if valueTypeErr != nil {
 		return nil, valueTypeErr
 	}

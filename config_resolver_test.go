@@ -2,9 +2,9 @@ package prefab
 
 import (
 	"errors"
-	"github.com/prefab-cloud/prefab-cloud-go/internal"
 	"github.com/prefab-cloud/prefab-cloud-go/mocks"
 	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
+	"github.com/prefab-cloud/prefab-cloud-go/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"testing"
@@ -109,7 +109,7 @@ func TestConfigResolver_ResolveValue(t *testing.T) {
 
 	weightedValueOne := &prefabProto.WeightedValue{
 		Weight: 100,
-		Value:  internal.CreateConfigValue(1),
+		Value:  utils.CreateConfigValue(1),
 	}
 	weightedValues := &prefabProto.WeightedValues{
 		HashByPropertyName: stringPtr("some.property"),
@@ -122,7 +122,7 @@ func TestConfigResolver_ResolveValue(t *testing.T) {
 		Type: &prefabProto.ConfigValue_WeightedValues{
 			weightedValues,
 		}}
-	configValueOne := internal.CreateConfigValue("one")
+	configValueOne := utils.CreateConfigValue("one")
 
 	tests := []struct {
 		name                          string
@@ -186,7 +186,7 @@ func TestConfigResolver_ResolveValue(t *testing.T) {
 			name:      "config has provided set",
 			configKey: theKey,
 			wantConfigMatch: ConfigMatch{
-				match:                 internal.CreateConfigValue(providedEnvVarValue),
+				match:                 utils.CreateConfigValue(providedEnvVarValue),
 				isMatch:               true,
 				originalKey:           theKey,
 				originalMatch:         providedConfigValue,
@@ -220,7 +220,7 @@ func TestConfigResolver_ResolveValue(t *testing.T) {
 			configKey:   theKey,
 			expectError: true,
 			wantConfigMatch: ConfigMatch{
-				match:                 internal.CreateConfigValue(providedEnvVarValue),
+				match:                 utils.CreateConfigValue(providedEnvVarValue),
 				isMatch:               true,
 				originalKey:           theKey,
 				originalMatch:         providedConfigValue,
