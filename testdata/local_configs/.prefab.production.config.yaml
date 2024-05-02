@@ -1,0 +1,7 @@
+sample_to_override: value from override in production
+cool:
+  bool:
+    enabled: false
+
+hot:
+  int: 212

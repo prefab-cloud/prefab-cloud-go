@@ -1,0 +1,6 @@
+sample_to_override: value from override in default
+cool:
+  bool:
+    enabled: true
+
+  count: 100
