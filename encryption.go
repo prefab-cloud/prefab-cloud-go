@@ -8,8 +8,7 @@ import (
 	"strings"
 )
 
-type Encryption struct {
-}
+type Encryption struct{}
 
 func (d *Encryption) DecryptValue(secretKeyString string, value string) (decryptedValue string, err error) {
 	// Decode the hex-encoded secret key

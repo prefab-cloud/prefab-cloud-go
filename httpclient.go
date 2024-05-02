@@ -2,17 +2,18 @@ package prefab
 
 import (
 	"fmt"
-	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
-	"google.golang.org/protobuf/proto"
 	"io"
 	"net/http"
+
+	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
+	"google.golang.org/protobuf/proto"
 )
 
 type HttpClient struct {
 	Options             *Options
 	apiDomain           string
 	cdnDomain           string
-	prefabVersionHeader string //TODO calculate this from version
+	prefabVersionHeader string // TODO calculate this from version
 }
 
 func BuildHttpClient(options Options) (*HttpClient, error) {
@@ -23,12 +24,11 @@ func BuildHttpClient(options Options) (*HttpClient, error) {
 }
 
 func (c *HttpClient) Load(offset int32) (*prefabProto.Configs, error) {
-
 	apikey, err := c.Options.apiKeySettingOrEnvVar()
 	if err != nil {
 		panic(err)
 	}
-	//TODO target the cdn first
+	// TODO target the cdn first
 	uri := fmt.Sprintf("https://%s/api/v1/configs/%d", c.apiDomain, offset)
 
 	// Perform the HTTP GET request
@@ -52,7 +52,6 @@ func (c *HttpClient) Load(offset int32) (*prefabProto.Configs, error) {
 		}
 	}(resp.Body)
 	if resp.StatusCode >= 300 {
-
 	}
 
 	// Read the response body
@@ -70,5 +69,4 @@ func (c *HttpClient) Load(offset int32) (*prefabProto.Configs, error) {
 	}
 	// Use your protobuf message (msg) as needed
 	return &msg, nil
-
 }

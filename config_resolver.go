@@ -2,10 +2,11 @@ package prefab
 
 import (
 	"errors"
-	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
-	"github.com/prefab-cloud/prefab-cloud-go/utils"
 	"os"
 	"time"
+
+	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
+	"github.com/prefab-cloud/prefab-cloud-go/utils"
 )
 
 type ConfigMatch struct {
@@ -20,12 +21,14 @@ type ConfigMatch struct {
 }
 
 func NewConfigMatchFromConditionMatch(conditionMatch ConditionMatch) ConfigMatch {
-	return ConfigMatch{isMatch: conditionMatch.isMatch,
+	return ConfigMatch{
+		isMatch:                  conditionMatch.isMatch,
 		originalMatch:            conditionMatch.match,
 		match:                    conditionMatch.match,
 		rowIndex:                 conditionMatch.rowIndex,
 		conditionalValueIndex:    conditionMatch.rowIndex,
-		selectedConditionalValue: conditionMatch.selectedConditionalValue}
+		selectedConditionalValue: conditionMatch.selectedConditionalValue,
+	}
 }
 
 type RealEnvLookup struct{}
@@ -34,8 +37,10 @@ func (RealEnvLookup) LookupEnv(key string) (string, bool) {
 	return os.LookupEnv(key)
 }
 
-var ErrConfigDoesNotExist = errors.New("config does not exist")
-var ErrEnvVarNotExist = errors.New("environment variable does not exist")
+var (
+	ErrConfigDoesNotExist = errors.New("config does not exist")
+	ErrEnvVarNotExist     = errors.New("environment variable does not exist")
+)
 
 type ConfigResolver struct {
 	configStore           ConfigStoreGetter
@@ -53,11 +58,9 @@ func NewConfigResolver(configStore ConfigStoreGetter, supplier ProjectEnvIdSuppl
 		decrypter:             &Encryption{},
 		envLookup:             &RealEnvLookup{},
 	}
-
 }
 
 func (c *ConfigResolver) ResolveValue(key string, contextSet ContextGetter) (configMatch ConfigMatch, err error) {
-
 	config, configExists := c.configStore.GetConfig(key)
 	if !configExists {
 		return ConfigMatch{isMatch: false, originalKey: key}, ErrConfigDoesNotExist
@@ -125,12 +128,11 @@ func (c *ConfigResolver) handleDecryption(configValue *prefabProto.ConfigValue, 
 			}
 			return value, nil
 		} else {
-			return "", errors.New("no match in config value") //TODO
+			return "", errors.New("no match in config value") // TODO
 		}
 
 	}
 	return "", errors.New("no config value exists") // todo
-
 }
 
 func (c *ConfigResolver) handleWeightedValue(configKey string, values *prefabProto.WeightedValues, contextSet ContextGetter) (valueResult *prefabProto.ConfigValue, index int) {

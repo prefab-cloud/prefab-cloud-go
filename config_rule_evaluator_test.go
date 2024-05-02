@@ -1,11 +1,12 @@
 package prefab
 
 import (
+	"testing"
+
 	"github.com/prefab-cloud/prefab-cloud-go/mocks"
 	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
 	"github.com/prefab-cloud/prefab-cloud-go/utils"
 	"github.com/stretchr/testify/mock"
-	"testing"
 
 	"github.com/stretchr/testify/suite"
 )
@@ -336,7 +337,6 @@ func (suite *ConfigRuleTestSuite) TestInIntRangeCriterion() {
 			suite.Equal(tt.expected, isMatch)
 		})
 	}
-
 }
 
 func (suite *ConfigRuleTestSuite) TestInSegmentCriterion() {
@@ -373,7 +373,6 @@ func (suite *ConfigRuleTestSuite) TestInSegmentCriterion() {
 			suite.Equal(tt.expected, isMatch)
 		})
 	}
-
 }
 
 func (suite *ConfigRuleTestSuite) TestNotInSegmentCriterion() {
@@ -410,7 +409,6 @@ func (suite *ConfigRuleTestSuite) TestNotInSegmentCriterion() {
 			suite.Equal(tt.expected, isMatch)
 		})
 	}
-
 }
 
 func (suite *ConfigRuleTestSuite) createInIntRangeSegmentTarget(operator prefabProto.Criterion_CriterionOperator, contextPropertyName string, start *int64, end *int64) *prefabProto.Config {
@@ -501,7 +499,6 @@ func (suite *ConfigRuleTestSuite) setupMockConfigStoreGetter(configKey string, c
 		suite.mockConfigStoreGetter.AssertExpectations(suite.T())
 	}
 	return cleanupFunc
-
 }
 
 // In order for 'go test' to run this suite, we need to create

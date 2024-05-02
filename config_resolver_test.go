@@ -2,12 +2,13 @@ package prefab
 
 import (
 	"errors"
+	"testing"
+
 	"github.com/prefab-cloud/prefab-cloud-go/mocks"
 	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
 	"github.com/prefab-cloud/prefab-cloud-go/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"testing"
 )
 
 type mockDecrypter struct {
@@ -121,14 +122,15 @@ func TestConfigResolver_ResolveValue(t *testing.T) {
 	weightedValuesConfigValue := &prefabProto.ConfigValue{
 		Type: &prefabProto.ConfigValue_WeightedValues{
 			weightedValues,
-		}}
+		},
+	}
 	configValueOne := utils.CreateConfigValue("one")
 
 	tests := []struct {
 		name                          string
 		configKey                     string
 		wantConfigMatch               ConfigMatch
-		expectError                   bool //TODO make more specific
+		expectError                   bool // TODO make more specific
 		mockDecrypterArgs             []mockDecrypterArgs
 		mockWeightedValueResolverArgs []mockWeightedValueResolverArgs
 		mockConfigEvaluatorArgs       []mockConfigEvaluatorArgs
@@ -444,7 +446,6 @@ func TestConfigResolver_ResolveValue(t *testing.T) {
 			} else {
 				assert.Equalf(t, tt.wantConfigMatch, match, "ResolveValue(%v, %v)", tt.configKey, mockContextGetter)
 			}
-
 		})
 	}
 }

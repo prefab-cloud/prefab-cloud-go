@@ -3,8 +3,9 @@ package utils
 import (
 	"errors"
 	"fmt"
-	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
 	"reflect"
+
+	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
 )
 
 func CreateConfigValue(value interface{}) *prefabProto.ConfigValue {

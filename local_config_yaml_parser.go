@@ -3,15 +3,15 @@ package prefab
 import (
 	"errors"
 	"fmt"
+	"reflect"
+	"strings"
+
 	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
 	"github.com/prefab-cloud/prefab-cloud-go/utils"
 	"gopkg.in/yaml.v3"
-	"reflect"
-	"strings"
 )
 
-type LocalConfigYamlParser struct {
-}
+type LocalConfigYamlParser struct{}
 
 func (p *LocalConfigYamlParser) parse(yamlData []byte) (configValues []*prefabProto.Config, err error) {
 	var data map[string]interface{}

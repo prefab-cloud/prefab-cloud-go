@@ -1,12 +1,13 @@
 package prefab
 
 import (
+	"testing"
+
 	"github.com/prefab-cloud/prefab-cloud-go/mocks"
 	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
 	"github.com/prefab-cloud/prefab-cloud-go/utils"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
-	"testing"
 )
 
 type MockRandomer struct {
@@ -123,7 +124,6 @@ func (suite *WeightedValueResolverTestSuite) TestValueSelectionInRandomCases() {
 			suite.randomer.AssertExpectations(suite.T())
 		})
 	}
-
 }
 
 func (suite *WeightedValueResolverTestSuite) TestValueSelectionInHashingCases() {
@@ -191,7 +191,6 @@ func (suite *WeightedValueResolverTestSuite) TestValueSelectionInHashingCases() 
 			suite.hasher.AssertExpectations(suite.T())
 		})
 	}
-
 }
 
 // In order for 'go test' to run this suite, we need to create

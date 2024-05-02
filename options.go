@@ -8,8 +8,10 @@ import (
 
 type Datasource int
 
-const ApiKeyEnvVar = "PREFAB_API_KEY"
-const DomainEnvVar = "PREFAB_DOMAIN"
+const (
+	ApiKeyEnvVar = "PREFAB_API_KEY"
+	DomainEnvVar = "PREFAB_DOMAIN"
+)
 
 const (
 	ALL Datasource = iota
