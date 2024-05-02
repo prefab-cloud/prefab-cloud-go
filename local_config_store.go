@@ -29,7 +29,7 @@ func loadFileIntoMap(filePath string, configmap *map[string]*prefabProto.Config)
 	data, err := os.ReadFile(filePath)
 	if err != nil {
 		if os.IsNotExist(err) {
-			fmt.Printf("File %s does not exist", filePath)
+			fmt.Printf("File %s does not exist\n", filePath)
 		}
 		return
 	}

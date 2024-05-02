@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"os/user"
 	"strings"
 )
 
@@ -26,6 +27,8 @@ type Options struct {
 	InitializationTimeoutSeconds int
 	OnInitializationFailure      OnInitializationFailure
 	EnvironmentNames             []string
+	ConfigDirectory              *string
+	ConfigOverrideDirectory      *string
 }
 
 var DefaultOptions = Options{
@@ -35,6 +38,21 @@ var DefaultOptions = Options{
 	InitializationTimeoutSeconds: 10,
 	OnInitializationFailure:      RAISE,
 	EnvironmentNames:             getDefaultEnvironmentNames(),
+	ConfigDirectory:              getHomeDir(),
+	ConfigOverrideDirectory:      StringPtr("."),
+}
+
+func getHomeDir() *string {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		usr, err := user.Current()
+		if err != nil {
+			fmt.Println(err)
+			return nil
+		}
+		homeDir = usr.HomeDir
+	}
+	return StringPtr(homeDir)
 }
 
 func getDefaultEnvironmentNames() []string {
@@ -72,6 +90,10 @@ func (o *Options) PrefabDomainEnvVarOrSetting() (string, error) {
 		return "", errors.New("no PrefabDomain set")
 	}
 	return o.PrefabDomain, nil
+}
+
+func StringPtr(string string) *string {
+	return &string
 }
 
 type OnInitializationFailure int
