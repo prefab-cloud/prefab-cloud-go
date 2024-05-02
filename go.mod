@@ -1,6 +1,6 @@
 module github.com/prefab-cloud/prefab-cloud-go
 
-go 1.20
+go 1.21
 
 require (
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826
