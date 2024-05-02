@@ -12,7 +12,7 @@ type Datasource int
 
 const (
 	ApiKeyEnvVar = "PREFAB_API_KEY"
-	DomainEnvVar = "PREFAB_DOMAIN"
+	ApiUrlVar    = "PREFAB_API_URL"
 )
 
 const (
@@ -23,7 +23,7 @@ const (
 type Options struct {
 	ApiKey                       string
 	Datasource                   Datasource
-	PrefabDomain                 string
+	PrefabApiUrl                 string
 	InitializationTimeoutSeconds int
 	OnInitializationFailure      OnInitializationFailure
 	EnvironmentNames             []string
@@ -33,7 +33,7 @@ type Options struct {
 
 var DefaultOptions = Options{
 	ApiKey:                       "",
-	PrefabDomain:                 "prefab.cloud",
+	PrefabApiUrl:                 "https://api.prefab.cloud",
 	Datasource:                   ALL,
 	InitializationTimeoutSeconds: 10,
 	OnInitializationFailure:      RAISE,
@@ -81,15 +81,15 @@ func (o *Options) apiKeySettingOrEnvVar() (string, error) {
 	return o.ApiKey, nil
 }
 
-func (o *Options) PrefabDomainEnvVarOrSetting() (string, error) {
-	domainFromEnvVar := os.Getenv(DomainEnvVar)
-	if domainFromEnvVar != "" {
-		o.PrefabDomain = domainFromEnvVar
+func (o *Options) PrefabApiUrlEnvVarOrSetting() (string, error) {
+	apiUrlFromEnvVar := os.Getenv(ApiUrlVar)
+	if apiUrlFromEnvVar != "" {
+		o.PrefabApiUrl = apiUrlFromEnvVar
 	}
-	if o.PrefabDomain == "" {
-		return "", errors.New("no PrefabDomain set")
+	if o.PrefabApiUrl == "" {
+		return "", errors.New("no PrefabApiUrl set")
 	}
-	return o.PrefabDomain, nil
+	return o.PrefabApiUrl, nil
 }
 
 func StringPtr(string string) *string {

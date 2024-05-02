@@ -2,24 +2,27 @@ package prefab
 
 import (
 	"fmt"
-	"io"
-	"net/http"
-
 	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
 	"google.golang.org/protobuf/proto"
+	"io"
+	"net/http"
+	"strings"
 )
 
 type HttpClient struct {
 	Options             *Options
-	apiDomain           string
-	cdnDomain           string
+	apiUrl              string
+	cdnUrl              string
 	prefabVersionHeader string // TODO calculate this from version
 }
 
 func BuildHttpClient(options Options) (*HttpClient, error) {
-	apiDomain := fmt.Sprintf("api.%s", options.PrefabDomain)
-	cdnDomain := fmt.Sprintf("cdn.%s", options.PrefabDomain)
-	client := HttpClient{Options: &options, apiDomain: apiDomain, cdnDomain: cdnDomain}
+	apiUrl, err := options.PrefabApiUrlEnvVarOrSetting()
+	if err != nil {
+		return nil, err
+	}
+	cdnUrl := strings.Replace(apiUrl, "api", "cdn", 1)
+	client := HttpClient{Options: &options, apiUrl: apiUrl, cdnUrl: cdnUrl}
 	return &client, nil
 }
 
@@ -29,7 +32,7 @@ func (c *HttpClient) Load(offset int32) (*prefabProto.Configs, error) {
 		panic(err)
 	}
 	// TODO target the cdn first
-	uri := fmt.Sprintf("https://%s/api/v1/configs/%d", c.apiDomain, offset)
+	uri := fmt.Sprintf("%s/api/v1/configs/%d", c.apiUrl, offset)
 
 	// Perform the HTTP GET request
 	req, err := http.NewRequest(http.MethodGet, uri, nil)
