@@ -1,9 +1,10 @@
 package prefab
 
 import (
+	"strings"
+
 	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
 	"github.com/prefab-cloud/prefab-cloud-go/utils"
-	"strings"
 )
 
 type NamedContext struct {

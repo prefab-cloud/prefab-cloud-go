@@ -1,11 +1,12 @@
 package prefab
 
 import (
-	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
-	"github.com/prefab-cloud/prefab-cloud-go/utils"
 	"math"
 	"reflect"
 	"strings"
+
+	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
+	"github.com/prefab-cloud/prefab-cloud-go/utils"
 )
 
 type ConditionMatch struct {
@@ -29,7 +30,6 @@ func NewConfigRuleEvaluator(configStore ConfigStoreGetter, supplier ProjectEnvId
 }
 
 func (cve *ConfigRuleEvaluator) EvaluateConfig(config *prefabProto.Config, contextSet ContextGetter) ConditionMatch {
-
 	// find the right row for the env id, then the no-env id row
 	// iterate over conditional values in rows
 	// evaluate criterion

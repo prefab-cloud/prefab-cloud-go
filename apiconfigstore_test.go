@@ -1,11 +1,12 @@
 package prefab
 
 import (
+	"testing"
+
 	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
 	"github.com/prefab-cloud/prefab-cloud-go/utils"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/protobuf/proto"
-	"testing"
 )
 
 func Int64Ptr(val int64) *int64 {
@@ -17,7 +18,6 @@ func intPtr(val int) *int {
 }
 
 func RunTests(t *testing.T) {
-
 	configFoo := &prefabProto.Config{
 		Key:        "foo",
 		Id:         10,
@@ -100,7 +100,6 @@ func RunTests(t *testing.T) {
 		assert.True(t, barExists)
 		assert.NotNil(t, bar)
 		assert.Equal(t, configBar, bar)
-
 	})
 
 	t.Run("store initialized with empty configs still marked initialized", func(t *testing.T) {

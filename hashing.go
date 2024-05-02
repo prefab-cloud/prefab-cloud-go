@@ -2,12 +2,12 @@ package prefab
 
 import (
 	"fmt"
-	"github.com/spaolacci/murmur3"
 	"math"
+
+	"github.com/spaolacci/murmur3"
 )
 
-type Hashing struct {
-}
+type Hashing struct{}
 
 // HashZeroToOne
 func (Hashing) HashZeroToOne(value string) (hashedValue float64, ok bool) {

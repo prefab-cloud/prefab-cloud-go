@@ -2,8 +2,9 @@ package prefab
 
 import (
 	"fmt"
-	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
 	"math/rand"
+
+	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
 )
 
 type WeightedValueResolver struct {
@@ -39,11 +40,9 @@ func (wve *WeightedValueResolver) Resolve(weightedValues *prefabProto.WeightedVa
 	}
 
 	return weightedValues.WeightedValues[0].Value, 0
-
 }
 
 func (wve *WeightedValueResolver) getUserFraction(weightedValues *prefabProto.WeightedValues, propertyName string, contextGetter ContextGetter) float64 {
-
 	if weightedValues.HashByPropertyName != nil {
 		value, valueExists := contextGetter.GetValue(*weightedValues.HashByPropertyName)
 		if valueExists {

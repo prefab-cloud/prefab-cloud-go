@@ -1,8 +1,9 @@
 package prefab
 
 import (
-	"github.com/mohae/deepcopy"
 	"testing"
+
+	"github.com/mohae/deepcopy"
 
 	"github.com/prefab-cloud/prefab-cloud-go/proto"
 	"github.com/prefab-cloud/prefab-cloud-go/utils"
@@ -121,7 +122,6 @@ func (suite *ContextTestSuite) TestModification() {
 		value, valueExists = contextSet.GetValue("team.name")
 		suite.Assert().False(valueExists)
 		suite.Assert().Empty(value)
-
 	})
 }
 

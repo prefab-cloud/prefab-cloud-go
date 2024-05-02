@@ -3,10 +3,11 @@ package prefab
 import (
 	"errors"
 	"fmt"
-	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
-	"github.com/prefab-cloud/prefab-cloud-go/utils"
 	"sync"
 	"time"
+
+	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
+	"github.com/prefab-cloud/prefab-cloud-go/utils"
 )
 
 type Client struct {
