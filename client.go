@@ -13,7 +13,8 @@ import (
 type Client struct {
 	options                         *Options
 	httpClient                      *HttpClient
-	configStore                     *ApiConfigStore
+	configStore                     ConfigStoreGetter
+	apiConfigStore                  *ApiConfigStore // temporary until wrapped in a fetcher/auto updater
 	configResolver                  *ConfigResolver
 	initializationComplete          chan struct{}
 	closeInitializationCompleteOnce sync.Once
@@ -25,10 +26,20 @@ func NewClient(options Options) (*Client, error) {
 		panic(err)
 	}
 
-	configStore := BuildApiConfigStore()
-	configResolver := NewConfigResolver(configStore, configStore)
+	apiConfigStore := BuildApiConfigStore()
 
-	client := Client{options: &options, httpClient: httpClient, configStore: configStore, configResolver: configResolver, initializationComplete: make(chan struct{})}
+	configStores := []ConfigStoreGetter{}
+	if options.ConfigOverrideDirectory != nil {
+		configStores = append(configStores, NewLocalConfigStore(*options.ConfigOverrideDirectory, &options))
+	}
+	configStores = append(configStores, apiConfigStore)
+	if options.ConfigDirectory != nil {
+		configStores = append(configStores, NewLocalConfigStore(*options.ConfigDirectory, &options))
+	}
+	configResolver := NewConfigResolver(apiConfigStore, apiConfigStore)
+	configStore := BuildCompositeConfigStore(configStores...)
+
+	client := Client{options: &options, httpClient: httpClient, configStore: configStore, apiConfigStore: apiConfigStore, configResolver: configResolver, initializationComplete: make(chan struct{})}
 	go client.fetchFromServer(0)
 	return &client, nil
 }
@@ -38,15 +49,10 @@ func (c *Client) fetchFromServer(offset int32) {
 	if err != nil {
 		panic(err)
 	}
-	c.configStore.SetFromConfigsProto(configs)
-
+	c.apiConfigStore.SetFromConfigsProto(configs)
 	c.closeInitializationCompleteOnce.Do(func() {
 		close(c.initializationComplete)
 	})
-}
-
-func (c *Client) ManualLoad(configs *prefabProto.Configs) {
-	c.configStore.SetFromConfigsProto(configs)
 }
 
 // returnDefaultValue is a generic function that returns the default (zero) value for type T.
