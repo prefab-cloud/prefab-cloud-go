@@ -3,6 +3,7 @@ package prefab
 import (
 	"fmt"
 	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
+	"log/slog"
 	"os"
 	"path/filepath"
 )
@@ -29,7 +30,7 @@ func loadFileIntoMap(filePath string, configmap *map[string]*prefabProto.Config)
 	data, err := os.ReadFile(filePath)
 	if err != nil {
 		if os.IsNotExist(err) {
-			fmt.Printf("File %s does not exist\n", filePath)
+			slog.Debug(fmt.Sprintf("File %s does not exist\n", filePath))
 		}
 		return
 	}
