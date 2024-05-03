@@ -39,6 +39,11 @@ func CreateConfigValue(value interface{}) *prefabProto.ConfigValue {
 		configValue.Type = v
 	case time.Duration:
 		configValue.Type = &prefabProto.ConfigValue_Duration{Duration: &prefabProto.IsoDuration{Definition: DurationToISO8601(v)}}
+	case *interface{}:
+		if v != nil {
+			return CreateConfigValue(*v)
+		}
+		return nil
 	default:
 		fmt.Printf("Unsupported type: %v\n", reflect.TypeOf(value))
 	}
@@ -65,7 +70,7 @@ func UnpackConfigValue(cv *prefabProto.ConfigValue) (value interface{}, simpleTy
 	case *prefabProto.ConfigValue_Bool:
 		return v.Bool, true, nil
 	case *prefabProto.ConfigValue_StringList:
-		// StringList is considered a simple type for this example, returning the slice of strings directly.
+		// StringList is considered a simple type, returning the slice of strings directly.
 		return v.StringList.Values, true, nil
 	case *prefabProto.ConfigValue_Duration:
 		duration, err := time.ParseDuration(v.Duration.Definition)
@@ -102,6 +107,8 @@ func ValueTypeFromConfigValue(cv *prefabProto.ConfigValue) (prefabProto.Config_V
 		return prefabProto.Config_STRING_LIST, nil
 	case *prefabProto.ConfigValue_LogLevel:
 		return prefabProto.Config_LOG_LEVEL, nil
+	case *prefabProto.ConfigValue_Duration:
+		return prefabProto.Config_DURATION, nil
 	default:
 		// For other types, return the protobuf value itself and false.
 		return prefabProto.Config_NOT_SET_VALUE_TYPE, nil
