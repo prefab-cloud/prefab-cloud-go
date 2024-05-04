@@ -117,48 +117,63 @@ func ValueTypeFromConfigValue(cv *prefabProto.ConfigValue) (prefabProto.Config_V
 
 type ConfigValueParseFunction func(*prefabProto.ConfigValue) (interface{}, error)
 
-func ParseIntValue(cv *prefabProto.ConfigValue) (interface{}, error) {
+func ParseIntValue(cv *prefabProto.ConfigValue) (int64, error) {
 	switch v := cv.Type.(type) {
 	case *prefabProto.ConfigValue_Int:
 		return v.Int, nil
 	default:
-		return nil, errors.New("config did not produce the correct type for Int")
+		return 0, errors.New("config did not produce the correct type for Int")
 	}
 }
 
-func ParseStringValue(cv *prefabProto.ConfigValue) (interface{}, error) {
+func ParseStringValue(cv *prefabProto.ConfigValue) (string, error) {
 	switch v := cv.Type.(type) {
 	case *prefabProto.ConfigValue_String_:
 		return v.String_, nil
 	default:
-		return nil, errors.New("config did not produce the correct type for String")
+		return "", errors.New("config did not produce the correct type for String")
 	}
 }
 
-func ParseFloatValue(cv *prefabProto.ConfigValue) (interface{}, error) {
+func ParseFloatValue(cv *prefabProto.ConfigValue) (float64, error) {
 	switch v := cv.Type.(type) {
 	case *prefabProto.ConfigValue_Double:
 		return v.Double, nil
 	default:
-		return nil, errors.New("config did not produce the correct type for Float")
+		return 0, errors.New("config did not produce the correct type for Float")
 	}
 }
 
-func ParseBoolValue(cv *prefabProto.ConfigValue) (interface{}, error) {
+func ParseBoolValue(cv *prefabProto.ConfigValue) (bool, error) {
 	switch v := cv.Type.(type) {
 	case *prefabProto.ConfigValue_Bool:
 		return v.Bool, nil
 	default:
-		return nil, errors.New("config did not produce the correct type for Bool")
+		return false, errors.New("config did not produce the correct type for Bool")
 	}
 }
 
-func parseStringListValue(cv *prefabProto.ConfigValue) (interface{}, error) {
+func ParseStringListValue(cv *prefabProto.ConfigValue) ([]string, error) {
 	switch v := cv.Type.(type) {
 	case *prefabProto.ConfigValue_StringList:
 		return v.StringList.Values, nil
 	default:
 		return nil, errors.New("config did not produce the correct type for StringList")
+	}
+}
+
+func ParseDurationValue(cv *prefabProto.ConfigValue) (time.Duration, error) {
+	switch v := cv.Type.(type) {
+	case *prefabProto.ConfigValue_Duration:
+		{
+			duration, err := time.ParseDuration(v.Duration.Definition)
+			if err != nil {
+				return time.Duration(0), err
+			}
+			return duration, nil
+		}
+	default:
+		return time.Duration(0), errors.New("config did not produce the correct type for Duration")
 	}
 }
 
