@@ -44,6 +44,7 @@ func NewClient(options Options) (*Client, error) {
 	return &client, nil
 }
 
+// TODO replace this with a fetcher type to manage first fetch and polling (plus SSE eventually)
 func (c *Client) fetchFromServer(offset int32) {
 	configs, err := c.httpClient.Load(offset)
 	if err != nil {
@@ -54,6 +55,31 @@ func (c *Client) fetchFromServer(offset int32) {
 		close(c.initializationComplete)
 	})
 }
+func clientInternalGetValueFunc[T any](key string, contextSet ContextSet, defaultValue *T, parseFunc func(*prefabProto.ConfigValue) (T, error), zeroValue T) func(c *Client) (*T, error) {
+	return func(c *Client) (*T, error) {
+		var defaultVal *interface{}
+		// default value nil means no default value. Not allowed to pass in nil as a default
+		if defaultValue != nil {
+			val := interface{}(*defaultValue)
+			defaultVal = &val
+		}
+		fetchResult, fetchErr := c.fetchAndProcessValue(key, contextSet, defaultVal, func(cv *prefabProto.ConfigValue) (value interface{}, err error) {
+			pVal, pErr := clientParseValueWrapper(cv, parseFunc, defaultVal, zeroValue)
+			return pVal, pErr
+		})
+		if fetchErr != nil {
+			return &zeroValue, fetchErr
+		}
+		if fetchResult == nil {
+			return &zeroValue, nil
+		}
+		typedValue, ok := (*fetchResult).(T)
+		if !ok {
+			return &zeroValue, fmt.Errorf("unexpected type for %T value: %T", zeroValue, *fetchResult)
+		}
+		return &typedValue, nil
+	}
+}
 
 // returnDefaultValue is a generic function that returns the default (zero) value for type T.
 func returnZeroValue[T any]() T {
@@ -61,167 +87,143 @@ func returnZeroValue[T any]() T {
 	return value
 }
 
-func (c *Client) GetIntValueWithDefault(key string, contextSet ContextSet, defaultValue int64) (value int64, err error) {
+func (c *Client) GetRawConfigValueProto(key string, contextSet ContextSet) (*prefabProto.ConfigValue, error) {
+	resolutionResult, err := c.internalGetValue(key, contextSet)
+	if err != nil {
+		return nil, err
+	}
+	return resolutionResult.configValue, nil
+}
+
+//TODO: clients should return the default value if there's an incorrect type too -- these don't do that
+// so if there's no value, return default (or nil)
+// if there is a value check the type and return default if present. if not present then error
+// should check the config value's type first before doing other go operations w/ interface{} and the like
+//
+
+func (c *Client) GetIntValueWithDefault(key string, contextSet ContextSet, defaultValue int64) (value *int64, err error) {
 	value, err = c.internalGetIntValue(key, contextSet, &defaultValue)
 	return value, err
 }
 
-func (c *Client) GetIntValue(key string, contextSet ContextSet) (value int64, err error) {
+func (c *Client) GetIntValue(key string, contextSet ContextSet) (value *int64, err error) {
 	value, err = c.internalGetIntValue(key, contextSet, nil)
 	return value, err
 }
 
-func (c *Client) internalGetIntValue(key string, contextSet ContextSet, defaultValue *int64) (value int64, err error) {
-	var defaultVal *interface{}
-	if defaultValue != nil {
-		val := interface{}(*defaultValue) // Convert int to interface{}
-		defaultVal = &val
-	}
-	fetchResult, fetchErr := c.fetchAndProcessValue(key, contextSet, defaultVal, func(cv *prefabProto.ConfigValue) (value interface{}, err error) {
-		pVal, pErr := parseValueWrapper(cv, utils.ParseIntValue, defaultVal, 0)
-		return pVal, pErr
-	})
-	if fetchErr != nil {
-		return 0, fetchErr
-	}
-	return fetchResult.(int64), nil
+func (c *Client) internalGetIntValue(key string, contextSet ContextSet, defaultValue *int64) (*int64, error) {
+	return clientInternalGetValueFunc(key, contextSet, defaultValue, utils.ParseIntValue, 0)(c)
 }
 
-func (c *Client) GetStringValueWithDefault(key string, contextSet ContextSet, defaultValue string) (value string, err error) {
-	value, err = c.internalGetStringValue(key, contextSet, &defaultValue)
-	return value, err
-}
-
-func (c *Client) GetStringValue(key string, contextSet ContextSet) (value string, err error) {
-	value, err = c.internalGetStringValue(key, contextSet, nil)
-	return value, err
-}
-
-func (c *Client) internalGetStringValue(key string, contextSet ContextSet, defaultValue *string) (value string, err error) {
-	var defaultVal *interface{}
-	if defaultValue != nil {
-		val := interface{}(*defaultValue) // Convert string to interface{}
-		defaultVal = &val
-	}
-	fetchResult, fetchErr := c.fetchAndProcessValue(key, contextSet, defaultVal, func(cv *prefabProto.ConfigValue) (value interface{}, err error) {
-		pVal, pErr := parseValueWrapper(cv, utils.ParseStringValue, defaultVal, "")
-		return pVal, pErr
-	})
-	if fetchErr != nil {
-		return "", fetchErr
-	}
-	return fetchResult.(string), nil
-}
-
-func (c *Client) GetBoolValueWithDefault(key string, contextSet ContextSet, defaultValue bool) (value bool, err error) {
-	value, err = c.internalGetBoolValue(key, contextSet, &defaultValue)
-	return value, err
-}
-
-func (c *Client) GetBoolValue(key string, contextSet ContextSet) (value bool, err error) {
-	value, err = c.internalGetBoolValue(key, contextSet, nil)
-	return value, err
-}
-
-func (c *Client) internalGetBoolValue(key string, contextSet ContextSet, defaultValue *bool) (value bool, err error) {
-	var defaultVal *interface{}
-	if defaultValue != nil {
-		val := interface{}(*defaultValue) // Convert bool to interface{}
-		defaultVal = &val
-	}
-	fetchResult, fetchErr := c.fetchAndProcessValue(key, contextSet, defaultVal, func(cv *prefabProto.ConfigValue) (value interface{}, err error) {
-		pVal, pErr := parseValueWrapper(cv, utils.ParseBoolValue, defaultVal, false)
-		return pVal, pErr
-	})
-	if fetchErr != nil {
-		return false, fetchErr
-	}
-	return fetchResult.(bool), nil
-}
-
-func (c *Client) GetFloatValueWithDefault(key string, contextSet ContextSet, defaultValue float64) (value float64, err error) {
-	value, err = c.internalGetFloatValue(key, contextSet, &defaultValue)
-	return value, err
-}
-
-func (c *Client) GetFloatValue(key string, contextSet ContextSet) (value float64, err error) {
-	value, err = c.internalGetFloatValue(key, contextSet, nil)
-	return value, err
-}
-
-func (c *Client) internalGetFloatValue(key string, contextSet ContextSet, defaultValue *float64) (value float64, err error) {
-	var defaultVal *interface{}
-	if defaultValue != nil {
-		val := interface{}(*defaultValue) // Convert bool to interface{}
-		defaultVal = &val
-	}
-	fetchResult, fetchErr := c.fetchAndProcessValue(key, contextSet, defaultVal, func(cv *prefabProto.ConfigValue) (value interface{}, err error) {
-		pVal, pErr := parseValueWrapper(cv, utils.ParseFloatValue, defaultVal, 0)
-		return pVal, pErr
-	})
-	if fetchErr != nil {
-		return 0, fetchErr
-	}
-	return fetchResult.(float64), nil
-}
-
-func (c *Client) GetStringSliceValueWithDefault(key string, contextSet ContextSet, defaultValue []string) (value []string, err error) {
-	value, err = c.internalGetStringSliceValue(key, contextSet, &defaultValue)
-	return value, err
-}
-
-func (c *Client) GetStringSliceValue(key string, contextSet ContextSet) (value []string, err error) {
-	value, err = c.internalGetStringSliceValue(key, contextSet, nil)
-	return value, err
-}
-
-func (c *Client) internalGetStringSliceValue(key string, contextSet ContextSet, defaultValue *[]string) (value []string, err error) {
-	var defaultVal *interface{}
-	if defaultValue != nil {
-		val := interface{}(*defaultValue) // Convert bool to interface{}
-		defaultVal = &val
-	}
-	zeroValue := returnZeroValue[[]string]()
-	fetchResult, fetchErr := c.fetchAndProcessValue(key, contextSet, defaultVal, func(cv *prefabProto.ConfigValue) (value interface{}, err error) {
-		pVal, pErr := parseValueWrapper(cv, utils.ParseFloatValue, defaultVal, zeroValue)
-		return pVal, pErr
-	})
-	if fetchErr != nil {
-		return zeroValue, fetchErr
-	}
-	return fetchResult.([]string), nil
-}
-
-func parseValueWrapper(cv *prefabProto.ConfigValue, parseFunc utils.ConfigValueParseFunction, defaultValue *interface{}, zeroValue interface{}) (interface{}, error) {
+func clientParseValueWrapper[T any](cv *prefabProto.ConfigValue, parseFunc func(*prefabProto.ConfigValue) (T, error), defaultValue *interface{}, zeroValue T) (T, error) {
 	if cv != nil {
 		pValue, pErr := parseFunc(cv)
 		if pErr != nil {
 			if defaultValue != nil {
-				return *defaultValue, nil
+				if defaultVal, ok := (*defaultValue).(T); ok {
+					return defaultVal, nil
+				}
 			}
 			return zeroValue, pErr
 		}
 		return pValue, nil
 	} else {
 		if defaultValue != nil {
-			return *defaultValue, nil
+			if defaultVal, ok := (*defaultValue).(T); ok {
+				return defaultVal, nil
+			}
 		}
 		return zeroValue, errors.New("config did not produce a result and no default is specified")
 	}
 }
 
-func (c *Client) fetchAndProcessValue(key string, contextSet ContextSet, defaultValue *interface{}, parser utils.ConfigValueParseFunction) (interface{}, error) {
+func (c *Client) GetStringValueWithDefault(key string, contextSet ContextSet, defaultValue string) (value *string, err error) {
+	value, err = c.internalGetStringValue(key, contextSet, &defaultValue)
+	return value, err
+}
+
+func (c *Client) GetStringValue(key string, contextSet ContextSet) (value *string, err error) {
+	value, err = c.internalGetStringValue(key, contextSet, nil)
+	return value, err
+}
+
+func (c *Client) internalGetStringValue(key string, contextSet ContextSet, defaultValue *string) (*string, error) {
+	return clientInternalGetValueFunc(key, contextSet, defaultValue, utils.ParseStringValue, "")(c)
+}
+
+func (c *Client) GetBoolValueWithDefault(key string, contextSet ContextSet, defaultValue bool) (value *bool, err error) {
+	value, err = c.internalGetBoolValue(key, contextSet, &defaultValue)
+	return value, err
+}
+
+func (c *Client) GetBoolValue(key string, contextSet ContextSet) (value *bool, err error) {
+	value, err = c.internalGetBoolValue(key, contextSet, nil)
+	return value, err
+}
+
+func (c *Client) internalGetBoolValue(key string, contextSet ContextSet, defaultValue *bool) (value *bool, err error) {
+	return clientInternalGetValueFunc(key, contextSet, defaultValue, utils.ParseBoolValue, false)(c)
+
+}
+
+func (c *Client) GetFloatValueWithDefault(key string, contextSet ContextSet, defaultValue float64) (value *float64, err error) {
+	value, err = c.internalGetFloatValue(key, contextSet, &defaultValue)
+	return value, err
+}
+
+func (c *Client) GetFloatValue(key string, contextSet ContextSet) (value *float64, err error) {
+	value, err = c.internalGetFloatValue(key, contextSet, nil)
+	return value, err
+}
+
+func (c *Client) internalGetFloatValue(key string, contextSet ContextSet, defaultValue *float64) (value *float64, err error) {
+	return clientInternalGetValueFunc(key, contextSet, defaultValue, utils.ParseFloatValue, 0)(c)
+}
+
+func (c *Client) GetStringSliceValueWithDefault(key string, contextSet ContextSet, defaultValue []string) (value *[]string, err error) {
+	value, err = c.internalGetStringSliceValue(key, contextSet, &defaultValue)
+	return value, err
+}
+
+func (c *Client) GetStringSliceValue(key string, contextSet ContextSet) (value *[]string, err error) {
+	value, err = c.internalGetStringSliceValue(key, contextSet, nil)
+	return value, err
+}
+
+func (c *Client) internalGetStringSliceValue(key string, contextSet ContextSet, defaultValue *[]string) (value *[]string, err error) {
+	return clientInternalGetValueFunc(key, contextSet, defaultValue, utils.ParseStringListValue, []string{})(c)
+}
+
+func (c *Client) GetDurationWithDefault(key string, contextSet ContextSet, defaultValue time.Duration) (value *time.Duration, err error) {
+	value, err = c.internalGetDurationValue(key, contextSet, &defaultValue)
+	return value, err
+}
+
+func (c *Client) GetDurationValue(key string, contextSet ContextSet) (value *time.Duration, err error) {
+	value, err = c.internalGetDurationValue(key, contextSet, nil)
+	return value, err
+}
+
+func (c *Client) internalGetDurationValue(key string, contextSet ContextSet, defaultValue *time.Duration) (value *time.Duration, err error) {
+	return clientInternalGetValueFunc(key, contextSet, defaultValue, utils.ParseDurationValue, time.Duration(0))(c)
+}
+
+func (c *Client) fetchAndProcessValue(key string, contextSet ContextSet, defaultValue *interface{}, parser utils.ConfigValueParseFunction) (*interface{}, error) {
 	getResult, err := c.internalGetValue(key, contextSet)
 	if err != nil {
 		return nil, err
 	}
 	if getResult.configValue == nil {
 		if defaultValue != nil {
-			return *defaultValue, nil
+			return defaultValue, nil
 		}
 		return nil, errors.New("config did not produce a result and no default is specified")
 	}
-	return parser(getResult.configValue)
+	parsedValue, err := parser(getResult.configValue)
+	if err != nil {
+		return nil, err
+	}
+	return &parsedValue, nil
 }
 
 func (c *Client) internalGetValue(key string, contextSet ContextSet) (resolutionResult resolutionResult, err error) {
