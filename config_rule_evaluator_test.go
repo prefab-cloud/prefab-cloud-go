@@ -22,7 +22,9 @@ func (m *MockContextGetter) GetValue(propertyName string) (value interface{}, va
 	} else {
 		value = nil
 	}
+
 	valueExists = args.Bool(1)
+
 	return value, valueExists
 }
 
@@ -176,6 +178,7 @@ func (suite *ConfigRuleTestSuite) TestPropEndsWithCriteriaEvaluation() {
 		suite.Run(tt.name, func() {
 			mockContext, assertMockCalled := suite.setupMockContext(contextPropertyName, tt.contextValue, tt.contextValueExists)
 			defer assertMockCalled()
+
 			criterion := &prefabProto.Criterion{Operator: operator, ValueToMatch: tt.valueToMatch, PropertyName: contextPropertyName}
 			isMatch := suite.evaluator.EvaluateCriterion(criterion, mockContext)
 			suite.Equal(tt.expected, isMatch)
@@ -205,6 +208,7 @@ func (suite *ConfigRuleTestSuite) TestPropNotEndsWithCriteriaEvaluation() {
 		suite.Run(tt.name, func() {
 			mockContext, assertMockCalled := suite.setupMockContext(contextPropertyName, tt.contextValue, tt.contextValueExists)
 			defer assertMockCalled()
+
 			criterion := &prefabProto.Criterion{Operator: operator, ValueToMatch: tt.valueToMatch, PropertyName: contextPropertyName}
 			isMatch := suite.evaluator.EvaluateCriterion(criterion, mockContext)
 			suite.Equal(tt.expected, isMatch)
@@ -235,6 +239,7 @@ func (suite *ConfigRuleTestSuite) TestPropIsOneOf() {
 		suite.Run(tt.name, func() {
 			mockContext, assertMockCalled := suite.setupMockContext(contextPropertyName, tt.contextValue, tt.contextValueExists)
 			defer assertMockCalled()
+
 			criterion := &prefabProto.Criterion{Operator: operator, ValueToMatch: tt.valueToMatch, PropertyName: contextPropertyName}
 			isMatch := suite.evaluator.EvaluateCriterion(criterion, mockContext)
 			suite.Equal(tt.expected, isMatch)
@@ -265,6 +270,7 @@ func (suite *ConfigRuleTestSuite) TestPropIsNotOneOf() {
 		suite.Run(tt.name, func() {
 			mockContext, assertMockCalled := suite.setupMockContext(contextPropertyName, tt.contextValue, tt.contextValueExists)
 			defer assertMockCalled()
+
 			criterion := &prefabProto.Criterion{Operator: operator, ValueToMatch: tt.valueToMatch, PropertyName: contextPropertyName}
 			isMatch := suite.evaluator.EvaluateCriterion(criterion, mockContext)
 			suite.Equal(tt.expected, isMatch)
@@ -295,6 +301,7 @@ func (suite *ConfigRuleTestSuite) TestHierarchicalMatch() {
 		suite.Run(tt.name, func() {
 			mockContext, assertMockCalled := suite.setupMockContext(contextPropertyName, tt.contextValue, tt.contextValueExists)
 			defer assertMockCalled()
+
 			criterion := &prefabProto.Criterion{Operator: operator, ValueToMatch: tt.valueToMatch, PropertyName: contextPropertyName}
 			isMatch := suite.evaluator.EvaluateCriterion(criterion, mockContext)
 			suite.Equal(tt.expected, isMatch)
@@ -332,6 +339,7 @@ func (suite *ConfigRuleTestSuite) TestInIntRangeCriterion() {
 		suite.Run(tt.name, func() {
 			mockContext, assertMockCalled := suite.setupMockContext(contextPropertyName, tt.contextValue, tt.contextValueExists)
 			defer assertMockCalled()
+
 			criterion := &prefabProto.Criterion{Operator: operator, ValueToMatch: tt.valueToMatch, PropertyName: contextPropertyName}
 			isMatch := suite.evaluator.EvaluateCriterion(criterion, mockContext)
 			suite.Equal(tt.expected, isMatch)
@@ -365,9 +373,12 @@ func (suite *ConfigRuleTestSuite) TestInSegmentCriterion() {
 		suite.Run(tt.name, func() {
 			mockContext, assertMockCalled := suite.setupMockContext(contextPropertyName, tt.contextValue, tt.contextValueExists)
 			mockContext.On("GetValue", "").Return(nil, false)
+
 			defer assertMockCalled()
+
 			assertMockConfigStoreGetterCalled := suite.setupMockConfigStoreGetter(targetConfigKey, tt.targetSegmentConfig, tt.targetSegmentExists)
 			defer assertMockConfigStoreGetterCalled()
+
 			criterion := &prefabProto.Criterion{Operator: prefabProto.Criterion_IN_SEG, ValueToMatch: tt.valueToMatch}
 			isMatch := suite.evaluator.EvaluateCriterion(criterion, mockContext)
 			suite.Equal(tt.expected, isMatch)
@@ -401,9 +412,12 @@ func (suite *ConfigRuleTestSuite) TestNotInSegmentCriterion() {
 		suite.Run(tt.name, func() {
 			mockContext, assertMockCalled := suite.setupMockContext(contextPropertyName, tt.contextValue, tt.contextValueExists)
 			mockContext.On("GetValue", "").Return(nil, false)
+
 			defer assertMockCalled()
+
 			assertMockConfigStoreGetterCalled := suite.setupMockConfigStoreGetter(targetConfigKey, tt.targetSegmentConfig, tt.targetSegmentExists)
 			defer assertMockConfigStoreGetterCalled()
+
 			criterion := &prefabProto.Criterion{Operator: prefabProto.Criterion_NOT_IN_SEG, ValueToMatch: tt.valueToMatch}
 			isMatch := suite.evaluator.EvaluateCriterion(criterion, mockContext)
 			suite.Equal(tt.expected, isMatch)
@@ -447,6 +461,7 @@ func (suite *ConfigRuleTestSuite) createInIntRangeSegmentTarget(operator prefabP
 			},
 		},
 	}
+
 	return targetSegmentConfig
 }
 
@@ -460,9 +475,11 @@ func (suite *ConfigRuleTestSuite) setupMockContext(contextPropertyName string, c
 		// This simulates the absence of the value correctly.
 		mockContext.On("GetValue", contextPropertyName).Return(nil, false)
 	}
+
 	cleanupFunc := func() {
 		mockContext.AssertExpectations(suite.T())
 	}
+
 	return &mockContext, cleanupFunc
 }
 
@@ -495,9 +512,11 @@ func (suite *ConfigRuleTestSuite) setupMockContextWithMultipleValues(mockings []
 
 func (suite *ConfigRuleTestSuite) setupMockConfigStoreGetter(configKey string, config *prefabProto.Config, configExists bool) (cleanup func()) {
 	suite.mockConfigStoreGetter.On("GetConfig", configKey).Return(config, configExists)
+
 	cleanupFunc := func() {
 		suite.mockConfigStoreGetter.AssertExpectations(suite.T())
 	}
+
 	return cleanupFunc
 }
 

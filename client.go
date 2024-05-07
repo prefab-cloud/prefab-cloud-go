@@ -32,15 +32,18 @@ func NewClient(options Options) (*Client, error) {
 	if options.ConfigOverrideDirectory != nil {
 		configStores = append(configStores, NewLocalConfigStore(*options.ConfigOverrideDirectory, &options))
 	}
+
 	configStores = append(configStores, apiConfigStore)
 	if options.ConfigDirectory != nil {
 		configStores = append(configStores, NewLocalConfigStore(*options.ConfigDirectory, &options))
 	}
+
 	configResolver := NewConfigResolver(apiConfigStore, apiConfigStore)
 	configStore := BuildCompositeConfigStore(configStores...)
 
 	client := Client{options: &options, httpClient: httpClient, configStore: configStore, apiConfigStore: apiConfigStore, configResolver: configResolver, initializationComplete: make(chan struct{})}
 	go client.fetchFromServer(0)
+
 	return &client, nil
 }
 
@@ -50,11 +53,13 @@ func (c *Client) fetchFromServer(offset int32) {
 	if err != nil {
 		panic(err)
 	}
+
 	c.apiConfigStore.SetFromConfigsProto(configs)
 	c.closeInitializationCompleteOnce.Do(func() {
 		close(c.initializationComplete)
 	})
 }
+
 func clientInternalGetValueFunc[T any](key string, contextSet ContextSet, defaultValue *T, parseFunc func(*prefabProto.ConfigValue) (T, error), zeroValue T) func(c *Client) (*T, error) {
 	return func(c *Client) (*T, error) {
 		var defaultVal *interface{}
@@ -63,6 +68,7 @@ func clientInternalGetValueFunc[T any](key string, contextSet ContextSet, defaul
 			val := interface{}(*defaultValue)
 			defaultVal = &val
 		}
+
 		fetchResult, fetchErr := c.fetchAndProcessValue(key, contextSet, defaultVal, func(cv *prefabProto.ConfigValue) (value interface{}, err error) {
 			pVal, pErr := clientParseValueWrapper(cv, parseFunc, defaultVal, zeroValue)
 			return pVal, pErr
@@ -70,13 +76,16 @@ func clientInternalGetValueFunc[T any](key string, contextSet ContextSet, defaul
 		if fetchErr != nil {
 			return &zeroValue, fetchErr
 		}
+
 		if fetchResult == nil {
 			return &zeroValue, nil
 		}
+
 		typedValue, ok := (*fetchResult).(T)
 		if !ok {
 			return &zeroValue, fmt.Errorf("unexpected type for %T value: %T", zeroValue, *fetchResult)
 		}
+
 		return &typedValue, nil
 	}
 }
@@ -92,6 +101,7 @@ func (c *Client) GetRawConfigValueProto(key string, contextSet ContextSet) (*pre
 	if err != nil {
 		return nil, err
 	}
+
 	return resolutionResult.configValue, nil
 }
 
@@ -124,8 +134,10 @@ func clientParseValueWrapper[T any](cv *prefabProto.ConfigValue, parseFunc func(
 					return defaultVal, nil
 				}
 			}
+
 			return zeroValue, pErr
 		}
+
 		return pValue, nil
 	} else {
 		if defaultValue != nil {
@@ -133,6 +145,7 @@ func clientParseValueWrapper[T any](cv *prefabProto.ConfigValue, parseFunc func(
 				return defaultVal, nil
 			}
 		}
+
 		return zeroValue, errors.New("config did not produce a result and no default is specified")
 	}
 }
@@ -163,7 +176,6 @@ func (c *Client) GetBoolValue(key string, contextSet ContextSet) (value *bool, e
 
 func (c *Client) internalGetBoolValue(key string, contextSet ContextSet, defaultValue *bool) (value *bool, err error) {
 	return clientInternalGetValueFunc(key, contextSet, defaultValue, utils.ParseBoolValue, false)(c)
-
 }
 
 func (c *Client) GetFloatValueWithDefault(key string, contextSet ContextSet, defaultValue float64) (value *float64, err error) {
@@ -213,16 +225,20 @@ func (c *Client) fetchAndProcessValue(key string, contextSet ContextSet, default
 	if err != nil {
 		return nil, err
 	}
+
 	if getResult.configValue == nil {
 		if defaultValue != nil {
 			return defaultValue, nil
 		}
+
 		return nil, errors.New("config did not produce a result and no default is specified")
 	}
+
 	parsedValue, err := parser(getResult.configValue)
 	if err != nil {
 		return nil, err
 	}
+
 	return &parsedValue, nil
 }
 
@@ -236,10 +252,12 @@ func (c *Client) internalGetValue(key string, contextSet ContextSet) (resolution
 			return resolutionResultError(), errors.New("initialization timeout")
 		}
 	}
+
 	match, err := c.configResolver.ResolveValue(key, &contextSet)
 	if err != nil {
 		return resolutionResultError(), err
 	}
+
 	return resolutionResultSuccess(match.match), nil
 }
 

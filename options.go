@@ -50,8 +50,10 @@ func getHomeDir() *string {
 			fmt.Println(err)
 			return nil
 		}
+
 		homeDir = usr.HomeDir
 	}
+
 	return StringPtr(homeDir)
 }
 
@@ -60,12 +62,14 @@ func getDefaultEnvironmentNames() []string {
 	if envVar == "" {
 		return []string{}
 	}
+
 	return strings.Split(envVar, ",")
 }
 
 func NewOptions(modifyFn func(*Options)) Options {
 	opts := DefaultOptions
 	modifyFn(&opts)
+
 	return opts
 }
 
@@ -76,8 +80,10 @@ func (o *Options) apiKeySettingOrEnvVar() (string, error) {
 		if envAPIKey == "" {
 			return "", errors.New(fmt.Sprintf("API key is not set and not found in environment variable %s", ApiKeyEnvVar))
 		}
+
 		o.ApiKey = envAPIKey
 	}
+
 	return o.ApiKey, nil
 }
 
@@ -86,9 +92,11 @@ func (o *Options) PrefabApiUrlEnvVarOrSetting() (string, error) {
 	if apiUrlFromEnvVar != "" {
 		o.PrefabApiUrl = apiUrlFromEnvVar
 	}
+
 	if o.PrefabApiUrl == "" {
 		return "", errors.New("no PrefabApiUrl set")
 	}
+
 	return o.PrefabApiUrl, nil
 }
 

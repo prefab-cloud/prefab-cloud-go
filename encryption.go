@@ -22,6 +22,7 @@ func (d *Encryption) DecryptValue(secretKeyString string, value string) (decrypt
 	if len(parts) < 3 {
 		return "", fmt.Errorf("invalid value format")
 	}
+
 	dataStr, ivStr, authTagStr := parts[0], parts[1], parts[2]
 
 	// Decode the hex-encoded parts
@@ -29,6 +30,7 @@ func (d *Encryption) DecryptValue(secretKeyString string, value string) (decrypt
 	if err != nil {
 		return "", err
 	}
+
 	dataToProcess, err := hex.DecodeString(dataStr + authTagStr)
 	if err != nil {
 		return "", err
