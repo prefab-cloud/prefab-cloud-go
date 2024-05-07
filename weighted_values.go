@@ -24,6 +24,7 @@ func NewWeightedValueResolver(seed int64, hasher Hasher) *WeightedValueResolver 
 
 func (wve *WeightedValueResolver) Resolve(weightedValues *prefabProto.WeightedValues, propertyName string, contextGetter ContextGetter) (valueResult *prefabProto.ConfigValue, index int) {
 	fractionThroughDistribution := wve.getUserFraction(weightedValues, propertyName, contextGetter)
+
 	sum := int32(0)
 	for _, weightedValue := range weightedValues.WeightedValues {
 		sum += weightedValue.Weight
@@ -48,8 +49,10 @@ func (wve *WeightedValueResolver) getUserFraction(weightedValues *prefabProto.We
 		if valueExists {
 			valueToBeHashed := fmt.Sprintf("%s%v", propertyName, value)
 			hashValue, _ := wve.hasher.HashZeroToOne(valueToBeHashed)
+
 			return hashValue
 		}
 	}
+
 	return wve.rand.Float64()
 }

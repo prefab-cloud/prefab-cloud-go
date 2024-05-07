@@ -28,13 +28,16 @@ func (p *LocalConfigYamlParser) parse(yamlData []byte) (configValues []*prefabPr
 		if err != nil {
 			return nil, err
 		}
+
 		outputValues = append(outputValues, configValues...)
 	}
+
 	return outputValues, nil
 }
 
 func (p *LocalConfigYamlParser) handleMapKeyValue(keyPath []string, mapKey string, mapValue interface{}) (configValues []*prefabProto.Config, err error) {
 	configType := prefabProto.ConfigType_CONFIG
+
 	switch value := mapValue.(type) {
 	case map[string]interface{}:
 		{
@@ -44,44 +47,55 @@ func (p *LocalConfigYamlParser) handleMapKeyValue(keyPath []string, mapKey strin
 				if isFeatureFlag && parsingWorked {
 					configType = prefabProto.ConfigType_FEATURE_FLAG
 				}
+
 				configValueValue, configValueExists := value["value"]
 				if !configValueExists {
 					return nil, errors.New("yaml must contain 'value' key")
 				}
+
 				newConfig, newConfigErr := p.createConfig(mapKey, utils.CreateConfigValue(configValueValue), configType)
 				if newConfigErr != nil {
 					return nil, newConfigErr
 				}
+
 				return []*prefabProto.Config{newConfig}, nil
 			}
+
 			var accumulatedConfigValues []*prefabProto.Config
+
 			if underscoreValue, underscoreExists := value["_"]; underscoreExists {
 				configValue, err := p.createConfig(strings.Join(append(keyPath, mapKey), "."), underscoreValue, configType)
 				if err != nil {
 					return nil, err
 				}
+
 				accumulatedConfigValues = append(accumulatedConfigValues, configValue)
 			}
+
 			for nextMapKey, nextMapValue := range value {
 				if nextMapKey == "_" {
 					continue // already handled special case above
 				}
+
 				newConfigValues, err := p.handleMapKeyValue(append(keyPath, mapKey), nextMapKey, nextMapValue)
 				if err != nil {
 					return nil, err
 				}
-				accumulatedConfigValues = append(accumulatedConfigValues, newConfigValues...)
 
+				accumulatedConfigValues = append(accumulatedConfigValues, newConfigValues...)
 			}
+
 			return accumulatedConfigValues, nil
 		}
 
 	default:
 		newKey := strings.Join(append(keyPath, mapKey), ".")
+
 		newConfig, newConfigErr := p.createConfig(newKey, mapValue, configType)
 		if newConfigErr != nil {
 			return nil, newConfigErr
 		}
+
 		return []*prefabProto.Config{newConfig}, nil
 	}
 }
@@ -102,12 +116,14 @@ func (p *LocalConfigYamlParser) createConfig(key string, value interface{}, conf
 
 	if key == "log-level" || strings.HasPrefix(key, "log-level") {
 		configType = prefabProto.ConfigType_LOG_LEVEL
+
 		switch v := value.(type) {
 		case string:
 			logLevel, ok := prefabProto.LogLevel_value[strings.ToUpper(v)]
 			if !ok {
 				return nil, fmt.Errorf("invalid log level: %s", v)
 			}
+
 			configValue = utils.CreateConfigValue(&prefabProto.ConfigValue_LogLevel{LogLevel: prefabProto.LogLevel(logLevel)})
 		default:
 			return nil, fmt.Errorf("invalid value type for log-level: %T", value)
@@ -119,10 +135,12 @@ func (p *LocalConfigYamlParser) createConfig(key string, value interface{}, conf
 	row := &prefabProto.ConfigRow{
 		Values: []*prefabProto.ConditionalValue{{Value: configValue}},
 	}
+
 	valueType, valueTypeErr := utils.ValueTypeFromConfigValue(configValue)
 	if valueTypeErr != nil {
 		return nil, valueTypeErr
 	}
+
 	return &prefabProto.Config{Key: key, Rows: []*prefabProto.ConfigRow{row}, ValueType: valueType, ConfigType: configType}, nil
 }
 
@@ -134,5 +152,6 @@ func (p *LocalConfigYamlParser) getFirstKey(m map[string]interface{}) string {
 	for k := range m {
 		return k
 	}
+
 	return ""
 }

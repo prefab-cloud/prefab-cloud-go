@@ -35,13 +35,16 @@ func (cve *ConfigRuleEvaluator) EvaluateConfig(config *prefabProto.Config, conte
 	// evaluate criterion
 	noEnvRowIndex := 0
 	envRow, envRowExists := rowWithMatchingEnvId(config, cve.projectEnvIdSupplier.GetProjectEnvId())
+
 	if envRowExists {
 		noEnvRowIndex = 1
+
 		match := cve.EvaluateRow(envRow, contextSet, 0)
 		if match.isMatch {
 			return match
 		}
 	}
+
 	noEnvRow, noEnvRowExists := rowWithoutEnvId(config)
 	if noEnvRowExists {
 		match := cve.EvaluateRow(noEnvRow, contextSet, noEnvRowIndex)
@@ -49,6 +52,7 @@ func (cve *ConfigRuleEvaluator) EvaluateConfig(config *prefabProto.Config, conte
 			return match
 		}
 	}
+
 	return ConditionMatch{isMatch: false}
 }
 
@@ -63,9 +67,11 @@ func (cve *ConfigRuleEvaluator) EvaluateRow(row *prefabProto.ConfigRow, contextS
 			conditionMatch.rowIndex = rowIndex
 			conditionMatch.conditionalValueIndex = conditionalValueIndex
 			conditionMatch.match = matchedValue
+
 			break
 		}
 	}
+
 	return conditionMatch
 }
 
@@ -101,6 +107,7 @@ func (cve *ConfigRuleEvaluator) EvaluateCriterion(criterion *prefabProto.Criteri
 				}
 			}
 		}
+
 		return criterion.GetOperator() == prefabProto.Criterion_PROP_DOES_NOT_END_WITH_ONE_OF
 	case prefabProto.Criterion_PROP_IS_ONE_OF, prefabProto.Criterion_PROP_IS_NOT_ONE_OF:
 		if err == nil && contextValueExists {
@@ -112,6 +119,7 @@ func (cve *ConfigRuleEvaluator) EvaluateCriterion(criterion *prefabProto.Criteri
 				}
 			}
 		}
+
 		return criterion.GetOperator() == prefabProto.Criterion_PROP_IS_NOT_ONE_OF
 	case prefabProto.Criterion_HIERARCHICAL_MATCH:
 		if err == nil && contextValueExists {
@@ -121,6 +129,7 @@ func (cve *ConfigRuleEvaluator) EvaluateCriterion(criterion *prefabProto.Criteri
 				}
 			}
 		}
+
 		return false
 	case prefabProto.Criterion_IN_INT_RANGE:
 		if err == nil && contextValueExists {
@@ -130,16 +139,15 @@ func (cve *ConfigRuleEvaluator) EvaluateCriterion(criterion *prefabProto.Criteri
 						intContextValue := reflectedContextValue.Int()
 						return intContextValue >= defaultInt(intRange.Start, int64(math.MinInt64)) &&
 							intContextValue < defaultInt(intRange.End, int64(math.MaxInt64))
-
 					} else if reflectedContextValue.CanFloat() {
 						floatContextValue := reflectedContextValue.Float()
 						return floatContextValue >= float64(defaultInt(intRange.Start, math.MinInt64)) &&
 							floatContextValue < float64(defaultInt(intRange.End, math.MaxInt64))
-
 					}
 				}
 			}
 		}
+
 		return false
 	case prefabProto.Criterion_IN_SEG, prefabProto.Criterion_NOT_IN_SEG:
 		if err == nil {
@@ -148,6 +156,7 @@ func (cve *ConfigRuleEvaluator) EvaluateCriterion(criterion *prefabProto.Criteri
 				if !configExists {
 					return criterion.GetOperator() == prefabProto.Criterion_NOT_IN_SEG
 				}
+
 				match := cve.EvaluateConfig(targetConfig, contextSet)
 				if match.isMatch {
 					matchConfigValue := match.match
@@ -157,6 +166,7 @@ func (cve *ConfigRuleEvaluator) EvaluateCriterion(criterion *prefabProto.Criteri
 				}
 			}
 		}
+
 		return criterion.GetOperator() == prefabProto.Criterion_NOT_IN_SEG
 	}
 
@@ -167,6 +177,7 @@ func defaultInt(maybeInt *int64, defaultValue int64) int64 {
 	if maybeInt != nil {
 		return *maybeInt
 	}
+
 	return defaultValue
 }
 
@@ -176,6 +187,7 @@ func rowWithMatchingEnvId(config *prefabProto.Config, envId int64) (row *prefabP
 			return row, true
 		}
 	}
+
 	return nil, false
 }
 
@@ -185,6 +197,7 @@ func rowWithoutEnvId(config *prefabProto.Config) (row *prefabProto.ConfigRow, ro
 			return row, true
 		}
 	}
+
 	return nil, false
 }
 
@@ -194,6 +207,7 @@ func endsWithAny(suffixes []string, target string) bool {
 			return true // Found a suffix that matches.
 		}
 	}
+
 	return false // No matching suffix found.
 }
 
@@ -204,5 +218,6 @@ func stringInSlice(a string, list []string) bool {
 			return true
 		}
 	}
+
 	return false
 }

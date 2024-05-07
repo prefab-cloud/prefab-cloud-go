@@ -24,6 +24,7 @@ func (s *LocalConfigYamlParserTestSuite) createConfig(key string, cv *prefabProt
 	row := &prefabProto.ConfigRow{
 		Values: []*prefabProto.ConditionalValue{{Value: cv}},
 	}
+
 	return &prefabProto.Config{
 		Key:        key,
 		Rows:       []*prefabProto.ConfigRow{row},
@@ -36,6 +37,7 @@ func (s *LocalConfigYamlParserTestSuite) collectKeys(configs []*prefabProto.Conf
 	for _, config := range configs {
 		keys = append(keys, config.Key)
 	}
+
 	return keys
 }
 
@@ -100,10 +102,12 @@ log-level:
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
 			p := &LocalConfigYamlParser{}
+
 			gotConfigValues, err := p.parse([]byte(tt.yamlInput))
 			if !tt.wantErr(s.T(), err, fmt.Sprintf("parse(%v)", tt.yamlInput)) {
 				return
 			}
+
 			assert.ElementsMatch(s.T(), s.collectKeys(tt.wantConfigs), s.collectKeys(gotConfigValues))
 			assert.ElementsMatchf(s.T(), tt.wantConfigs, gotConfigValues, "parse(%v)", tt.yamlInput)
 		})

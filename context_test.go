@@ -115,6 +115,7 @@ func (suite *ContextTestSuite) TestModification() {
 		contextSet.SetNamedContext(NewNamedContextWithValues("team", map[string]interface{}{
 			"foo": "bar",
 		}))
+
 		value, valueExists := contextSet.GetValue("team.foo")
 		suite.Assert().True(valueExists)
 		suite.Assert().EqualValues(value, "bar")

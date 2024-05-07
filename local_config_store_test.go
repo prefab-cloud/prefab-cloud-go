@@ -1,8 +1,9 @@
 package prefab
 
 import (
-	"github.com/prefab-cloud/prefab-cloud-go/utils"
 	"testing"
+
+	"github.com/prefab-cloud/prefab-cloud-go/utils"
 
 	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
 	"github.com/stretchr/testify/suite"
@@ -70,6 +71,7 @@ func (s *LocalConfigStoreSuite) TestNewLocalConfigStore() {
 				if expectation.expected != nil {
 					s.Truef(exists, "Expected config with key '%s' to exist", expectation.key)
 					s.NotNil(config, "Expected config with key '%s' to not be nil", expectation.key)
+
 					if config != nil {
 						value, onlyValue := s.onlyValue(config)
 						s.Require().True(onlyValue, "Expected config with key '%s' to only have one value", expectation.key)
@@ -79,6 +81,7 @@ func (s *LocalConfigStoreSuite) TestNewLocalConfigStore() {
 					s.False(exists, "Expected config with key '%s' to not exist", expectation.key)
 				}
 			}
+
 			s.True(store.initialized, "Expected initialized to be true")
 		})
 	}
@@ -90,14 +93,16 @@ func (s *LocalConfigStoreSuite) onlyValue(config *prefabProto.Config) (value *pr
 	}
 
 	value = nil
+
 	for _, row := range config.Rows {
 		for _, conditional := range row.Values {
 			if value != nil {
 				return nil, false
 			}
+
 			value = conditional.Value
 		}
 	}
-	return value, true
 
+	return value, true
 }

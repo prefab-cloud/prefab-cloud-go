@@ -43,6 +43,7 @@ func CreateConfigValue(value interface{}) *prefabProto.ConfigValue {
 		if v != nil {
 			return CreateConfigValue(*v)
 		}
+
 		return nil
 	default:
 		fmt.Printf("Unsupported type: %v\n", reflect.TypeOf(value))
@@ -77,6 +78,7 @@ func UnpackConfigValue(cv *prefabProto.ConfigValue) (value interface{}, simpleTy
 		if err != nil {
 			return duration, true, nil
 		}
+
 		return nil, false, err
 
 	default:
@@ -170,6 +172,7 @@ func ParseDurationValue(cv *prefabProto.ConfigValue) (time.Duration, error) {
 			if err != nil {
 				return time.Duration(0), err
 			}
+
 			return duration, nil
 		}
 	default:
@@ -197,16 +200,19 @@ func DurationToISO8601(d time.Duration) string {
 	)
 
 	var sb strings.Builder
+
 	sb.WriteString("P")
 
 	if years > 0 {
 		sb.WriteString(strconv.FormatInt(years, 10))
 		sb.WriteString("Y")
 	}
+
 	if months > 0 {
 		sb.WriteString(strconv.FormatInt(months, 10))
 		sb.WriteString("M")
 	}
+
 	if days > 0 {
 		sb.WriteString(strconv.FormatInt(days, 10))
 		sb.WriteString("D")
@@ -221,10 +227,12 @@ func DurationToISO8601(d time.Duration) string {
 		sb.WriteString(strconv.FormatInt(hours, 10))
 		sb.WriteString("H")
 	}
+
 	if minutes > 0 {
 		sb.WriteString(strconv.FormatInt(minutes, 10))
 		sb.WriteString("M")
 	}
+
 	if seconds > 0 {
 		if hours == 0 && minutes == 0 {
 			sb.WriteString(fmt.Sprintf("%.9f", seconds))

@@ -16,7 +16,9 @@ func (m *MockContextGetter) GetValue(propertyName string) (value interface{}, va
 	} else {
 		value = nil
 	}
+
 	valueExists = args.Bool(1)
+
 	return value, valueExists
 }
 
@@ -30,6 +32,7 @@ func NewMockContext(contextPropertyName string, contextValue interface{}, contex
 		// This simulates the absence of the value correctly.
 		mockContext.On("GetValue", contextPropertyName).Return(nil, false)
 	}
+
 	return &mockContext
 }
 
@@ -52,6 +55,7 @@ func NewMockContextWithMultipleValues(mockings []ContextMocking) (mockedContext 
 			mockContext.On("GetValue", mocking.ContextPropertyName).Return(nil, false)
 		}
 	}
+
 	return mockContext
 }
 
@@ -66,7 +70,9 @@ func (m *MockConfigStoreGetter) GetConfig(key string) (config *prefabProto.Confi
 	} else {
 		config = nil
 	}
+
 	configExists = args.Bool(1)
+
 	return config, configExists
 }
 
@@ -81,6 +87,7 @@ func NewMockConfigStoreGetter(args []ConfigMockingArgs) *MockConfigStoreGetter {
 	for _, mockingArg := range args {
 		mockConfigStoreGetter.On("GetConfig", mockingArg.ConfigKey).Return(mockingArg.Config, mockingArg.ConfigExists)
 	}
+
 	return &mockConfigStoreGetter
 }
 
@@ -96,6 +103,7 @@ func (m *MockProjectEnvIdSupplier) GetProjectEnvId() int64 {
 func NewMockProjectEnvIdSupplier(envId int64) *MockProjectEnvIdSupplier {
 	mockInstance := MockProjectEnvIdSupplier{}
 	mockInstance.On("GetProjectEnvId").Return(envId)
+
 	return &mockInstance
 }
 
@@ -119,5 +127,6 @@ func NewMockEnvLookup(args []MockEnvLookupConfig) *MockEnvLookup {
 	for _, mockingArg := range args {
 		mockInstance.On("LookupEnv", mockingArg.Name).Return(mockingArg.Value, mockingArg.ValueExists)
 	}
+
 	return &mockInstance
 }

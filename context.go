@@ -28,12 +28,14 @@ func NewNamedContext() *NamedContext {
 
 func NewNamedContextFromProto(ctx *prefabProto.Context) *NamedContext {
 	values := make(map[string]interface{})
+
 	for key, value := range ctx.Values {
-		nativeValue, _, _ := utils.UnpackConfigValue(value) //TODO how to handle error here? accept nil?
+		nativeValue, _, _ := utils.UnpackConfigValue(value) // TODO how to handle error here? accept nil?
 		if nativeValue != nil {
 			values[key] = nativeValue
 		}
 	}
+
 	return NewNamedContextWithValues(ctx.GetType(), values)
 }
 
@@ -49,10 +51,12 @@ func NewContextSet() *ContextSet {
 
 func NewContextSetFromProto(protoContextSet *prefabProto.ContextSet) *ContextSet {
 	contextSet := NewContextSet()
+
 	for _, context := range protoContextSet.Contexts {
 		namedContext := NewNamedContextFromProto(context)
 		contextSet.Data[context.GetType()] = namedContext
 	}
+
 	return contextSet
 }
 
@@ -62,6 +66,7 @@ func (c *ContextSet) GetValue(propertyName string) (value interface{}, valueExis
 		value, valueExists := namedContext.Data[key]
 		return value, valueExists
 	}
+
 	return nil, false // Return nil and false if the named context doesn't exist.
 }
 
@@ -97,5 +102,6 @@ func splitAtFirstDot(input string) (prefix string, suffix string) {
 	// Split the string into before and after the dot
 	beforeDot := input[:index]
 	afterDot := input[index+1:]
+
 	return beforeDot, afterDot
 }
