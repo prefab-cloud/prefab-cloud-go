@@ -1,0 +1,60 @@
+linters:
+  enable-all: true
+  disable:
+    # deprecated
+    - structcheck
+    - golint
+    - exhaustivestruct
+    - deadcode
+    - nosnakecase
+    - ifshort
+    - interfacer
+    - nosnakecase
+    - varcheck
+    - maligned
+    - scopelint
+    - gomnd
+    - execinquery
+
+    - exhaustruct
+    - forbidigo
+    - godot
+    - paralleltest
+    - wrapcheck
+    - lll
+    - gci # argues with other formatting
+
+issues:
+  exclude-rules:
+    - linters:
+        - err113
+      text: "do not define dynamic errors"
+    - path: _test\.go
+      linters:
+        - funlen
+
+linters-settings:
+  mnd:
+    ignored-numbers:
+      - 0
+      - 1
+      - 2
+      - '0o600'
+  varnamelen:
+    ignore-names:
+      - err
+      - i
+      - j
+      - k
+  depguard:
+    rules:
+      prevent_unmaintained_packages:
+        list-mode: lax # allow unless explicitely denied
+        files:
+          - $all
+          - "!$test"
+        allow:
+          - $gostd
+        deny:
+          - pkg: io/ioutil
+            desc: "replaced by io and os packages since Go 1.16: https://tip.golang.org/doc/go1.16#ioutil"
