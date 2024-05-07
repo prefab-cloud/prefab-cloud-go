@@ -65,9 +65,11 @@ func (c *ConfigResolver) ResolveValue(key string, contextSet ContextGetter) (con
 	if !configExists {
 		return ConfigMatch{isMatch: false, originalKey: key}, ErrConfigDoesNotExist
 	}
+
 	ruleMatchResults := c.ruleEvaluator.EvaluateConfig(config, contextSet)
 	configMatch = NewConfigMatchFromConditionMatch(ruleMatchResults)
 	configMatch.originalKey = key
+
 	switch v := ruleMatchResults.match.Type.(type) {
 	case *prefabProto.ConfigValue_WeightedValues:
 		result, index := c.handleWeightedValue(key, v.WeightedValues, contextSet)
@@ -94,6 +96,7 @@ func (c *ConfigResolver) ResolveValue(key string, contextSet ContextGetter) (con
 			}
 		}
 	}
+
 	originalMatchIsConfidential := configMatch.originalMatch.GetConfidential()
 	if configMatch.originalMatch != configMatch.match && ruleMatchResults.match.GetDecryptWith() == "" && originalMatchIsConfidential {
 		configMatch.match.Confidential = configMatch.originalMatch.Confidential
@@ -114,6 +117,7 @@ func (c *ConfigResolver) handleProvided(provided *prefabProto.Provided) (value s
 			return envValue, envValueExists
 		}
 	}
+
 	return "", false
 }
 
@@ -126,12 +130,13 @@ func (c *ConfigResolver) handleDecryption(configValue *prefabProto.ConfigValue, 
 			if err != nil {
 				return "", err
 			}
+
 			return value, nil
 		} else {
 			return "", errors.New("no match in config value") // TODO
 		}
-
 	}
+
 	return "", errors.New("no config value exists") // todo
 }
 

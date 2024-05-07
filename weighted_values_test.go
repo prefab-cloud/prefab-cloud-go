@@ -112,6 +112,7 @@ func (suite *WeightedValueResolverTestSuite) TestValueSelectionInRandomCases() {
 		suite.Run(tt.name, func() {
 			suite.SetupTest() // call this manually to reset instances at this "sub" test level
 			suite.randomer.On("Float64").Return(tt.randomValue)
+
 			var mockings []mocks.ContextMocking
 			if tt.contextMocking != nil {
 				mockings = append(mockings, *tt.contextMocking)
@@ -180,10 +181,12 @@ func (suite *WeightedValueResolverTestSuite) TestValueSelectionInHashingCases() 
 		suite.Run(tt.name, func() {
 			suite.SetupTest() // call this manually to reset instances at this "sub" test level
 			suite.hasher.On("HashZeroToOne", tt.expectedHashArgument).Return(tt.hashValue, true)
+
 			var mockings []mocks.ContextMocking
 			if tt.contextMocking != nil {
 				mockings = append(mockings, *tt.contextMocking)
 			}
+
 			result, index := suite.weightedValueResolver.Resolve(tt.weightedValues, "property name", mocks.NewMockContextWithMultipleValues(mockings))
 			suite.Equal(tt.expectedValue, result)
 			suite.Equal(tt.expectedIndex, index)

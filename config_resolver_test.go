@@ -32,6 +32,7 @@ func newMockDecrypter(args []mockDecrypterArgs) *mockDecrypter {
 	for _, currArg := range args {
 		mockedDecrypter.On("DecryptValue", currArg.key, currArg.encryptedValue).Return(currArg.decryptedValue, currArg.err)
 	}
+
 	return mockedDecrypter
 }
 
@@ -56,6 +57,7 @@ func newMockWeightedValueResolver(args []mockWeightedValueResolverArgs) (mockedW
 	for _, currArg := range args {
 		mockResolver.On("Resolve", currArg.weightedValues, currArg.propertyName, mock.Anything).Return(currArg.returnValue, currArg.index)
 	}
+
 	return mockResolver
 }
 
@@ -78,6 +80,7 @@ func newMockConfigEvaluator(args []mockConfigEvaluatorArgs) *mockConfigEvaluator
 	for _, currArg := range args {
 		mockInstance.On("EvaluateConfig", currArg.config, mock.Anything).Return(currArg.match)
 	}
+
 	return mockInstance
 }
 
@@ -429,6 +432,7 @@ func TestConfigResolver_ResolveValue(t *testing.T) {
 
 			mockContextGetter := new(mocks.MockContextGetter)
 			defer mockContextGetter.AssertExpectations(t)
+
 			if tt.mockEnvLookup != nil {
 				defer tt.mockEnvLookup.AssertExpectations(t)
 			}
@@ -440,6 +444,7 @@ func TestConfigResolver_ResolveValue(t *testing.T) {
 				decrypter:             mockDecrypter,
 				envLookup:             tt.mockEnvLookup,
 			}
+
 			match, err := c.ResolveValue(tt.configKey, mockContextGetter)
 			if tt.expectError {
 				assert.Error(t, err)

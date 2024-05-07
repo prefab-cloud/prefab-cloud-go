@@ -166,6 +166,7 @@ func RunTests(t *testing.T) {
 		assert.True(t, fooExists)
 		assert.NotNil(t, foo)
 		assert.Equal(t, configFoo, foo)
+
 		configFooWithDifferentValuePlusSmallerId := proto.Clone(configFooWithDifferentValue).(*prefabProto.Config)
 		configFooWithDifferentValuePlusSmallerId.Id = 1
 		store.SetFromConfigsProto(&prefabProto.Configs{Configs: []*prefabProto.Config{configFooWithDifferentValuePlusSmallerId}})

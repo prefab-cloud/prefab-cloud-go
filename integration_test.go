@@ -2,12 +2,13 @@ package prefab
 
 import (
 	"fmt"
-	"github.com/stretchr/testify/suite"
-	"gopkg.in/yaml.v3"
 	"os"
 	"path/filepath"
 	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/suite"
+	"gopkg.in/yaml.v3"
 )
 
 type clientOverrides struct {
@@ -51,13 +52,12 @@ func (suite *GeneratedTestSuite) SetupSuite() {
 	suite.BaseDirectory = "./testdata/prefab-cloud-integration-test-data/tests/current"
 	suite.ApiKey = os.Getenv("PREFAB_INTEGRATION_TEST_API_KEY")
 	suite.Require().NotEmpty(suite.ApiKey, "No API key found in environment var PREFAB_INTEGRATION_TEST_API_KEY")
-
 }
 
 func (suite *GeneratedTestSuite) LoadGetTestCasesFromYAML(filename string) []*getTestCase {
-
 	fileContents, err := os.ReadFile(filepath.Join(suite.BaseDirectory, filename))
 	suite.NoError(err)
+
 	var data map[string]interface{}
 	err = yaml.Unmarshal(fileContents, &data)
 	suite.NoError(err)
@@ -78,8 +78,8 @@ func (suite *GeneratedTestSuite) LoadGetTestCasesFromYAML(filename string) []*ge
 	var testCases []*getTestCase
 	err = yaml.Unmarshal(casesBytes, &testCases)
 	suite.NoError(err)
-	return testCases
 
+	return testCases
 }
 
 var typeMap = map[string]interface{}{
@@ -92,7 +92,6 @@ var typeMap = map[string]interface{}{
 }
 
 func (suite *GeneratedTestSuite) TestGet() {
-
 	testCases := suite.LoadGetTestCasesFromYAML("get.yaml")
 	fmt.Printf("test cases are %v", testCases)
 
@@ -101,16 +100,18 @@ func (suite *GeneratedTestSuite) TestGet() {
 			options := NewOptions(func(opts *Options) {
 				opts.PrefabApiUrl = "https://api.staging-prefab.cloud"
 				opts.ApiKey = suite.ApiKey
-				//TODO respect any client overrides
+				// TODO respect any client overrides
 			})
 			client, err := NewClient(options)
 			suite.Require().NoError(err, "client did not initialize")
 			suite.Require().NotNil(testCase.Type, "testcase.Type should not be nil")
 			fmt.Printf("Test case type %s", *testCase.Type)
+
 			fn, ok := typeMap[*testCase.Type]
 			if !ok {
 				suite.Require().Fail("unsupported type", "Type was %s", *testCase.Type)
 			}
+
 			suite.Require().NotNil(fn, "fn should not be nil")
 
 			method := reflect.ValueOf(fn)
@@ -126,15 +127,13 @@ func (suite *GeneratedTestSuite) TestGet() {
 			if !ok && result[1].Interface() != nil {
 				suite.Failf("unexpected error type", "Error type is %T", result[1].Interface())
 			}
+
 			suite.Require().NoError(err, "error looking up key %s", testCase.Input.Key)
 
 			if value != nil {
 				fmt.Printf("returned value is %v of type %T\n", value, value)
 			}
-			//TODO test the answer is what we expect. probably use reflect.DeepEquals?
-
+			// TODO test the answer is what we expect. probably use reflect.DeepEquals?
 		})
-
 	}
-
 }

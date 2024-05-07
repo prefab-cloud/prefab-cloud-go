@@ -24,5 +24,6 @@ func (s *CompositeConfigStore) GetConfig(key string) (config *prefabProto.Config
 			return config, true
 		}
 	}
+
 	return nil, false
 }

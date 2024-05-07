@@ -2,11 +2,12 @@ package prefab
 
 import (
 	"fmt"
-	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
-	"google.golang.org/protobuf/proto"
 	"io"
 	"net/http"
 	"strings"
+
+	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
+	"google.golang.org/protobuf/proto"
 )
 
 type HttpClient struct {
@@ -21,8 +22,10 @@ func BuildHttpClient(options Options) (*HttpClient, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	cdnUrl := strings.Replace(apiUrl, "api", "cdn", 1)
 	client := HttpClient{Options: &options, apiUrl: apiUrl, cdnUrl: cdnUrl}
+
 	return &client, nil
 }
 
@@ -48,12 +51,14 @@ func (c *HttpClient) Load(offset int32) (*prefabProto.Configs, error) {
 		// TODO do not panic
 		panic(err)
 	}
+
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
 		if err != nil {
 			// TODO something?
 		}
 	}(resp.Body)
+
 	if resp.StatusCode >= 300 {
 	}
 
@@ -66,6 +71,7 @@ func (c *HttpClient) Load(offset int32) (*prefabProto.Configs, error) {
 
 	// Deserialize the data into the protobuf message
 	var msg prefabProto.Configs
+
 	err = proto.Unmarshal(bodyBytes, &msg)
 	if err != nil {
 		panic(err)
