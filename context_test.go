@@ -6,7 +6,6 @@ import (
 	"github.com/mohae/deepcopy"
 
 	"github.com/prefab-cloud/prefab-cloud-go/proto"
-	"github.com/prefab-cloud/prefab-cloud-go/utils"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -78,24 +77,24 @@ func (suite *ContextTestSuite) TestContextConversionFromProto() {
 				{
 					Type: stringPtr("user"),
 					Values: map[string]*proto.ConfigValue{
-						"key":   utils.CreateConfigValue("u123"),
-						"email": utils.CreateConfigValue("me@example.com"),
-						"admin": utils.CreateConfigValue(true),
-						"age":   utils.CreateConfigValue(42),
+						"key":   createConfigValueAndAssertOk("u123", suite.T()),
+						"email": createConfigValueAndAssertOk("me@example.com", suite.T()),
+						"admin": createConfigValueAndAssertOk(true, suite.T()),
+						"age":   createConfigValueAndAssertOk(42, suite.T()),
 					},
 				},
 				{
 					Type: stringPtr("team"),
 					Values: map[string]*proto.ConfigValue{
-						"key":  utils.CreateConfigValue("t123"),
-						"name": utils.CreateConfigValue("dev ops"),
+						"key":  createConfigValueAndAssertOk("t123", suite.T()),
+						"name": createConfigValueAndAssertOk("dev ops", suite.T()),
 					},
 				},
 				{
 					Type: stringPtr(""),
 					Values: map[string]*proto.ConfigValue{
-						"key": utils.CreateConfigValue("?234"),
-						"id":  utils.CreateConfigValue(3456),
+						"key": createConfigValueAndAssertOk("?234", suite.T()),
+						"id":  createConfigValueAndAssertOk(3456, suite.T()),
 					},
 				},
 			},

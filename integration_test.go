@@ -2,11 +2,13 @@ package prefab
 
 import (
 	"fmt"
+	"github.com/prefab-cloud/prefab-cloud-go/utils"
 	"os"
 	"path/filepath"
 	"reflect"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/suite"
 	"gopkg.in/yaml.v3"
 )
@@ -88,6 +90,7 @@ var typeMap = map[string]interface{}{
 	"DOUBLE":      (*Client).GetFloatValue,
 	"STRING":      (*Client).GetStringValue,
 	"STRING_LIST": (*Client).GetStringSliceValue,
+	"DURATION":    (*Client).GetDurationValue,
 	// Add more type mappings as needed
 }
 
@@ -122,18 +125,24 @@ func (suite *GeneratedTestSuite) TestGet() {
 			})
 
 			value := result[0].Interface()
-			err, ok = result[1].Interface().(error)
+			ok, okOk := result[1].Interface().(bool)
 
-			if !ok && result[1].Interface() != nil {
-				suite.Failf("unexpected error type", "Error type is %T", result[1].Interface())
-			}
-
+			//err, errOk := result[2].Interface().(error)
+			suite.Require().True(okOk, "Expected fetch of ok value to work")
+			//suite.Require().True(errOk, "Expected fetch of error value to work")
+			suite.Require().True(ok, "GetValue should work")
 			suite.Require().NoError(err, "error looking up key %s", testCase.Input.Key)
 
+			//NOTE this approach does not work. Do something else to turn the yaml loaded value into the right go type
+			// likely based on the `type`  in the test description?
+			// need to do something similar to turn the yaml context bits into a go/prefab context
+			val, _ := utils.Create(*testCase.Expected.Value)
+			val2, _, _ := utils.ExtractValue(val)
 			if value != nil {
 				fmt.Printf("returned value is %v of type %T\n", value, value)
 			}
-			// TODO test the answer is what we expect. probably use reflect.DeepEquals?
+
+			suite.True(cmp.Equal(value, val2))
 		})
 	}
 }
