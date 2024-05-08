@@ -88,7 +88,7 @@ func (cve *ConfigRuleEvaluator) EvaluateConditionalValue(conditionalValue *prefa
 func (cve *ConfigRuleEvaluator) EvaluateCriterion(criterion *prefabProto.Criterion, contextSet ContextGetter) bool {
 	// get the value from context
 	contextValue, contextValueExists := contextSet.GetValue(criterion.GetPropertyName())
-	matchValue, _, err := utils.UnpackConfigValue(criterion.GetValueToMatch())
+	matchValue, _, err := utils.ExtractValue(criterion.GetValueToMatch())
 
 	switch criterion.GetOperator() {
 	case prefabProto.Criterion_NOT_SET:

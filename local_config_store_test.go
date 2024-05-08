@@ -3,8 +3,6 @@ package prefab
 import (
 	"testing"
 
-	"github.com/prefab-cloud/prefab-cloud-go/utils"
-
 	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
 	"github.com/stretchr/testify/suite"
 )
@@ -24,7 +22,7 @@ type configExpectation struct {
 	exists bool
 }
 
-func (s *LocalConfigStoreSuite) TestNewLocalConfigStore() {
+func (suite *LocalConfigStoreSuite) TestNewLocalConfigStore() {
 	testCases := []struct {
 		name             string
 		source_directory string
@@ -38,11 +36,11 @@ func (s *LocalConfigStoreSuite) TestNewLocalConfigStore() {
 				EnvironmentNames: []string{},
 			},
 			expectedConfigs: []configExpectation{
-				{key: "cool.bool.enabled", expected: utils.CreateConfigValue(true)},
+				{key: "cool.bool.enabled", expected: createConfigValueAndAssertOk(true, suite.T())},
 				{key: "cool.bool", exists: false},
 				{key: "hot.int", exists: false},
-				{key: "sample_to_override", expected: utils.CreateConfigValue("value from override in default")},
-				{key: "cool.count", expected: utils.CreateConfigValue(100)},
+				{key: "sample_to_override", expected: createConfigValueAndAssertOk("value from override in default", suite.T())},
+				{key: "cool.count", expected: createConfigValueAndAssertOk(100, suite.T())},
 			},
 		},
 		{
@@ -52,37 +50,37 @@ func (s *LocalConfigStoreSuite) TestNewLocalConfigStore() {
 				EnvironmentNames: []string{"production"},
 			},
 			expectedConfigs: []configExpectation{
-				{key: "cool.bool.enabled", expected: utils.CreateConfigValue(false)},
+				{key: "cool.bool.enabled", expected: createConfigValueAndAssertOk(false, suite.T())},
 				{key: "cool.bool", exists: false},
-				{key: "hot.int", expected: utils.CreateConfigValue(212)},
-				{key: "sample_to_override", expected: utils.CreateConfigValue("value from override in production")},
-				{key: "cool.count", expected: utils.CreateConfigValue(100)},
+				{key: "hot.int", expected: createConfigValueAndAssertOk(212, suite.T())},
+				{key: "sample_to_override", expected: createConfigValueAndAssertOk("value from override in production", suite.T())},
+				{key: "cool.count", expected: createConfigValueAndAssertOk(100, suite.T())},
 			},
 		},
 	}
 
 	for _, tc := range testCases {
-		s.Run(tc.name, func() {
+		suite.Run(tc.name, func() {
 			store := NewLocalConfigStore(tc.source_directory, tc.options)
 
 			// Assert the expected configurations
 			for _, expectation := range tc.expectedConfigs {
 				config, exists := store.GetConfig(expectation.key)
 				if expectation.expected != nil {
-					s.Truef(exists, "Expected config with key '%s' to exist", expectation.key)
-					s.NotNil(config, "Expected config with key '%s' to not be nil", expectation.key)
+					suite.Truef(exists, "Expected config with key '%s' to exist", expectation.key)
+					suite.NotNil(config, "Expected config with key '%s' to not be nil", expectation.key)
 
 					if config != nil {
-						value, onlyValue := s.onlyValue(config)
-						s.Require().True(onlyValue, "Expected config with key '%s' to only have one value", expectation.key)
-						s.Equal(expectation.expected, value, "Expected config with key '%s' to have value %v, got %v", expectation.key, expectation.expected, value)
+						value, onlyValue := suite.onlyValue(config)
+						suite.Require().True(onlyValue, "Expected config with key '%s' to only have one value", expectation.key)
+						suite.Equal(expectation.expected, value, "Expected config with key '%s' to have value %v, got %v", expectation.key, expectation.expected, value)
 					}
 				} else {
-					s.False(exists, "Expected config with key '%s' to not exist", expectation.key)
+					suite.False(exists, "Expected config with key '%s' to not exist", expectation.key)
 				}
 			}
 
-			s.True(store.initialized, "Expected initialized to be true")
+			suite.True(store.initialized, "Expected initialized to be true")
 		})
 	}
 }

@@ -5,7 +5,6 @@ import (
 
 	"github.com/prefab-cloud/prefab-cloud-go/mocks"
 	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
-	"github.com/prefab-cloud/prefab-cloud-go/utils"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 )
@@ -44,15 +43,15 @@ func (suite *WeightedValueResolverTestSuite) SetupTest() {
 func (suite *WeightedValueResolverTestSuite) TestValueSelectionInRandomCases() {
 	wv1 := &prefabProto.WeightedValue{
 		Weight: 100,
-		Value:  utils.CreateConfigValue(1),
+		Value:  createConfigValueAndAssertOk(1, suite.T()),
 	}
 	wv2 := &prefabProto.WeightedValue{
 		Weight: 50,
-		Value:  utils.CreateConfigValue(2),
+		Value:  createConfigValueAndAssertOk(2, suite.T()),
 	}
 	wv3 := &prefabProto.WeightedValue{
 		Weight: 50,
-		Value:  utils.CreateConfigValue(3),
+		Value:  createConfigValueAndAssertOk(3, suite.T()),
 	}
 	weightedValuesWithoutHashValue := &prefabProto.WeightedValues{
 		WeightedValues: []*prefabProto.WeightedValue{
@@ -130,15 +129,15 @@ func (suite *WeightedValueResolverTestSuite) TestValueSelectionInRandomCases() {
 func (suite *WeightedValueResolverTestSuite) TestValueSelectionInHashingCases() {
 	wv1 := &prefabProto.WeightedValue{
 		Weight: 100,
-		Value:  utils.CreateConfigValue(1),
+		Value:  createConfigValueAndAssertOk(1, suite.T()),
 	}
 	wv2 := &prefabProto.WeightedValue{
 		Weight: 50,
-		Value:  utils.CreateConfigValue(2),
+		Value:  createConfigValueAndAssertOk(2, suite.T()),
 	}
 	wv3 := &prefabProto.WeightedValue{
 		Weight: 50,
-		Value:  utils.CreateConfigValue(3),
+		Value:  createConfigValueAndAssertOk(3, suite.T()),
 	}
 	hashByPropertyName := "some.property"
 	weightedValuesWithHashValue := &prefabProto.WeightedValues{

@@ -80,7 +80,8 @@ func (c *ConfigResolver) ResolveValue(key string, contextSet ContextGetter) (con
 		if provided != nil {
 			envValue, envValueExists := c.handleProvided(provided)
 			if envValueExists {
-				configMatch.match = utils.CreateConfigValue(envValue)
+				newValue, _ := utils.Create(envValue)
+				configMatch.match = newValue
 			} else {
 				return configMatch, ErrEnvVarNotExist
 			}
@@ -89,7 +90,8 @@ func (c *ConfigResolver) ResolveValue(key string, contextSet ContextGetter) (con
 		if ruleMatchResults.match.GetDecryptWith() != "" {
 			decryptedValue, err := c.handleDecryption(ruleMatchResults.match, contextSet)
 			if err == nil {
-				configMatch.match = utils.CreateConfigValue(decryptedValue)
+				value, _ := utils.Create(decryptedValue)
+				configMatch.match = value
 				configMatch.match.Confidential = boolPtr(true)
 			} else {
 				return configMatch, err

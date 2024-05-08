@@ -3,6 +3,7 @@ package prefab
 import (
 	"errors"
 	"fmt"
+	"log/slog"
 	"reflect"
 	"strings"
 
@@ -53,9 +54,14 @@ func (p *LocalConfigYamlParser) handleMapKeyValue(keyPath []string, mapKey strin
 					return nil, errors.New("yaml must contain 'value' key")
 				}
 
-				newConfig, newConfigErr := p.createConfig(mapKey, utils.CreateConfigValue(configValueValue), configType)
-				if newConfigErr != nil {
-					return nil, newConfigErr
+				actualConfigValue, ok := utils.Create(configValueValue)
+				if !ok {
+					return nil, fmt.Errorf("unable to create configValue with %v", configValueValue)
+				}
+
+				newConfig, ok := p.createConfig(mapKey, actualConfigValue, configType)
+				if !ok {
+					return nil, fmt.Errorf("unable to create config with %v", actualConfigValue)
 				}
 
 				return []*prefabProto.Config{newConfig}, nil
@@ -64,9 +70,10 @@ func (p *LocalConfigYamlParser) handleMapKeyValue(keyPath []string, mapKey strin
 			var accumulatedConfigValues []*prefabProto.Config
 
 			if underscoreValue, underscoreExists := value["_"]; underscoreExists {
-				configValue, err := p.createConfig(strings.Join(append(keyPath, mapKey), "."), underscoreValue, configType)
-				if err != nil {
-					return nil, err
+				fullKeyName := strings.Join(append(keyPath, mapKey), ".")
+				configValue, ok := p.createConfig(fullKeyName, underscoreValue, configType)
+				if !ok {
+					return nil, fmt.Errorf("unable to create config for key %s", fullKeyName)
 				}
 
 				accumulatedConfigValues = append(accumulatedConfigValues, configValue)
@@ -91,9 +98,9 @@ func (p *LocalConfigYamlParser) handleMapKeyValue(keyPath []string, mapKey strin
 	default:
 		newKey := strings.Join(append(keyPath, mapKey), ".")
 
-		newConfig, newConfigErr := p.createConfig(newKey, mapValue, configType)
-		if newConfigErr != nil {
-			return nil, newConfigErr
+		newConfig, ok := p.createConfig(newKey, mapValue, configType)
+		if !ok {
+			return nil, fmt.Errorf("unable to create config with %v", newKey)
 		}
 
 		return []*prefabProto.Config{newConfig}, nil
@@ -111,7 +118,7 @@ func (p *LocalConfigYamlParser) coerceToBool(maybeBool interface{}) (value bool,
 	}
 }
 
-func (p *LocalConfigYamlParser) createConfig(key string, value interface{}, configType prefabProto.ConfigType) (*prefabProto.Config, error) {
+func (p *LocalConfigYamlParser) createConfig(key string, value any, configType prefabProto.ConfigType) (*prefabProto.Config, bool) {
 	var configValue *prefabProto.ConfigValue
 
 	if key == "log-level" || strings.HasPrefix(key, "log-level") {
@@ -121,27 +128,32 @@ func (p *LocalConfigYamlParser) createConfig(key string, value interface{}, conf
 		case string:
 			logLevel, ok := prefabProto.LogLevel_value[strings.ToUpper(v)]
 			if !ok {
-				return nil, fmt.Errorf("invalid log level: %s", v)
+				slog.Info("key %s has invalid log level: %s", key, v)
+				return nil, false
 			}
 
-			configValue = utils.CreateConfigValue(&prefabProto.ConfigValue_LogLevel{LogLevel: prefabProto.LogLevel(logLevel)})
+			configValue, ok = utils.Create(&prefabProto.ConfigValue_LogLevel{LogLevel: prefabProto.LogLevel(logLevel)})
 		default:
-			return nil, fmt.Errorf("invalid value type for log-level: %T", value)
+			slog.Info("key %s should have a string value type but it was %T", key, value)
+			return nil, false
 		}
 	} else {
-		configValue = utils.CreateConfigValue(value)
+		var ok bool
+		configValue, ok = utils.Create(value)
+		slog.Info(fmt.Sprintf("create value failed for key %s", key))
+
+		if !ok {
+			return nil, false
+		}
 	}
 
 	row := &prefabProto.ConfigRow{
 		Values: []*prefabProto.ConditionalValue{{Value: configValue}},
 	}
 
-	valueType, valueTypeErr := utils.ValueTypeFromConfigValue(configValue)
-	if valueTypeErr != nil {
-		return nil, valueTypeErr
-	}
+	valueType := utils.GetValueType(configValue)
 
-	return &prefabProto.Config{Key: key, Rows: []*prefabProto.ConfigRow{row}, ValueType: valueType, ConfigType: configType}, nil
+	return &prefabProto.Config{Key: key, Rows: []*prefabProto.ConfigRow{row}, ValueType: valueType, ConfigType: configType}, true
 }
 
 func (p *LocalConfigYamlParser) isSingleNestedMap(m map[string]interface{}) bool {

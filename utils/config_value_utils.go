@@ -3,6 +3,7 @@ package utils
 import (
 	"errors"
 	"fmt"
+	"log/slog"
 	"reflect"
 	"strconv"
 	"strings"
@@ -11,10 +12,10 @@ import (
 	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
 )
 
-func CreateConfigValue(value interface{}) *prefabProto.ConfigValue {
+func Create(value any) (*prefabProto.ConfigValue, bool) {
 	// Check if value is already a *prefabProto.ConfigValue
 	if cv, ok := value.(*prefabProto.ConfigValue); ok {
-		return cv // Return early if it's already the correct type
+		return cv, true // Return early if it's already the correct type
 	}
 
 	configValue := &prefabProto.ConfigValue{}
@@ -38,23 +39,24 @@ func CreateConfigValue(value interface{}) *prefabProto.ConfigValue {
 	case *prefabProto.ConfigValue_LogLevel:
 		configValue.Type = v
 	case time.Duration:
-		configValue.Type = &prefabProto.ConfigValue_Duration{Duration: &prefabProto.IsoDuration{Definition: DurationToISO8601(v)}}
+		configValue.Type = &prefabProto.ConfigValue_Duration{Duration: &prefabProto.IsoDuration{Definition: durationToISO8601(v)}}
 	case *interface{}:
 		if v != nil {
-			return CreateConfigValue(*v)
+			return Create(*v)
 		}
-
-		return nil
+		slog.Warn("create unable to handle nil")
+		return nil, false
 	default:
-		fmt.Printf("Unsupported type: %v\n", reflect.TypeOf(value))
+		slog.Warn(fmt.Sprintf("Unsupported type: %T", value))
+		return nil, false
 	}
 
-	return configValue
+	return configValue, true
 }
 
-// UnpackConfigValue returns the value of the oneof field and a boolean indicating
+// ExtractValue returns the value of the oneof field and a boolean indicating
 // if it's one of the simple types (fields 1-5, 10). returns nil, false if the configvalue is nil
-func UnpackConfigValue(cv *prefabProto.ConfigValue) (value interface{}, simpleTypeAvailable bool, err error) {
+func ExtractValue(cv *prefabProto.ConfigValue) (value any, simpleTypeAvailable bool, err error) {
 	if cv == nil {
 		return nil, false, nil
 	}
@@ -87,96 +89,99 @@ func UnpackConfigValue(cv *prefabProto.ConfigValue) (value interface{}, simpleTy
 	}
 }
 
-// ValueTypeFromConfigValue returns the value type we'd expect the config containing this value to have
-func ValueTypeFromConfigValue(cv *prefabProto.ConfigValue) (prefabProto.Config_ValueType, error) {
+// GetValueType returns the value type we'd expect the config containing this value to have
+func GetValueType(cv *prefabProto.ConfigValue) prefabProto.Config_ValueType {
 	if cv == nil {
-		return prefabProto.Config_NOT_SET_VALUE_TYPE, errors.New("config value was nil")
+		return prefabProto.Config_NOT_SET_VALUE_TYPE
 	}
 
 	switch cv.Type.(type) {
 	case *prefabProto.ConfigValue_Int:
-		return prefabProto.Config_INT, nil
+		return prefabProto.Config_INT
 	case *prefabProto.ConfigValue_String_:
-		return prefabProto.Config_STRING, nil
+		return prefabProto.Config_STRING
 	case *prefabProto.ConfigValue_Bytes:
-		return prefabProto.Config_BYTES, nil
+		return prefabProto.Config_BYTES
 	case *prefabProto.ConfigValue_Double:
-		return prefabProto.Config_DOUBLE, nil
+		return prefabProto.Config_DOUBLE
 	case *prefabProto.ConfigValue_Bool:
-		return prefabProto.Config_BOOL, nil
+		return prefabProto.Config_BOOL
 	case *prefabProto.ConfigValue_StringList:
 		// StringList is considered a simple type for this example, returning the slice of strings directly.
-		return prefabProto.Config_STRING_LIST, nil
+		return prefabProto.Config_STRING_LIST
 	case *prefabProto.ConfigValue_LogLevel:
-		return prefabProto.Config_LOG_LEVEL, nil
+		return prefabProto.Config_LOG_LEVEL
 	case *prefabProto.ConfigValue_Duration:
-		return prefabProto.Config_DURATION, nil
-	default:
-		// For other types, return the protobuf value itself and false.
-		return prefabProto.Config_NOT_SET_VALUE_TYPE, nil
+		return prefabProto.Config_DURATION
+	case *prefabProto.ConfigValue_Json:
+		return prefabProto.Config_JSON
 	}
+	//For other types, return the protobuf value itself and false.
+	return prefabProto.Config_NOT_SET_VALUE_TYPE
 }
 
-type ConfigValueParseFunction func(*prefabProto.ConfigValue) (interface{}, error)
+type ExtractValueFunction func(*prefabProto.ConfigValue) (any, bool)
 
-func ParseIntValue(cv *prefabProto.ConfigValue) (int64, error) {
+func ExtractIntValue(cv *prefabProto.ConfigValue) (int64, bool) {
 	switch v := cv.Type.(type) {
 	case *prefabProto.ConfigValue_Int:
-		return v.Int, nil
+		return v.Int, true
 	default:
-		return 0, errors.New("config did not produce the correct type for Int")
+		return 0, false
 	}
 }
 
-func ParseStringValue(cv *prefabProto.ConfigValue) (string, error) {
+func ExtractStringValue(cv *prefabProto.ConfigValue) (string, bool) {
 	switch v := cv.Type.(type) {
 	case *prefabProto.ConfigValue_String_:
-		return v.String_, nil
+		return v.String_, true
 	default:
-		return "", errors.New("config did not produce the correct type for String")
+		return "", false
 	}
 }
 
-func ParseFloatValue(cv *prefabProto.ConfigValue) (float64, error) {
+func ExtractFloatValue(cv *prefabProto.ConfigValue) (float64, bool) {
 	switch v := cv.Type.(type) {
 	case *prefabProto.ConfigValue_Double:
-		return v.Double, nil
+		return v.Double, true
 	default:
-		return 0, errors.New("config did not produce the correct type for Float")
+		return 0, false
 	}
 }
 
-func ParseBoolValue(cv *prefabProto.ConfigValue) (bool, error) {
+func ExtractBoolValue(cv *prefabProto.ConfigValue) (bool, bool) {
 	switch v := cv.Type.(type) {
 	case *prefabProto.ConfigValue_Bool:
-		return v.Bool, nil
+		return v.Bool, true
 	default:
-		return false, errors.New("config did not produce the correct type for Bool")
+		return false, false
 	}
 }
 
-func ParseStringListValue(cv *prefabProto.ConfigValue) ([]string, error) {
+func ExtractStringListValue(cv *prefabProto.ConfigValue) ([]string, bool) {
 	switch v := cv.Type.(type) {
 	case *prefabProto.ConfigValue_StringList:
-		return v.StringList.Values, nil
+		return v.StringList.Values, true
 	default:
-		return nil, errors.New("config did not produce the correct type for StringList")
+		var zero []string
+		return zero, false
 	}
 }
 
-func ParseDurationValue(cv *prefabProto.ConfigValue) (time.Duration, error) {
+func ExtractDurationValue(cv *prefabProto.ConfigValue) (time.Duration, bool) {
 	switch v := cv.Type.(type) {
 	case *prefabProto.ConfigValue_Duration:
 		{
 			duration, err := time.ParseDuration(v.Duration.Definition)
 			if err != nil {
-				return time.Duration(0), err
+				slog.Debug(fmt.Sprintf("Failed to parse duration value: %s", v.Duration.Definition))
+				return time.Duration(0), false
 			}
-
-			return duration, nil
+			return duration, true
 		}
 	default:
-		return time.Duration(0), errors.New("config did not produce the correct type for Duration")
+		var zero time.Duration
+		return zero, false
 	}
 }
 
@@ -189,7 +194,7 @@ func parseBytesValue(cv *prefabProto.ConfigValue) (interface{}, error) {
 	}
 }
 
-func DurationToISO8601(d time.Duration) string {
+func durationToISO8601(d time.Duration) string {
 	var (
 		years   = int64(d / (365 * 24 * time.Hour))
 		months  = int64(d % (365 * 24 * time.Hour) / (30 * 24 * time.Hour))
