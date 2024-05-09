@@ -115,7 +115,7 @@ func (c *ConfigResolver) handleProvided(provided *prefabProto.Provided) (value s
 	switch provided.GetSource() {
 	case prefabProto.ProvidedSource_ENV_VAR:
 		if provided.Lookup != nil {
-			envValue, envValueExists := c.envLookup.LookupEnv(provided.GetLookup())
+			envValue, envValueExists := os.LookupEnv(provided.GetLookup())
 			return envValue, envValueExists
 		}
 	}
@@ -123,17 +123,22 @@ func (c *ConfigResolver) handleProvided(provided *prefabProto.Provided) (value s
 	return "", false
 }
 
-func (c *ConfigResolver) handleDecryption(configValue *prefabProto.ConfigValue, contextSet ContextGetter) (decryptedValue string, err error) {
+func (c *ConfigResolver) handleDecryption(configValue *prefabProto.ConfigValue, contextSet ContextGetter) (string, error) {
 	config, configExists := c.configStore.GetConfig(configValue.GetDecryptWith())
 	if configExists {
 		match := c.ruleEvaluator.EvaluateConfig(config, contextSet)
 		if match.isMatch {
-			value, err := c.decrypter.DecryptValue(match.match.GetString_(), configValue.GetString_())
-			if err != nil {
-				return "", err
+			key, keyOk, _ := utils.ExtractValue(match.match)
+			if keyOk {
+				keyStr, ok := key.(string)
+				if !ok {
+					return "", errors.New("secret key is not a string")
+				}
+				decryptedValue, decryptionError := c.decrypter.DecryptValue(keyStr, configValue.GetString_())
+				return decryptedValue, decryptionError
+			} else {
+				return "", errors.New("secret key lookup failed")
 			}
-
-			return value, nil
 		} else {
 			return "", errors.New("no match in config value") // TODO
 		}
