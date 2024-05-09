@@ -6,6 +6,7 @@ import (
 	"github.com/prefab-cloud/prefab-cloud-go/anyhelpers"
 	durationParser "github.com/sosodev/duration"
 	"log/slog"
+	"os"
 	"reflect"
 	"strconv"
 	"strings"
@@ -87,13 +88,26 @@ func ExtractValue(cv *prefabProto.ConfigValue) (value any, simpleTypeAvailable b
 		if err != nil {
 			return duration, true, nil
 		}
-
 		return nil, false, err
-
+	case *prefabProto.ConfigValue_Provided:
+		val, ok := handleProvided(v.Provided)
+		return val, ok, nil
 	default:
 		// For other types, return the protobuf value itself and false.
 		return v, false, nil
 	}
+}
+
+func handleProvided(provided *prefabProto.Provided) (value string, ok bool) {
+	switch provided.GetSource() {
+	case prefabProto.ProvidedSource_ENV_VAR:
+		if provided.Lookup != nil {
+			envValue, envValueExists := os.LookupEnv(provided.GetLookup())
+			return envValue, envValueExists
+		}
+	}
+
+	return "", false
 }
 
 // GetValueType returns the value type we'd expect the config containing this value to have
