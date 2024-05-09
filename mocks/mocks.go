@@ -106,27 +106,3 @@ func NewMockProjectEnvIdSupplier(envId int64) *MockProjectEnvIdSupplier {
 
 	return &mockInstance
 }
-
-type MockEnvLookup struct {
-	mock.Mock
-}
-
-func (m *MockEnvLookup) LookupEnv(key string) (string, bool) {
-	args := m.Called(key)
-	return args.String(0), args.Bool(1)
-}
-
-type MockEnvLookupConfig struct {
-	Name        string
-	Value       string
-	ValueExists bool
-}
-
-func NewMockEnvLookup(args []MockEnvLookupConfig) *MockEnvLookup {
-	mockInstance := MockEnvLookup{}
-	for _, mockingArg := range args {
-		mockInstance.On("LookupEnv", mockingArg.Name).Return(mockingArg.Value, mockingArg.ValueExists)
-	}
-
-	return &mockInstance
-}
