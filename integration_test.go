@@ -2,11 +2,13 @@ package prefab
 
 import (
 	"fmt"
-	"github.com/prefab-cloud/prefab-cloud-go/utils"
+	"github.com/prefab-cloud/prefab-cloud-go/anyhelpers"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/suite"
@@ -20,7 +22,8 @@ type clientOverrides struct {
 	OnInitFailure            *string      `yaml:"on_init_failure"`
 }
 type input struct {
-	Key string `yaml:"key"`
+	Key     string  `yaml:"key"`
+	Default *string `yaml:"default"`
 }
 
 type expected struct {
@@ -94,6 +97,15 @@ var typeMap = map[string]interface{}{
 	// Add more type mappings as needed
 }
 
+var typeWithDefaultsMap = map[string]interface{}{
+	"INT":         (*Client).GetIntValueWithDefault,
+	"BOOL":        (*Client).GetBoolValueWithDefault,
+	"DOUBLE":      (*Client).GetFloatValueWithDefault,
+	"STRING":      (*Client).GetStringValueWithDefault,
+	"STRING_LIST": (*Client).GetStringSliceValueWithDefault,
+	// Add more type mappings as needed
+}
+
 func (suite *GeneratedTestSuite) TestGet() {
 	testCases := suite.LoadGetTestCasesFromYAML("get.yaml")
 	fmt.Printf("test cases are %v", testCases)
@@ -103,46 +115,104 @@ func (suite *GeneratedTestSuite) TestGet() {
 			options := NewOptions(func(opts *Options) {
 				opts.PrefabApiUrl = "https://api.staging-prefab.cloud"
 				opts.ApiKey = suite.ApiKey
-				// TODO respect any client overrides
+				// TODO respect anyhelpers client overrides
 			})
 			client, err := NewClient(options)
-			suite.Require().NoError(err, "client did not initialize")
-			suite.Require().NotNil(testCase.Type, "testcase.Type should not be nil")
+			suite.Require().NoError(err, "client constructor failed")
+			suite.Require().NotNil(testCase.Type, "testcase.Type should not be nil. Fix the data")
 			fmt.Printf("Test case type %s", *testCase.Type)
 
-			fn, ok := typeMap[*testCase.Type]
-			if !ok {
-				suite.Require().Fail("unsupported type", "Type was %s", *testCase.Type)
+			var returnOfGetCall []reflect.Value
+			defaultValue, hasDefault := getDefaultValue(testCase)
+			if hasDefault {
+				fn, ok := typeWithDefaultsMap[*testCase.Type]
+				if !ok {
+					suite.Require().Fail("unsupported type for case with default value", "Type was %s", *testCase.Type)
+				}
+				method := reflect.ValueOf(fn)
+				returnOfGetCall = method.Call([]reflect.Value{
+					reflect.ValueOf(client),
+					reflect.ValueOf(testCase.Input.Key),
+					reflect.ValueOf(*NewContextSet()),
+					reflect.ValueOf(defaultValue),
+				})
+
+			} else {
+				fn, ok := typeMap[*testCase.Type]
+				if !ok {
+					suite.Require().Fail("unsupported type", "Type was %s", *testCase.Type)
+				}
+				method := reflect.ValueOf(fn)
+				returnOfGetCall = method.Call([]reflect.Value{
+					reflect.ValueOf(client),
+					reflect.ValueOf(testCase.Input.Key),
+					reflect.ValueOf(*NewContextSet()),
+				})
 			}
 
-			suite.Require().NotNil(fn, "fn should not be nil")
+			expectedValue, foundExpectedValue := processExpectedValue(testCase)
+			suite.Require().True(foundExpectedValue, "no expected value for test case %s", testCase.Name)
 
-			method := reflect.ValueOf(fn)
-			result := method.Call([]reflect.Value{
-				reflect.ValueOf(client),
-				reflect.ValueOf(testCase.Input.Key),
-				reflect.ValueOf(*NewContextSet()),
-			})
+			configValueResult := returnOfGetCall[0].Interface()
+			ok, okOk := returnOfGetCall[1].Interface().(bool)
+			suite.Require().True(okOk, "Expected fetch of ok value to work, check reflection code in test")
+			var returnedError error
+			if !hasDefault {
+				if len(returnOfGetCall) >= 3 {
+					returnedValue := returnOfGetCall[2].Interface()
+					if returnedValue == nil {
+						returnedError = nil
+					} else {
+						var errOk bool
+						returnedError, errOk = returnedValue.(error)
+						suite.Require().True(errOk, fmt.Sprintf("Expected third return value to be of type error, but got: %T", returnedValue))
+					}
+				} else {
+					suite.Require().Fail(fmt.Sprintf("Expected at least three return values from the function, but got: %d", len(returnOfGetCall)))
+				}
+			}
+			if expectedValue == nil {
+				suite.Require().False(ok, "Expected nil return so the ok return from getter should be false")
+				if !hasDefault {
+					suite.ErrorContains(returnedError, "does not exist", "Error should be present containing `does not exist`")
 
-			value := result[0].Interface()
-			ok, okOk := result[1].Interface().(bool)
-
-			//err, errOk := result[2].Interface().(error)
-			suite.Require().True(okOk, "Expected fetch of ok value to work")
-			//suite.Require().True(errOk, "Expected fetch of error value to work")
-			suite.Require().True(ok, "GetValue should work")
-			suite.Require().NoError(err, "error looking up key %s", testCase.Input.Key)
-
-			//NOTE this approach does not work. Do something else to turn the yaml loaded value into the right go type
-			// likely based on the `type`  in the test description?
-			// need to do something similar to turn the yaml context bits into a go/prefab context
-			val, _ := utils.Create(*testCase.Expected.Value)
-			val2, _, _ := utils.ExtractValue(val)
-			if value != nil {
-				fmt.Printf("returned value is %v of type %T\n", value, value)
+				}
+			} else {
+				suite.Require().True(ok, "GetValue should work")
+				suite.Require().NoError(returnedError, "error looking up key %s", testCase.Input.Key)
+				suite.True(cmp.Equal(configValueResult, expectedValue))
 			}
 
-			suite.True(cmp.Equal(value, val2))
 		})
 	}
+}
+
+func getDefaultValue(testCase *getTestCase) (interface{}, bool) {
+	if testCase.Input.Default == nil {
+		return nil, false
+	}
+	return *testCase.Input.Default, true
+}
+
+func processExpectedValue(testCase *getTestCase) (interface{}, bool) {
+	if testCase.Expected.Millis != nil {
+		return time.Duration(*testCase.Expected.Millis) * time.Millisecond, true
+	}
+	if testCase.Expected.Value != nil {
+		switch val := (*testCase.Expected.Value).(type) {
+		case []any:
+			if properSlice, isSlice := anyhelpers.CanonicalizeSlice(val); isSlice {
+				return properSlice, true
+			}
+			slog.Warn("slice has mixed type contents, unable to canonicalize")
+			return nil, false
+		case int:
+			return int64(val), true
+		default:
+			return val, true
+		}
+	}
+	slog.Warn("fell through processExpectedValue")
+	return nil, true
+
 }

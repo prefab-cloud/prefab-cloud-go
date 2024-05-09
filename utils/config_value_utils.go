@@ -15,6 +15,8 @@ import (
 	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
 )
 
+// Create switches on the type of the any value passed in - will return the prefabConfigValue of a matching
+// type if possible -- ie pass in an int, get back a ConfigValue_Int
 func Create(value any) (*prefabProto.ConfigValue, bool) {
 	// Check if value is already a *prefabProto.ConfigValue
 	if cv, ok := value.(*prefabProto.ConfigValue); ok {

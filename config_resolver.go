@@ -3,6 +3,7 @@ package prefab
 import (
 	"errors"
 	"os"
+	"strconv"
 	"time"
 
 	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
@@ -80,8 +81,10 @@ func (c *ConfigResolver) ResolveValue(key string, contextSet ContextGetter) (con
 		if provided != nil {
 			envValue, envValueExists := c.handleProvided(provided)
 			if envValueExists {
-				newValue, _ := utils.Create(envValue)
-				configMatch.match = newValue
+				if coercedValue, coercionWorked := coerceValue(envValue, config.ValueType); coercionWorked {
+					newValue, _ := utils.Create(coercedValue)
+					configMatch.match = newValue
+				}
 			} else {
 				return configMatch, ErrEnvVarNotExist
 			}
@@ -121,6 +124,28 @@ func (c *ConfigResolver) handleProvided(provided *prefabProto.Provided) (value s
 	}
 
 	return "", false
+}
+
+func coerceValue(value string, valueType prefabProto.Config_ValueType) (any, bool) {
+	switch valueType {
+	case prefabProto.Config_STRING:
+		return value, true
+	case prefabProto.Config_NOT_SET_VALUE_TYPE: // could in this case get info on the requested type (ie which method was called?)
+		return value, true
+	case prefabProto.Config_INT:
+		if number, err := strconv.Atoi(value); err == nil {
+			return number, true
+		}
+	case prefabProto.Config_DOUBLE:
+		if number, err := strconv.ParseFloat(value, 64); err == nil {
+			return number, true
+		}
+	case prefabProto.Config_BOOL:
+		if bValue, err := strconv.ParseBool(value); err == nil {
+			return bValue, true
+		}
+	}
+	return nil, false
 }
 
 func (c *ConfigResolver) handleDecryption(configValue *prefabProto.ConfigValue, contextSet ContextGetter) (string, error) {
