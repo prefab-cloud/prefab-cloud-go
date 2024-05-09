@@ -14,7 +14,7 @@ type MockContextGetter struct {
 	mock.Mock
 }
 
-func (m *MockContextGetter) GetValue(propertyName string) (value interface{}, valueExists bool) {
+func (m *MockContextGetter) GetContextValue(propertyName string) (value interface{}, valueExists bool) {
 	args := m.Called(propertyName)
 	if args.Get(0) != nil {
 		value = args.Get(0).(interface{})
@@ -371,7 +371,7 @@ func (suite *ConfigRuleTestSuite) TestInSegmentCriterion() {
 	for _, tt := range tests {
 		suite.Run(tt.name, func() {
 			mockContext, assertMockCalled := suite.setupMockContext(contextPropertyName, tt.contextValue, tt.contextValueExists)
-			mockContext.On("GetValue", "").Return(nil, false)
+			mockContext.On("GetContextValue", "").Return(nil, false)
 
 			defer assertMockCalled()
 
@@ -410,7 +410,7 @@ func (suite *ConfigRuleTestSuite) TestNotInSegmentCriterion() {
 	for _, tt := range tests {
 		suite.Run(tt.name, func() {
 			mockContext, assertMockCalled := suite.setupMockContext(contextPropertyName, tt.contextValue, tt.contextValueExists)
-			mockContext.On("GetValue", "").Return(nil, false)
+			mockContext.On("GetContextValue", "").Return(nil, false)
 
 			defer assertMockCalled()
 
@@ -468,11 +468,11 @@ func (suite *ConfigRuleTestSuite) setupMockContext(contextPropertyName string, c
 	mockContext := MockContextGetter{}
 	if contextExistsValue {
 		// When context exists, return the provided contextValue and true.
-		mockContext.On("GetValue", contextPropertyName).Return(contextValue, contextExistsValue)
+		mockContext.On("GetContextValue", contextPropertyName).Return(contextValue, contextExistsValue)
 	} else {
 		// When context doesn't exist, ensure the mock returns nil for the contextValue (or a suitable zero value) and false.
 		// This simulates the absence of the value correctly.
-		mockContext.On("GetValue", contextPropertyName).Return(nil, false)
+		mockContext.On("GetContextValue", contextPropertyName).Return(nil, false)
 	}
 
 	cleanupFunc := func() {
@@ -496,9 +496,9 @@ func (suite *ConfigRuleTestSuite) setupMockContextWithMultipleValues(mockings []
 		contextExistsValue := mocking.exists
 
 		if contextExistsValue {
-			mockContext.On("GetValue", mocking.contextPropertyName).Return(contextValue, true)
+			mockContext.On("GetContextValue", mocking.contextPropertyName).Return(contextValue, true)
 		} else {
-			mockContext.On("GetValue", mocking.contextPropertyName).Return(nil, false)
+			mockContext.On("GetContextValue", mocking.contextPropertyName).Return(nil, false)
 		}
 	}
 

@@ -22,7 +22,7 @@ func NewWeightedValueResolver(seed int64, hasher Hasher) *WeightedValueResolver 
 	}
 }
 
-func (wve *WeightedValueResolver) Resolve(weightedValues *prefabProto.WeightedValues, propertyName string, contextGetter ContextGetter) (valueResult *prefabProto.ConfigValue, index int) {
+func (wve *WeightedValueResolver) Resolve(weightedValues *prefabProto.WeightedValues, propertyName string, contextGetter ContextValueGetter) (valueResult *prefabProto.ConfigValue, index int) {
 	fractionThroughDistribution := wve.getUserFraction(weightedValues, propertyName, contextGetter)
 
 	sum := int32(0)
@@ -43,9 +43,9 @@ func (wve *WeightedValueResolver) Resolve(weightedValues *prefabProto.WeightedVa
 	return weightedValues.WeightedValues[0].Value, 0
 }
 
-func (wve *WeightedValueResolver) getUserFraction(weightedValues *prefabProto.WeightedValues, propertyName string, contextGetter ContextGetter) float64 {
+func (wve *WeightedValueResolver) getUserFraction(weightedValues *prefabProto.WeightedValues, propertyName string, contextGetter ContextValueGetter) float64 {
 	if weightedValues.HashByPropertyName != nil {
-		value, valueExists := contextGetter.GetValue(*weightedValues.HashByPropertyName)
+		value, valueExists := contextGetter.GetContextValue(*weightedValues.HashByPropertyName)
 		if valueExists {
 			valueToBeHashed := fmt.Sprintf("%s%v", propertyName, value)
 			hashValue, _ := wve.hasher.HashZeroToOne(valueToBeHashed)

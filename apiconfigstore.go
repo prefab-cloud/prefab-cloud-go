@@ -14,6 +14,7 @@ type ApiConfigStore struct {
 	initialized   bool
 	highWatermark int64
 	projectEnvId  int64
+	contextSet    *ContextSet
 	sync.RWMutex
 }
 
@@ -38,7 +39,13 @@ func (cs *ApiConfigStore) SetConfigs(configs []*prefabProto.Config, envId int64)
 }
 
 func (cs *ApiConfigStore) SetFromConfigsProto(configs *prefabProto.Configs) {
+	cs.contextSet = NewContextSetFromProto(configs.DefaultContext)
 	cs.SetConfigs(configs.Configs, configs.ConfigServicePointer.GetProjectEnvId())
+}
+
+func (cs *ApiConfigStore) GetContextValue(propertyName string) (value interface{}, valueExists bool) {
+	value, valueExists = cs.contextSet.GetContextValue(propertyName)
+	return value, valueExists
 }
 
 func (cs *ApiConfigStore) Len() int {

@@ -29,7 +29,7 @@ func NewConfigRuleEvaluator(configStore ConfigStoreGetter, supplier ProjectEnvId
 	}
 }
 
-func (cve *ConfigRuleEvaluator) EvaluateConfig(config *prefabProto.Config, contextSet ContextGetter) ConditionMatch {
+func (cve *ConfigRuleEvaluator) EvaluateConfig(config *prefabProto.Config, contextSet ContextValueGetter) ConditionMatch {
 	// find the right row for the env id, then the no-env id row
 	// iterate over conditional values in rows
 	// evaluate criterion
@@ -56,7 +56,7 @@ func (cve *ConfigRuleEvaluator) EvaluateConfig(config *prefabProto.Config, conte
 	return ConditionMatch{isMatch: false}
 }
 
-func (cve *ConfigRuleEvaluator) EvaluateRow(row *prefabProto.ConfigRow, contextSet ContextGetter, rowIndex int) ConditionMatch {
+func (cve *ConfigRuleEvaluator) EvaluateRow(row *prefabProto.ConfigRow, contextSet ContextValueGetter, rowIndex int) ConditionMatch {
 	conditionMatch := ConditionMatch{}
 	conditionMatch.isMatch = false
 
@@ -75,7 +75,7 @@ func (cve *ConfigRuleEvaluator) EvaluateRow(row *prefabProto.ConfigRow, contextS
 	return conditionMatch
 }
 
-func (cve *ConfigRuleEvaluator) EvaluateConditionalValue(conditionalValue *prefabProto.ConditionalValue, contextSet ContextGetter) (*prefabProto.ConfigValue, bool) {
+func (cve *ConfigRuleEvaluator) EvaluateConditionalValue(conditionalValue *prefabProto.ConditionalValue, contextSet ContextValueGetter) (*prefabProto.ConfigValue, bool) {
 	for _, criterion := range conditionalValue.Criteria {
 		if !cve.EvaluateCriterion(criterion, contextSet) {
 			return nil, false
@@ -85,9 +85,9 @@ func (cve *ConfigRuleEvaluator) EvaluateConditionalValue(conditionalValue *prefa
 	return conditionalValue.GetValue(), true
 }
 
-func (cve *ConfigRuleEvaluator) EvaluateCriterion(criterion *prefabProto.Criterion, contextSet ContextGetter) bool {
+func (cve *ConfigRuleEvaluator) EvaluateCriterion(criterion *prefabProto.Criterion, contextSet ContextValueGetter) bool {
 	// get the value from context
-	contextValue, contextValueExists := contextSet.GetValue(criterion.GetPropertyName())
+	contextValue, contextValueExists := contextSet.GetContextValue(criterion.GetPropertyName())
 	matchValue, _, err := utils.ExtractValue(criterion.GetValueToMatch())
 
 	switch criterion.GetOperator() {

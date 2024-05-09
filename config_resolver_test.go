@@ -38,7 +38,7 @@ type mockWeightedValueResolver struct {
 	mock.Mock
 }
 
-func (m *mockWeightedValueResolver) Resolve(weightedValues *prefabProto.WeightedValues, propertyName string, contextGetter ContextGetter) (valueResult *prefabProto.ConfigValue, index int) {
+func (m *mockWeightedValueResolver) Resolve(weightedValues *prefabProto.WeightedValues, propertyName string, contextGetter ContextValueGetter) (valueResult *prefabProto.ConfigValue, index int) {
 	args := m.Called(weightedValues, propertyName, contextGetter)
 	return args.Get(0).(*prefabProto.ConfigValue), args.Int(1)
 }
@@ -63,7 +63,7 @@ type mockConfigEvaluator struct {
 	mock.Mock
 }
 
-func (m *mockConfigEvaluator) EvaluateConfig(config *prefabProto.Config, contextSet ContextGetter) (match ConditionMatch) {
+func (m *mockConfigEvaluator) EvaluateConfig(config *prefabProto.Config, contextSet ContextValueGetter) (match ConditionMatch) {
 	args := m.Called(config, contextSet)
 	return args.Get(0).(ConditionMatch)
 }
