@@ -9,10 +9,10 @@ import (
 
 type NamedContext struct {
 	Name string
-	Data map[string]interface{}
+	Data map[string]any
 }
 
-func NewNamedContextWithValues(name string, values map[string]interface{}) *NamedContext {
+func NewNamedContextWithValues(name string, values map[string]any) *NamedContext {
 	return &NamedContext{
 		Data: values,
 		Name: name,
@@ -60,7 +60,7 @@ func NewContextSetFromProto(protoContextSet *prefabProto.ContextSet) *ContextSet
 	return contextSet
 }
 
-func (c *ContextSet) GetValue(propertyName string) (value interface{}, valueExists bool) {
+func (c *ContextSet) GetValue(propertyName string) (value any, valueExists bool) {
 	contextName, key := splitAtFirstDot(propertyName)
 	if namedContext, namedContextExists := c.Data[contextName]; namedContextExists {
 		value, valueExists := namedContext.Data[key]
