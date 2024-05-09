@@ -3,6 +3,8 @@ package utils
 import (
 	"errors"
 	"fmt"
+	"github.com/prefab-cloud/prefab-cloud-go/anyhelpers"
+	durationParser "github.com/sosodev/duration"
 	"log/slog"
 	"reflect"
 	"strconv"
@@ -29,6 +31,11 @@ func Create(value any) (*prefabProto.ConfigValue, bool) {
 	case []string:
 		// Assuming ConfigValue has a StringList field to handle a list of strings
 		configValue.Type = &prefabProto.ConfigValue_StringList{StringList: &prefabProto.StringList{Values: v}}
+	case []any:
+		stringList, ok := anyhelpers.DetectAndReturnStringListIfPresent(v)
+		if ok {
+			configValue.Type = &prefabProto.ConfigValue_StringList{StringList: &prefabProto.StringList{Values: stringList}}
+		}
 	case []byte:
 		configValue.Type = &prefabProto.ConfigValue_Bytes{Bytes: v}
 	case bool:
@@ -40,7 +47,7 @@ func Create(value any) (*prefabProto.ConfigValue, bool) {
 		configValue.Type = v
 	case time.Duration:
 		configValue.Type = &prefabProto.ConfigValue_Duration{Duration: &prefabProto.IsoDuration{Definition: durationToISO8601(v)}}
-	case *interface{}:
+	case *any:
 		if v != nil {
 			return Create(*v)
 		}
@@ -172,12 +179,13 @@ func ExtractDurationValue(cv *prefabProto.ConfigValue) (time.Duration, bool) {
 	switch v := cv.Type.(type) {
 	case *prefabProto.ConfigValue_Duration:
 		{
-			duration, err := time.ParseDuration(v.Duration.Definition)
+
+			duration, err := durationParser.Parse(v.Duration.Definition)
 			if err != nil {
 				slog.Debug(fmt.Sprintf("Failed to parse duration value: %s", v.Duration.Definition))
 				return time.Duration(0), false
 			}
-			return duration, true
+			return duration.ToTimeDuration(), true
 		}
 	default:
 		var zero time.Duration
