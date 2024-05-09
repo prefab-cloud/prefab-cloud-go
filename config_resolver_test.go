@@ -2,12 +2,11 @@ package prefab
 
 import (
 	"errors"
-	"testing"
-
 	"github.com/prefab-cloud/prefab-cloud-go/mocks"
 	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"testing"
 )
 
 type mockDecrypter struct {
@@ -128,6 +127,11 @@ func TestConfigResolver_ResolveValue(t *testing.T) {
 	}
 	configValueOne := createConfigValueAndAssertOk("one", t)
 
+	type keyValuePair struct {
+		name  string
+		value string
+	}
+
 	tests := []struct {
 		name                          string
 		configKey                     string
@@ -137,7 +141,7 @@ func TestConfigResolver_ResolveValue(t *testing.T) {
 		mockWeightedValueResolverArgs []mockWeightedValueResolverArgs
 		mockConfigEvaluatorArgs       []mockConfigEvaluatorArgs
 		mockConfigStoreArgs           []mocks.ConfigMockingArgs
-		mockEnvLookup                 *mocks.MockEnvLookup
+		envVarsToSet                  []keyValuePair
 	}{
 		{
 			name:      "standard pass through",
@@ -215,9 +219,7 @@ func TestConfigResolver_ResolveValue(t *testing.T) {
 					},
 				},
 			},
-			mockEnvLookup: mocks.NewMockEnvLookup([]mocks.MockEnvLookupConfig{
-				{Name: providedEnvVarName, Value: providedEnvVarValue, ValueExists: true},
-			}),
+			envVarsToSet: []keyValuePair{{providedEnvVarName, providedEnvVarValue}},
 		},
 		{
 			name:        "config has provided but env var does not exist",
@@ -249,9 +251,6 @@ func TestConfigResolver_ResolveValue(t *testing.T) {
 					},
 				},
 			},
-			mockEnvLookup: mocks.NewMockEnvLookup([]mocks.MockEnvLookupConfig{
-				{Name: providedEnvVarName, Value: providedEnvVarValue, ValueExists: false},
-			}),
 		},
 		{
 			name:      "config has decrypt with and it works", // need to resolve two configs, the main one and the one with the key
@@ -432,8 +431,8 @@ func TestConfigResolver_ResolveValue(t *testing.T) {
 			mockContextGetter := new(mocks.MockContextGetter)
 			defer mockContextGetter.AssertExpectations(t)
 
-			if tt.mockEnvLookup != nil {
-				defer tt.mockEnvLookup.AssertExpectations(t)
+			for _, pair := range tt.envVarsToSet {
+				t.Setenv(pair.name, pair.value)
 			}
 
 			c := &ConfigResolver{
@@ -441,7 +440,6 @@ func TestConfigResolver_ResolveValue(t *testing.T) {
 				ruleEvaluator:         mockConfigEvaluator,
 				weightedValueResolver: mockWeightedValueResolver,
 				decrypter:             mockDecrypter,
-				envLookup:             tt.mockEnvLookup,
 			}
 
 			match, err := c.ResolveValue(tt.configKey, mockContextGetter)
