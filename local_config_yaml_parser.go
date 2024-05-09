@@ -140,9 +140,8 @@ func (p *LocalConfigYamlParser) createConfig(key string, value any, configType p
 	} else {
 		var ok bool
 		configValue, ok = utils.Create(value)
-		slog.Info(fmt.Sprintf("create value failed for key %s", key))
-
 		if !ok {
+			slog.Info(fmt.Sprintf("create value failed for key %s", key))
 			return nil, false
 		}
 	}
