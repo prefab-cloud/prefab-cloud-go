@@ -49,23 +49,26 @@ type ConfigResolver struct {
 	weightedValueResolver WeightedValueResolverIF
 	decrypter             Decrypter
 	envLookup             EnvLookup
+	contextGetter         ContextValueGetter
 }
 
-func NewConfigResolver(configStore ConfigStoreGetter, supplier ProjectEnvIdSupplier) *ConfigResolver {
+func NewConfigResolver(configStore ConfigStoreGetter, supplier ProjectEnvIdSupplier, apiContextGetter ContextValueGetter) *ConfigResolver {
 	return &ConfigResolver{
 		configStore:           configStore,
 		ruleEvaluator:         NewConfigRuleEvaluator(configStore, supplier),
 		weightedValueResolver: NewWeightedValueResolver(time.Now().UnixNano(), &Hashing{}),
 		decrypter:             &Encryption{},
 		envLookup:             &RealEnvLookup{},
+		contextGetter:         apiContextGetter,
 	}
 }
 
-func (c *ConfigResolver) ResolveValue(key string, contextSet ContextGetter) (configMatch ConfigMatch, err error) {
+func (c ConfigResolver) ResolveValue(key string, contextSet ContextValueGetter) (configMatch ConfigMatch, err error) {
 	config, configExists := c.configStore.GetConfig(key)
 	if !configExists {
 		return ConfigMatch{isMatch: false, originalKey: key}, ErrConfigDoesNotExist
 	}
+	contextSet = makeMultiContextGetter(contextSet, c.contextGetter)
 
 	ruleMatchResults := c.ruleEvaluator.EvaluateConfig(config, contextSet)
 	configMatch = NewConfigMatchFromConditionMatch(ruleMatchResults)
@@ -114,7 +117,7 @@ func boolPtr(val bool) *bool {
 	return &val
 }
 
-func (c *ConfigResolver) handleProvided(provided *prefabProto.Provided) (value string, ok bool) {
+func (c ConfigResolver) handleProvided(provided *prefabProto.Provided) (value string, ok bool) {
 	switch provided.GetSource() {
 	case prefabProto.ProvidedSource_ENV_VAR:
 		if provided.Lookup != nil {
@@ -148,7 +151,7 @@ func coerceValue(value string, valueType prefabProto.Config_ValueType) (any, boo
 	return nil, false
 }
 
-func (c *ConfigResolver) handleDecryption(configValue *prefabProto.ConfigValue, contextSet ContextGetter) (string, error) {
+func (c ConfigResolver) handleDecryption(configValue *prefabProto.ConfigValue, contextSet ContextValueGetter) (string, error) {
 	config, configExists := c.configStore.GetConfig(configValue.GetDecryptWith())
 	if configExists {
 		match := c.ruleEvaluator.EvaluateConfig(config, contextSet)
@@ -172,7 +175,25 @@ func (c *ConfigResolver) handleDecryption(configValue *prefabProto.ConfigValue, 
 	return "", errors.New("no config value exists") // todo
 }
 
-func (c *ConfigResolver) handleWeightedValue(configKey string, values *prefabProto.WeightedValues, contextSet ContextGetter) (valueResult *prefabProto.ConfigValue, index int) {
+func (c ConfigResolver) handleWeightedValue(configKey string, values *prefabProto.WeightedValues, contextSet ContextValueGetter) (valueResult *prefabProto.ConfigValue, index int) {
 	value, index := c.weightedValueResolver.Resolve(values, configKey, contextSet)
 	return value, index
+}
+
+type multiContextGetter struct {
+	contexts []ContextValueGetter
+}
+
+func makeMultiContextGetter(passedContext ContextValueGetter, implicitContext ContextValueGetter) multiContextGetter {
+	return multiContextGetter{contexts: []ContextValueGetter{passedContext, implicitContext}}
+}
+
+func (c multiContextGetter) GetContextValue(propertyName string) (any, bool) {
+	for _, context := range c.contexts {
+		if value, valueExists := context.GetContextValue(propertyName); valueExists {
+			return value, true
+		}
+
+	}
+	return nil, false
 }

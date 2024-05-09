@@ -51,16 +51,16 @@ func NewContextSet() *ContextSet {
 
 func NewContextSetFromProto(protoContextSet *prefabProto.ContextSet) *ContextSet {
 	contextSet := NewContextSet()
-
-	for _, context := range protoContextSet.Contexts {
-		namedContext := NewNamedContextFromProto(context)
-		contextSet.Data[context.GetType()] = namedContext
+	if protoContextSet != nil {
+		for _, context := range protoContextSet.Contexts {
+			namedContext := NewNamedContextFromProto(context)
+			contextSet.Data[context.GetType()] = namedContext
+		}
 	}
-
 	return contextSet
 }
 
-func (c *ContextSet) GetValue(propertyName string) (value any, valueExists bool) {
+func (c *ContextSet) GetContextValue(propertyName string) (value any, valueExists bool) {
 	contextName, key := splitAtFirstDot(propertyName)
 	if namedContext, namedContextExists := c.Data[contextName]; namedContextExists {
 		value, valueExists := namedContext.Data[key]

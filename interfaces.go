@@ -2,8 +2,8 @@ package prefab
 
 import prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
 
-type ContextGetter interface {
-	GetValue(propertyName string) (value interface{}, valueExists bool)
+type ContextValueGetter interface {
+	GetContextValue(propertyName string) (value interface{}, valueExists bool)
 }
 
 type ConfigStoreGetter interface {
@@ -15,7 +15,7 @@ type ProjectEnvIdSupplier interface {
 }
 
 type ConfigEvaluator interface {
-	EvaluateConfig(config *prefabProto.Config, contextSet ContextGetter) (match ConditionMatch)
+	EvaluateConfig(config *prefabProto.Config, contextSet ContextValueGetter) (match ConditionMatch)
 }
 
 type Decrypter interface {
@@ -31,7 +31,7 @@ type Hasher interface {
 }
 
 type WeightedValueResolverIF interface {
-	Resolve(weightedValues *prefabProto.WeightedValues, propertyName string, contextGetter ContextGetter) (valueResult *prefabProto.ConfigValue, index int)
+	Resolve(weightedValues *prefabProto.WeightedValues, propertyName string, contextGetter ContextValueGetter) (valueResult *prefabProto.ConfigValue, index int)
 }
 type EnvLookup interface {
 	LookupEnv(key string) (string, bool)

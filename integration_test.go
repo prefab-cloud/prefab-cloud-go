@@ -108,8 +108,6 @@ var typeWithDefaultsMap = map[string]interface{}{
 
 func (suite *GeneratedTestSuite) TestGet() {
 	testCases := suite.LoadGetTestCasesFromYAML("get.yaml")
-	fmt.Printf("test cases are %v", testCases)
-
 	for _, testCase := range testCases {
 		suite.Run(testCase.Name, func() {
 			options := NewOptions(func(opts *Options) {
@@ -120,8 +118,6 @@ func (suite *GeneratedTestSuite) TestGet() {
 			client, err := NewClient(options)
 			suite.Require().NoError(err, "client constructor failed")
 			suite.Require().NotNil(testCase.Type, "testcase.Type should not be nil. Fix the data")
-			fmt.Printf("Test case type %s", *testCase.Type)
-
 			var returnOfGetCall []reflect.Value
 			defaultValue, hasDefault := getDefaultValue(testCase)
 			if hasDefault {
@@ -178,7 +174,7 @@ func (suite *GeneratedTestSuite) TestGet() {
 
 				}
 			} else {
-				suite.Require().True(ok, "GetValue should work")
+				suite.Require().True(ok, "GetContextValue should work")
 				suite.Require().NoError(returnedError, "error looking up key %s", testCase.Input.Key)
 				suite.True(cmp.Equal(configValueResult, expectedValue))
 			}
@@ -211,8 +207,7 @@ func processExpectedValue(testCase *getTestCase) (interface{}, bool) {
 		default:
 			return val, true
 		}
+	} else {
+		return nil, true
 	}
-	slog.Warn("fell through processExpectedValue")
-	return nil, true
-
 }

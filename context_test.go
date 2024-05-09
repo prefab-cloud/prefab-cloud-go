@@ -38,33 +38,33 @@ func (suite *ContextTestSuite) SetupSuite() {
 
 func (suite *ContextTestSuite) TestContextReads() {
 	suite.Run("reading un-prefixed property hits the unnamed context", func() {
-		value, valueExists := suite.contextSet.GetValue("key")
+		value, valueExists := suite.contextSet.GetContextValue("key")
 		suite.Assert().EqualValues(true, valueExists)
 		suite.Assert().EqualValues("?234", value)
 
-		value, valueExists = suite.contextSet.GetValue("id")
+		value, valueExists = suite.contextSet.GetContextValue("id")
 		suite.Assert().EqualValues(true, valueExists)
 		suite.Assert().EqualValues(3456, value)
 	})
 
 	suite.Run("reading un-prefixed property hits the unnamed context", func() {
-		value, valueExists := suite.contextSet.GetValue("key")
+		value, valueExists := suite.contextSet.GetContextValue("key")
 		suite.Assert().EqualValues(true, valueExists)
 		suite.Assert().EqualValues("?234", value)
 	})
 
 	suite.Run("reading non existing key in unnamed context works", func() {
-		value, valueExists := suite.contextSet.GetValue(".foobar")
+		value, valueExists := suite.contextSet.GetContextValue(".foobar")
 		suite.Assert().EqualValues(false, valueExists)
 		suite.Assert().EqualValues(nil, value)
 	})
 
 	suite.Run("reading name-prefixed property hits the appropriate context", func() {
-		value, valueExists := suite.contextSet.GetValue("user.key")
+		value, valueExists := suite.contextSet.GetContextValue("user.key")
 		suite.Assert().EqualValues(true, valueExists)
 		suite.Assert().EqualValues("u123", value)
 
-		value, valueExists = suite.contextSet.GetValue("team.name")
+		value, valueExists = suite.contextSet.GetContextValue("team.name")
 		suite.Assert().EqualValues(true, valueExists)
 		suite.Assert().EqualValues("dev ops", value)
 	})
@@ -101,7 +101,7 @@ func (suite *ContextTestSuite) TestContextConversionFromProto() {
 		}
 		contextSet := NewContextSetFromProto(pContextSet)
 
-		val, valExists := contextSet.GetValue("user.key")
+		val, valExists := contextSet.GetContextValue("user.key")
 		suite.Assert().Equal(valExists, true)
 		suite.Assert().Equal(val, "u123")
 		suite.Assert().EqualValues(suite.contextSet, contextSet)
@@ -115,11 +115,11 @@ func (suite *ContextTestSuite) TestModification() {
 			"foo": "bar",
 		}))
 
-		value, valueExists := contextSet.GetValue("team.foo")
+		value, valueExists := contextSet.GetContextValue("team.foo")
 		suite.Assert().True(valueExists)
 		suite.Assert().EqualValues(value, "bar")
 
-		value, valueExists = contextSet.GetValue("team.name")
+		value, valueExists = contextSet.GetContextValue("team.name")
 		suite.Assert().False(valueExists)
 		suite.Assert().Empty(value)
 	})
