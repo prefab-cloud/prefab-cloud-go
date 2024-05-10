@@ -22,7 +22,8 @@ type clientOverrides struct {
 	OnInitFailure            *string      `yaml:"on_init_failure"`
 }
 type input struct {
-	Key     string  `yaml:"key"`
+	Key     *string `yaml:"key"`
+	Flag    *string `yaml:"flag"`
 	Default *string `yaml:"default"`
 }
 
@@ -106,6 +107,63 @@ var typeWithDefaultsMap = map[string]interface{}{
 	// Add more type mappings as needed
 }
 
+type configLookupResult struct {
+	defaultPresented bool
+	defaultValue     any
+	value            any
+	valueOk          bool
+	err              error // only present when default not presented
+}
+
+func (suite *GeneratedTestSuite) makeCall(client *Client, dataType string, key string, contextSet *ContextSet, hasDefault bool, defaultValue any) configLookupResult {
+	var returnOfGetCall []reflect.Value
+
+	if hasDefault {
+		fn, ok := typeWithDefaultsMap[dataType]
+		if !ok {
+			suite.Require().Fail("unsupported type for case with default value", "Type was %s", dataType)
+		}
+		method := reflect.ValueOf(fn)
+		returnOfGetCall = method.Call([]reflect.Value{
+			reflect.ValueOf(client),
+			reflect.ValueOf(key),
+			reflect.ValueOf(contextSet),
+			reflect.ValueOf(defaultValue),
+		})
+
+	} else {
+		fn, ok := typeMap[dataType]
+		if !ok {
+			suite.Require().Fail("unsupported type", "Type was %s", dataType)
+		}
+		method := reflect.ValueOf(fn)
+		returnOfGetCall = method.Call([]reflect.Value{
+			reflect.ValueOf(client),
+			reflect.ValueOf(key),
+			reflect.ValueOf(contextSet),
+		})
+	}
+
+	ok, okOk := returnOfGetCall[1].Interface().(bool)
+	suite.Require().True(okOk, "Expected fetch of ok value to work, check reflection code in test")
+	result := configLookupResult{defaultPresented: hasDefault, defaultValue: defaultValue, value: returnOfGetCall[0].Interface(), valueOk: ok}
+
+	if !hasDefault {
+		if len(returnOfGetCall) >= 3 {
+			returnedValue := returnOfGetCall[2].Interface()
+			if returnedValue == nil {
+			} else {
+				var errOk bool
+				result.err, errOk = returnedValue.(error)
+				suite.Require().True(errOk, fmt.Sprintf("Expected third return value to be of type error, but got: %T", returnedValue))
+			}
+		} else {
+			suite.Require().Fail(fmt.Sprintf("Expected at least three return values from the function, but got: %d", len(returnOfGetCall)))
+		}
+	}
+	return result
+}
+
 func (suite *GeneratedTestSuite) TestGet() {
 	testCases := suite.LoadGetTestCasesFromYAML("get.yaml")
 	for _, testCase := range testCases {
@@ -118,65 +176,54 @@ func (suite *GeneratedTestSuite) TestGet() {
 			client, err := NewClient(options)
 			suite.Require().NoError(err, "client constructor failed")
 			suite.Require().NotNil(testCase.Type, "testcase.Type should not be nil. Fix the data")
-			var returnOfGetCall []reflect.Value
-			defaultValue, hasDefault := getDefaultValue(testCase)
-			if hasDefault {
-				fn, ok := typeWithDefaultsMap[*testCase.Type]
-				if !ok {
-					suite.Require().Fail("unsupported type for case with default value", "Type was %s", *testCase.Type)
-				}
-				method := reflect.ValueOf(fn)
-				returnOfGetCall = method.Call([]reflect.Value{
-					reflect.ValueOf(client),
-					reflect.ValueOf(testCase.Input.Key),
-					reflect.ValueOf(*NewContextSet()),
-					reflect.ValueOf(defaultValue),
-				})
-
-			} else {
-				fn, ok := typeMap[*testCase.Type]
-				if !ok {
-					suite.Require().Fail("unsupported type", "Type was %s", *testCase.Type)
-				}
-				method := reflect.ValueOf(fn)
-				returnOfGetCall = method.Call([]reflect.Value{
-					reflect.ValueOf(client),
-					reflect.ValueOf(testCase.Input.Key),
-					reflect.ValueOf(*NewContextSet()),
-				})
-			}
-
 			expectedValue, foundExpectedValue := processExpectedValue(testCase)
 			suite.Require().True(foundExpectedValue, "no expected value for test case %s", testCase.Name)
+			defaultValue, defaultValueExists := getDefaultValue(testCase)
+			result := suite.makeCall(client, *testCase.Type, *testCase.Input.Key, NewContextSet(), defaultValueExists, defaultValue)
 
-			configValueResult := returnOfGetCall[0].Interface()
-			ok, okOk := returnOfGetCall[1].Interface().(bool)
-			suite.Require().True(okOk, "Expected fetch of ok value to work, check reflection code in test")
-			var returnedError error
-			if !hasDefault {
-				if len(returnOfGetCall) >= 3 {
-					returnedValue := returnOfGetCall[2].Interface()
-					if returnedValue == nil {
-						returnedError = nil
-					} else {
-						var errOk bool
-						returnedError, errOk = returnedValue.(error)
-						suite.Require().True(errOk, fmt.Sprintf("Expected third return value to be of type error, but got: %T", returnedValue))
-					}
-				} else {
-					suite.Require().Fail(fmt.Sprintf("Expected at least three return values from the function, but got: %d", len(returnOfGetCall)))
-				}
-			}
 			if expectedValue == nil {
-				suite.Require().False(ok, "Expected nil return so the ok return from getter should be false")
-				if !hasDefault {
-					suite.ErrorContains(returnedError, "does not exist", "Error should be present containing `does not exist`")
+				suite.Require().False(result.valueOk, "Expected nil return so the ok return from getter should be false")
+				if !result.defaultPresented {
+					suite.ErrorContains(result.err, "does not exist", "Error should be present containing `does not exist`")
 
 				}
 			} else {
-				suite.Require().True(ok, "GetContextValue should work")
-				suite.Require().NoError(returnedError, "error looking up key %s", testCase.Input.Key)
-				suite.True(cmp.Equal(configValueResult, expectedValue))
+				suite.Require().True(result.valueOk, "GetContextValue should work")
+				suite.Require().NoError(result.err, "error looking up key %s", testCase.Input.Key)
+				suite.True(cmp.Equal(result.value, expectedValue))
+			}
+
+		})
+	}
+}
+
+func (suite *GeneratedTestSuite) TestGetFeatureFlag() {
+	testCases := suite.LoadGetTestCasesFromYAML("get_feature_flag.yaml")
+	for _, testCase := range testCases {
+		suite.Run(testCase.Name, func() {
+			options := NewOptions(func(opts *Options) {
+				opts.PrefabApiUrl = "https://api.staging-prefab.cloud"
+				opts.ApiKey = suite.ApiKey
+				// TODO respect anyhelpers client overrides
+			})
+			client, err := NewClient(options)
+			suite.Require().NoError(err, "client constructor failed")
+			suite.Require().NotNil(testCase.Type, "testcase.Type should not be nil. Fix the data")
+			expectedValue, foundExpectedValue := processExpectedValue(testCase)
+			suite.Require().True(foundExpectedValue, "no expected value for test case %s", testCase.Name)
+			defaultValue, defaultValueExists := getDefaultValue(testCase)
+			result := suite.makeCall(client, *testCase.Type, *testCase.Input.Flag, NewContextSet(), defaultValueExists, defaultValue)
+
+			if expectedValue == nil {
+				suite.Require().False(result.valueOk, "Expected nil return so the ok return from getter should be false")
+				if !result.defaultPresented {
+					suite.ErrorContains(result.err, "does not exist", "Error should be present containing `does not exist`")
+
+				}
+			} else {
+				suite.Require().True(result.valueOk, "GetConfigValue should work")
+				suite.Require().NoError(result.err, "error looking up key %s", testCase.Input.Key)
+				suite.True(cmp.Equal(result.value, expectedValue))
 			}
 
 		})
