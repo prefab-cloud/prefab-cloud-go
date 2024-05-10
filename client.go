@@ -37,9 +37,9 @@ func NewClient(options Options) (*Client, error) {
 	if options.ConfigDirectory != nil {
 		configStores = append(configStores, NewLocalConfigStore(*options.ConfigDirectory, &options))
 	}
-
-	configResolver := NewConfigResolver(apiConfigStore, apiConfigStore, apiConfigStore)
 	configStore := BuildCompositeConfigStore(configStores...)
+
+	configResolver := NewConfigResolver(configStore, apiConfigStore, apiConfigStore)
 
 	client := Client{options: &options, httpClient: httpClient, configStore: configStore, apiConfigStore: apiConfigStore, configResolver: configResolver, initializationComplete: make(chan struct{})}
 	go client.fetchFromServer(0)
