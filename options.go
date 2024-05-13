@@ -23,8 +23,8 @@ const (
 type Options struct {
 	ApiKey                       string
 	Datasource                   Datasource
-	PrefabApiUrl                 string
-	InitializationTimeoutSeconds int
+	ApiUrl                       string
+	InitializationTimeoutSeconds float64
 	OnInitializationFailure      OnInitializationFailure
 	EnvironmentNames             []string
 	ConfigDirectory              *string
@@ -33,7 +33,7 @@ type Options struct {
 
 var DefaultOptions = Options{
 	ApiKey:                       "",
-	PrefabApiUrl:                 "https://api.prefab.cloud",
+	ApiUrl:                       "https://api.prefab.cloud",
 	Datasource:                   ALL,
 	InitializationTimeoutSeconds: 10,
 	OnInitializationFailure:      RAISE,
@@ -90,14 +90,14 @@ func (o *Options) apiKeySettingOrEnvVar() (string, error) {
 func (o *Options) PrefabApiUrlEnvVarOrSetting() (string, error) {
 	apiUrlFromEnvVar := os.Getenv(ApiUrlVar)
 	if apiUrlFromEnvVar != "" {
-		o.PrefabApiUrl = apiUrlFromEnvVar
+		o.ApiUrl = apiUrlFromEnvVar
 	}
 
-	if o.PrefabApiUrl == "" {
+	if o.ApiUrl == "" {
 		return "", errors.New("no PrefabApiUrl set")
 	}
 
-	return o.PrefabApiUrl, nil
+	return o.ApiUrl, nil
 }
 
 func StringPtr(string string) *string {
