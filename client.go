@@ -2,6 +2,7 @@ package prefab
 
 import (
 	"errors"
+	"fmt"
 	"log/slog"
 	"sync"
 	"time"
@@ -28,7 +29,7 @@ func NewClient(options Options) (*Client, error) {
 
 	apiConfigStore := BuildApiConfigStore()
 
-	configStores := []ConfigStoreGetter{}
+	var configStores []ConfigStoreGetter
 	if options.ConfigOverrideDirectory != nil {
 		configStores = append(configStores, NewLocalConfigStore(*options.ConfigOverrideDirectory, &options))
 	}
@@ -51,13 +52,17 @@ func NewClient(options Options) (*Client, error) {
 func (c *Client) fetchFromServer(offset int32) {
 	configs, err := c.httpClient.Load(offset)
 	if err != nil {
-		panic(err)
+		slog.Error(fmt.Sprintf("unable to get data via http %v", err))
 	}
+
+	slog.Info("Loaded configuration data")
 
 	c.apiConfigStore.SetFromConfigsProto(configs)
 	c.closeInitializationCompleteOnce.Do(func() {
 		close(c.initializationComplete)
 	})
+	slog.Info("Initialization complete called")
+
 }
 
 func clientInternalGetValueFunc[T any](key string, contextSet ContextSet, parseFunc func(*prefabProto.ConfigValue) (T, bool)) func(c *Client) (T, bool, error) {

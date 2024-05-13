@@ -3,6 +3,7 @@ package prefab
 import (
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"strings"
 
@@ -32,24 +33,22 @@ func BuildHttpClient(options Options) (*HttpClient, error) {
 func (c *HttpClient) Load(offset int32) (*prefabProto.Configs, error) {
 	apikey, err := c.Options.apiKeySettingOrEnvVar()
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	// TODO target the cdn first
 	uri := fmt.Sprintf("%s/api/v1/configs/%d", c.apiUrl, offset)
 
+	slog.Info(fmt.Sprintf("Getting data from %s", uri))
+
 	// Perform the HTTP GET request
 	req, err := http.NewRequest(http.MethodGet, uri, nil)
 	if err != nil {
-		// TODO do not panic
-		panic(err)
+		return nil, err
 	}
-
 	req.SetBasicAuth("1", apikey)
-
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		// TODO do not panic
-		panic(err)
+		return nil, err
 	}
 
 	defer func(Body io.ReadCloser) {
@@ -59,14 +58,16 @@ func (c *HttpClient) Load(offset int32) (*prefabProto.Configs, error) {
 		}
 	}(resp.Body)
 
-	if resp.StatusCode >= 300 {
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("error loading configs. Response code %s", resp.Status)
 	}
+
+	slog.Info(fmt.Sprintf("Received data from %s. Loading", uri))
 
 	// Read the response body
 	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
-		// TODO do not panic
-		panic(err)
+		return nil, err
 	}
 
 	// Deserialize the data into the protobuf message
@@ -74,7 +75,7 @@ func (c *HttpClient) Load(offset int32) (*prefabProto.Configs, error) {
 
 	err = proto.Unmarshal(bodyBytes, &msg)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	// Use your protobuf message (msg) as needed
 	return &msg, nil
