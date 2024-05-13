@@ -169,7 +169,7 @@ func (suite *GeneratedTestSuite) TestGet() {
 	for _, testCase := range testCases {
 		suite.Run(testCase.Name, func() {
 			options := NewOptions(func(opts *Options) {
-				opts.PrefabApiUrl = "https://api.staging-prefab.cloud"
+				opts.ApiUrl = "https://api.staging-prefab.cloud"
 				opts.ApiKey = suite.ApiKey
 				// TODO respect anyhelpers client overrides
 			})
