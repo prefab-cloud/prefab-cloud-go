@@ -143,6 +143,11 @@ func (c *Client) GetStringValue(key string, contextSet ContextSet) (string, bool
 	return value, ok, err
 }
 
+func (c *Client) FeatureIsOn(key string, contextSet ContextSet) (value bool, ok bool) {
+	value, ok = c.GetBoolValueWithDefault(key, contextSet, false)
+	return value, ok
+}
+
 func (c *Client) GetBoolValueWithDefault(key string, contextSet ContextSet, defaultValue bool) (value bool, ok bool) {
 	value, ok, err := c.GetBoolValue(key, contextSet)
 	if err != nil || !ok {
