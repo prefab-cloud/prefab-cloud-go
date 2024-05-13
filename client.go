@@ -270,7 +270,7 @@ func (c *Client) awaitInitialization() (result awaitInitializationResult) {
 	case <-c.initializationComplete:
 		return SUCCESS
 	case <-time.After(time.Duration(c.options.InitializationTimeoutSeconds) * time.Second):
-		slog.Warn("Timeout expired, proceeding without waiting further")
+		slog.Warn(fmt.Sprintf("%d second timeout expired, proceeding without waiting further", c.options.InitializationTimeoutSeconds))
 		return TIMEOUT
 	}
 }
