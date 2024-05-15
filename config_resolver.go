@@ -41,6 +41,7 @@ func (RealEnvLookup) LookupEnv(key string) (string, bool) {
 var (
 	ErrConfigDoesNotExist = errors.New("config does not exist")
 	ErrEnvVarNotExist     = errors.New("environment variable does not exist")
+	ErrTypeCoercionFailed = errors.New("type coercion failed on on value from environment variable")
 )
 
 type ConfigResolver struct {
@@ -87,6 +88,8 @@ func (c ConfigResolver) ResolveValue(key string, contextSet ContextValueGetter) 
 				if coercedValue, coercionWorked := coerceValue(envValue, config.ValueType); coercionWorked {
 					newValue, _ := utils.Create(coercedValue)
 					configMatch.match = newValue
+				} else {
+					return configMatch, ErrTypeCoercionFailed
 				}
 			} else {
 				return configMatch, ErrEnvVarNotExist

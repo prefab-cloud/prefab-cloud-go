@@ -50,18 +50,19 @@ func NewClient(options Options) (*Client, error) {
 
 // TODO replace this with a fetcher type to manage first fetch and polling (plus SSE eventually)
 func (c *Client) fetchFromServer(offset int32) {
-	configs, err := c.httpClient.Load(offset)
+	configs, err := c.httpClient.Load(offset) // retry me!
 	if err != nil {
 		slog.Error(fmt.Sprintf("unable to get data via http %v", err))
+	} else {
+
+		slog.Info("Loaded configuration data")
+
+		c.apiConfigStore.SetFromConfigsProto(configs)
+		c.closeInitializationCompleteOnce.Do(func() {
+			close(c.initializationComplete)
+		})
+		slog.Info("Initialization complete called")
 	}
-
-	slog.Info("Loaded configuration data")
-
-	c.apiConfigStore.SetFromConfigsProto(configs)
-	c.closeInitializationCompleteOnce.Do(func() {
-		close(c.initializationComplete)
-	})
-	slog.Info("Initialization complete called")
 
 }
 
