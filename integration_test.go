@@ -3,6 +3,7 @@ package prefab
 import (
 	"errors"
 	"fmt"
+	"github.com/google/go-cmp/cmp"
 	"github.com/prefab-cloud/prefab-cloud-go/anyhelpers"
 	"log/slog"
 	"os"
@@ -11,17 +12,16 @@ import (
 	"testing"
 	"time"
 
-	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/suite"
 	"gopkg.in/yaml.v3"
 )
 
-type clientOverrides struct {
-	OnNoDefault              *interface{} `yaml:"on_no_default"`
-	InitializationTimeOutSec *float32     `yaml:"initialization_timeout_sec"`
-	PrefabApiUrl             *string      `yaml:"prefab_api_url"`
-	OnInitFailure            *string      `yaml:"on_init_failure"`
+type clientOverridesYaml struct {
+	InitializationTimeOutSec *float64 `yaml:"initialization_timeout_sec"`
+	PrefabApiUrl             *string  `yaml:"prefab_api_url"`
+	OnInitFailure            *string  `yaml:"on_init_failure"`
 }
+
 type input struct {
 	Key     *string                            `yaml:"key"`
 	Flag    *string                            `yaml:"flag"`
@@ -43,13 +43,13 @@ type getTest struct {
 }
 
 type getTestCaseYaml struct {
-	CaseName        string           `yaml:"name"`
-	Client          string           `yaml:"client"`
-	Function        string           `yaml:"function"`
-	Type            *string          `yaml:"type"`
-	Input           input            `yaml:"input"`
-	Expected        expected         `yaml:"expected"`
-	ClientOverrides *clientOverrides `yaml:"client_overrides"`
+	CaseName        string               `yaml:"name"`
+	Client          string               `yaml:"client"`
+	Function        string               `yaml:"function"`
+	Type            *string              `yaml:"type"`
+	Input           input                `yaml:"input"`
+	Expected        expected             `yaml:"expected"`
+	ClientOverrides *clientOverridesYaml `yaml:"client_overrides"`
 }
 
 type getTestCase struct {
@@ -132,6 +132,30 @@ type configLookupResult struct {
 	err              error // only present when default not presented
 }
 
+func (suite *GeneratedTestSuite) TestGet() {
+	suite.executeGetTest("get.yaml")
+}
+
+func (suite *GeneratedTestSuite) TestGetFeatureFlag() {
+	suite.executeGetTest("get_feature_flag.yaml")
+}
+
+func (suite *GeneratedTestSuite) TestGetWeightedValues() {
+	suite.executeGetTest("get_weighted_values.yaml")
+}
+
+func (suite *GeneratedTestSuite) TestGetOrRaise() {
+	suite.executeGetTest("get_or_raise.yaml")
+}
+
+func (suite *GeneratedTestSuite) TestEnabled() {
+	suite.enabledTest("enabled.yaml")
+}
+
+func (suite *GeneratedTestSuite) TestEnabledWithContexts() {
+	suite.enabledTest("enabled_with_contexts.yaml")
+}
+
 func (suite *GeneratedTestSuite) makeGetCall(client *Client, dataType *string, key string, contextSet *ContextSet, hasDefault bool, defaultValue any) configLookupResult {
 	var returnOfGetCall []reflect.Value
 
@@ -187,22 +211,30 @@ func buildClient(apiKey string, testCase *getTestCase) (client *Client, err erro
 	options := NewOptions(func(opts *Options) {
 		opts.ApiUrl = "https://api.staging-prefab.cloud"
 		opts.ApiKey = apiKey
-		// TODO respect anyhelpers client overrides
+		if testCase.ClientOverrides != nil {
+			if testCase.ClientOverrides.OnInitFailure != nil {
+				onInitFailure, onInitFailureMappingErr := mapStringToOnInitializationFailure(*testCase.ClientOverrides.OnInitFailure)
+				if onInitFailureMappingErr != nil {
+					panic(onInitFailureMappingErr)
+				}
+				opts.OnInitializationFailure = onInitFailure
+			}
+			if testCase.ClientOverrides.InitializationTimeOutSec != nil {
+				opts.InitializationTimeoutSeconds = *testCase.ClientOverrides.InitializationTimeOutSec
+			}
+			if testCase.ClientOverrides.PrefabApiUrl != nil {
+				opts.ApiUrl = *testCase.ClientOverrides.PrefabApiUrl
+			}
+		}
+
 	})
 	client, err = NewClient(options)
 	return client, err
 }
 
-func (suite *GeneratedTestSuite) TestGet() {
-	suite.executeGetTest("get.yaml")
-}
-
-func (suite *GeneratedTestSuite) TestGetFeatureFlag() {
-	suite.executeGetTest("get_feature_flag.yaml")
-}
-
-func (suite *GeneratedTestSuite) TestGetWeightedValues() {
-	suite.executeGetTest("get_weighted_values.yaml")
+type expectedResult struct {
+	value any
+	err   *string
 }
 
 func (suite *GeneratedTestSuite) executeGetTest(filename string) {
@@ -212,7 +244,7 @@ func (suite *GeneratedTestSuite) executeGetTest(filename string) {
 		suite.Run(buildTestCaseName(testCase, filename), func() {
 			client, err := buildClient(suite.ApiKey, testCase)
 			suite.Require().NoError(err, "client constructor failed")
-			expectedValue, foundExpectedValue := processExpectedValue(testCase)
+			expectedValue, foundExpectedValue := processExpectedResult(testCase)
 			suite.Require().True(foundExpectedValue, "no expected value for test case %s", testCase.CaseName)
 			defaultValue, defaultValueExists := getDefaultValue(testCase)
 			context, contextErr := processContext(testCase)
@@ -220,16 +252,35 @@ func (suite *GeneratedTestSuite) executeGetTest(filename string) {
 			configKey, configKeyErr := getConfigKeyToUse(testCase)
 			suite.Require().NoError(configKeyErr)
 			result := suite.makeGetCall(client, testCase.Type, configKey, context, defaultValueExists, defaultValue)
-			if expectedValue == nil {
+			suite.Require().True(foundExpectedValue, "should have found some expected value or error")
+
+			if expectedValue.value != nil {
+				suite.Require().True(result.valueOk, "GetConfigValue should work")
+				suite.Require().NoError(result.err, "error looking up key %s", testCase.Input.Key)
+				suite.True(cmp.Equal(result.value, expectedValue.value))
+			} else if expectedValue.err != nil {
+				suite.Require().Error(result.err, "there should be some kind of error")
+				switch *expectedValue.err {
+				case "unable_to_coerce_env_var":
+					suite.Require().ErrorContains(result.err, "type coercion failed")
+				case "unable_to_decrypt":
+					suite.Require().ErrorContains(result.err, "message authentication failed")
+				case "missing_env_var":
+					suite.Require().ErrorContains(result.err, "environment variable does not exist")
+				case "initialization_timeout":
+					suite.Require().ErrorContains(result.err, "initialization timeout")
+				case "missing_default":
+					suite.Require().ErrorContains(result.err, "config does not exist")
+				default:
+					suite.Failf("unsupported expected error type", "type was %s", *expectedValue.err)
+				}
+
+			} else {
+				// expected nil value
 				suite.Require().False(result.valueOk, "Expected nil return so the ok return from getter should be false")
 				if !result.defaultPresented {
 					suite.ErrorContains(result.err, "does not exist", "Error should be present containing `does not exist`")
-
 				}
-			} else {
-				suite.Require().True(result.valueOk, "GetConfigValue should work")
-				suite.Require().NoError(result.err, "error looking up key %s", testCase.Input.Key)
-				suite.True(cmp.Equal(result.value, expectedValue))
 			}
 		})
 	}
@@ -241,13 +292,15 @@ func (suite *GeneratedTestSuite) enabledTest(filename string) {
 		suite.Run(buildTestCaseName(testCase, filename), func() {
 			client, err := buildClient(suite.ApiKey, testCase)
 			suite.Require().NoError(err, "client constructor failed")
-			expectedValue, foundExpectedValue := processExpectedValue(testCase)
-			suite.Require().True(foundExpectedValue, "no expected value for test case %s", testCase.CaseName)
+			expectedResult, foundExpectedResult := processExpectedResult(testCase)
+			suite.Require().True(foundExpectedResult, "no expected value for test case %s", testCase.CaseName)
 			context, contextErr := processContext(testCase)
 			suite.Require().NoError(contextErr, "error building context")
 			featureIsOn, featureIsOnOk := client.FeatureIsOn(*testCase.Input.Flag, *context)
 			suite.Require().True(featureIsOnOk, "FeatureIsOn should work")
-			suite.Require().Equal(expectedValue, featureIsOn, "FeatureIsOn should be %v", expectedValue)
+			suite.Require().NotNil(expectedResult.value, "expected result's value field should not be nil")
+
+			suite.Require().Equal(expectedResult.value, featureIsOn, "FeatureIsOn should be %v", expectedResult.value)
 		})
 	}
 }
@@ -258,14 +311,6 @@ func buildTestCaseName(testCase *getTestCase, filename string) string {
 		testName = *testCase.TestName
 	}
 	return fmt.Sprintf("%s::%s::%s", filename, testName, testCase.CaseName)
-}
-
-func (suite *GeneratedTestSuite) TestEnabled() {
-	suite.enabledTest("enabled.yaml")
-}
-
-func (suite *GeneratedTestSuite) TestEnabledWithContexts() {
-	suite.enabledTest("enabled_with_contexts.yaml")
 }
 
 func getDefaultValue(testCase *getTestCase) (interface{}, bool) {
@@ -310,24 +355,39 @@ func getConfigKeyToUse(testCase *getTestCase) (string, error) {
 
 }
 
-func processExpectedValue(testCase *getTestCase) (interface{}, bool) {
+func processExpectedResult(testCase *getTestCase) (expectedResult, bool) {
 	if testCase.Expected.Millis != nil {
-		return time.Duration(*testCase.Expected.Millis) * time.Millisecond, true
+		return expectedResult{value: time.Duration(*testCase.Expected.Millis) * time.Millisecond}, true
 	}
 	if testCase.Expected.Value != nil {
 		switch val := (*testCase.Expected.Value).(type) {
 		case []any:
 			if properSlice, isSlice := anyhelpers.CanonicalizeSlice(val); isSlice {
-				return properSlice, true
+				return expectedResult{value: properSlice}, true
 			}
 			slog.Warn("slice has mixed type contents, unable to canonicalize")
-			return nil, false
+			return expectedResult{}, false
 		case int:
-			return int64(val), true
+			return expectedResult{value: int64(val)}, true
 		default:
-			return val, true
+			return expectedResult{value: val}, true
 		}
-	} else {
-		return nil, true
+	}
+	if testCase.Expected.Error != nil {
+		return expectedResult{err: testCase.Expected.Error}, true
+	}
+
+	return expectedResult{}, true // this being true handles the         expected.value: ~
+}
+
+// Mapping function from string to OnInitializationFailure
+func mapStringToOnInitializationFailure(s string) (OnInitializationFailure, error) {
+	switch s {
+	case ":raise":
+		return RAISE, nil
+	case ":return":
+		return UNLOCK, nil
+	default:
+		return RAISE, errors.New(fmt.Sprintf("unknown OnInitializationFailure value %s", s))
 	}
 }

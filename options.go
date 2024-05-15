@@ -11,13 +11,20 @@ import (
 type Datasource int
 
 const (
-	ApiKeyEnvVar = "PREFAB_API_KEY"
-	ApiUrlVar    = "PREFAB_API_URL"
+	ALL Datasource = iota
+	LOCAL_ONLY
+)
+
+type OnInitializationFailure int
+
+const (
+	RAISE  OnInitializationFailure = iota // RAISE = 0
+	UNLOCK                                // UNLOCK = 1
 )
 
 const (
-	ALL Datasource = iota
-	LOCAL_ONLY
+	ApiKeyEnvVar = "PREFAB_API_KEY"
+	ApiUrlVar    = "PREFAB_API_URL"
 )
 
 type Options struct {
@@ -103,10 +110,3 @@ func (o *Options) PrefabApiUrlEnvVarOrSetting() (string, error) {
 func StringPtr(string string) *string {
 	return &string
 }
-
-type OnInitializationFailure int
-
-const (
-	RAISE  OnInitializationFailure = iota // RAISE = 0
-	UNLOCK                                // UNLOCK = 1
-)

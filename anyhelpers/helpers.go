@@ -46,3 +46,8 @@ func CanonicalizeSlice(input any) (any, bool) {
 	}
 	return input, true // Return as is if already a specific slice type
 }
+
+// Generic function to get the pointer of any type
+func Ptr[T any](v T) *T {
+	return &v
+}
