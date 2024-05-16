@@ -109,23 +109,44 @@ func (suite *GeneratedTestSuite) loadGetTestCasesFromYAML(filename string) []*ge
 	return testCases
 }
 
-var typeMap = map[string]interface{}{
-	"INT":         (*prefab.Client).GetIntValue,
-	"BOOL":        (*prefab.Client).GetBoolValue,
-	"DOUBLE":      (*prefab.Client).GetFloatValue,
-	"STRING":      (*prefab.Client).GetStringValue,
-	"STRING_LIST": (*prefab.Client).GetStringSliceValue,
-	"DURATION":    (*prefab.Client).GetDurationValue,
-	// Add more type mappings as needed
+func functionFromTypeString(typeString string) (interface{}, bool) {
+	switch typeString {
+	case "INT":
+		return (*prefab.Client).GetIntValue, true
+	case "BOOL":
+		return (*prefab.Client).GetBoolValue, true
+	case "DOUBLE":
+		return (*prefab.Client).GetFloatValue, true
+	case "STRING":
+		return (*prefab.Client).GetStringValue, true
+	case "STRING_LIST":
+		return (*prefab.Client).GetStringSliceValue, true
+	case "DURATION":
+		return (*prefab.Client).GetDurationValue, true
+	}
+
+	slog.Error("unsupported type", "type", typeString)
+
+	return nil, false
 }
 
-var typeWithDefaultsMap = map[string]interface{}{
-	"INT":         (*prefab.Client).GetIntValueWithDefault,
-	"BOOL":        (*prefab.Client).GetBoolValueWithDefault,
-	"DOUBLE":      (*prefab.Client).GetFloatValueWithDefault,
-	"STRING":      (*prefab.Client).GetStringValueWithDefault,
-	"STRING_LIST": (*prefab.Client).GetStringSliceValueWithDefault,
-	// Add more type mappings as needed
+func functionWithDefaultFromTypeString(typeString string) (interface{}, bool) {
+	switch typeString {
+	case "INT":
+		return (*prefab.Client).GetIntValueWithDefault, true
+	case "BOOL":
+		return (*prefab.Client).GetBoolValueWithDefault, true
+	case "DOUBLE":
+		return (*prefab.Client).GetFloatValueWithDefault, true
+	case "STRING":
+		return (*prefab.Client).GetStringValueWithDefault, true
+	case "STRING_LIST":
+		return (*prefab.Client).GetStringSliceValueWithDefault, true
+	}
+
+	slog.Error("unsupported type", "type", typeString)
+
+	return nil, false
 }
 
 type configLookupResult struct {
@@ -160,13 +181,23 @@ func (suite *GeneratedTestSuite) TestEnabledWithContexts() {
 	suite.enabledTest("enabled_with_contexts.yaml")
 }
 
+func (suite *GeneratedTestSuite) TestGetLogLevel() {
+	// get_log_level.yaml
+	suite.T().Skip("Log level integration tests aren't implemented yet")
+}
+
+func (suite *GeneratedTestSuite) TestTelemetry() {
+	// post.yaml
+	suite.T().Skip("Telemetry integration tests aren't implemented yet")
+}
+
 func (suite *GeneratedTestSuite) makeGetCall(client *prefab.Client, dataType *string, key string, contextSet *internal.ContextSet, hasDefault bool, defaultValue any) configLookupResult {
 	var returnOfGetCall []reflect.Value
 
 	suite.Require().NotNil(dataType, "dataType (from testcase.Type) should not be nil. Fix the data")
 
 	if hasDefault {
-		fn, ok := typeWithDefaultsMap[*dataType]
+		fn, ok := functionWithDefaultFromTypeString(*dataType)
 		if !ok {
 			suite.Require().Fail("unsupported type for case with default value", "Type was %s", dataType)
 		}
@@ -179,7 +210,7 @@ func (suite *GeneratedTestSuite) makeGetCall(client *prefab.Client, dataType *st
 			reflect.ValueOf(defaultValue),
 		})
 	} else {
-		fn, ok := typeMap[*dataType]
+		fn, ok := functionFromTypeString(*dataType)
 		if !ok {
 			suite.Require().Fail("unsupported type", "Type was %s", dataType)
 		}
@@ -222,27 +253,33 @@ func buildClient(apiKey string, testCase *getTestCase) (*prefab.Client, error) {
 	}
 
 	if testCase.ClientOverrides != nil {
-		if testCase.ClientOverrides.OnInitFailure != nil {
-			onInitFailure, onInitFailureMappingErr := mapStringToOnInitializationFailure(*testCase.ClientOverrides.OnInitFailure)
-			if onInitFailureMappingErr != nil {
-				panic(onInitFailureMappingErr)
-			}
-
-			options = append(options, prefab.WithOnInitializationFailure(onInitFailure))
-		}
-
-		if testCase.ClientOverrides.InitializationTimeOutSec != nil {
-			options = append(options, prefab.WithInitializationTimeoutSeconds(*testCase.ClientOverrides.InitializationTimeOutSec))
-		}
-
-		if testCase.ClientOverrides.PrefabAPIURL != nil {
-			options = append(options, prefab.WithAPIURL(*testCase.ClientOverrides.PrefabAPIURL))
-		}
+		options = applyOverrides(testCase, options)
 	}
 
 	client, err := prefab.NewClient(options...)
 
 	return client, err
+}
+
+func applyOverrides(testCase *getTestCase, options []prefab.Option) []prefab.Option {
+	if testCase.ClientOverrides.OnInitFailure != nil {
+		onInitFailure, onInitFailureMappingErr := mapStringToOnInitializationFailure(*testCase.ClientOverrides.OnInitFailure)
+		if onInitFailureMappingErr != nil {
+			panic(onInitFailureMappingErr)
+		}
+
+		options = append(options, prefab.WithOnInitializationFailure(onInitFailure))
+	}
+
+	if testCase.ClientOverrides.InitializationTimeOutSec != nil {
+		options = append(options, prefab.WithInitializationTimeoutSeconds(*testCase.ClientOverrides.InitializationTimeOutSec))
+	}
+
+	if testCase.ClientOverrides.PrefabAPIURL != nil {
+		options = append(options, prefab.WithAPIURL(*testCase.ClientOverrides.PrefabAPIURL))
+	}
+
+	return options
 }
 
 type expectedResult struct {
