@@ -1,4 +1,4 @@
-package internal
+package internal_test
 
 import (
 	"fmt"
@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 
+	"github.com/prefab-cloud/prefab-cloud-go/pkg/internal"
 	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
 )
 
@@ -102,9 +103,9 @@ log-level:
 
 	for _, testCase := range tests {
 		s.Run(testCase.name, func() {
-			p := &LocalConfigYamlParser{}
+			p := &internal.LocalConfigYamlParser{}
 
-			gotConfigValues, err := p.parse([]byte(testCase.yamlInput))
+			gotConfigValues, err := p.Parse([]byte(testCase.yamlInput))
 			if !testCase.wantErr(s.T(), err, fmt.Sprintf("parse(%v)", testCase.yamlInput)) {
 				return
 			}

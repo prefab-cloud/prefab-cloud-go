@@ -1,4 +1,4 @@
-package internal
+package internal_test
 
 import (
 	"testing"
@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/prefab-cloud/prefab-cloud-go/mocks"
+	"github.com/prefab-cloud/prefab-cloud-go/pkg/internal"
 	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
 )
 
@@ -32,13 +33,13 @@ type WeightedValueResolverTestSuite struct {
 	suite.Suite
 	randomer              *MockRandomer
 	hasher                *MockHasher
-	weightedValueResolver *WeightedValueResolver
+	weightedValueResolver *internal.WeightedValueResolver
 }
 
 func (suite *WeightedValueResolverTestSuite) SetupTest() {
 	suite.randomer = new(MockRandomer)
 	suite.hasher = new(MockHasher)
-	suite.weightedValueResolver = &WeightedValueResolver{rand: suite.randomer, hasher: suite.hasher}
+	suite.weightedValueResolver = &internal.WeightedValueResolver{Rand: suite.randomer, Hasher: suite.hasher}
 }
 
 func (suite *WeightedValueResolverTestSuite) TestValueSelectionInRandomCases() {

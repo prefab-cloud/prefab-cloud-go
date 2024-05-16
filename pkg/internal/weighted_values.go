@@ -8,8 +8,8 @@ import (
 )
 
 type WeightedValueResolver struct {
-	rand   Randomer
-	hasher Hasher
+	Rand   Randomer
+	Hasher Hasher
 }
 
 func NewWeightedValueResolver(seed int64, hasher Hasher) *WeightedValueResolver {
@@ -17,8 +17,8 @@ func NewWeightedValueResolver(seed int64, hasher Hasher) *WeightedValueResolver 
 	r := rand.New(src)
 
 	return &WeightedValueResolver{
-		rand:   r,
-		hasher: hasher,
+		Rand:   r,
+		Hasher: hasher,
 	}
 }
 
@@ -48,11 +48,11 @@ func (wve *WeightedValueResolver) getUserFraction(weightedValues *prefabProto.We
 		value, valueExists := contextGetter.GetContextValue(weightedValues.GetHashByPropertyName())
 		if valueExists {
 			valueToBeHashed := fmt.Sprintf("%s%v", propertyName, value)
-			hashValue, _ := wve.hasher.HashZeroToOne(valueToBeHashed)
+			hashValue, _ := wve.Hasher.HashZeroToOne(valueToBeHashed)
 
 			return hashValue
 		}
 	}
 
-	return wve.rand.Float64()
+	return wve.Rand.Float64()
 }

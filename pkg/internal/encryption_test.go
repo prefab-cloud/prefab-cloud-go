@@ -1,13 +1,15 @@
-package internal
+package internal_test
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
+
+	"github.com/prefab-cloud/prefab-cloud-go/pkg/internal"
 )
 
 type EncryptionTestSuite struct {
-	decrypter Encryption
+	decrypter internal.Encryption
 	suite.Suite
 }
 

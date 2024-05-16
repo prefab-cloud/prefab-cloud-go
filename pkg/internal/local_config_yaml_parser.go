@@ -14,7 +14,7 @@ import (
 
 type LocalConfigYamlParser struct{}
 
-func (p *LocalConfigYamlParser) parse(yamlData []byte) ([]*prefabProto.Config, error) {
+func (p *LocalConfigYamlParser) Parse(yamlData []byte) ([]*prefabProto.Config, error) {
 	var data map[string]interface{}
 	// Unmarshal the YAML into the map
 	err := yaml.Unmarshal(yamlData, &data)

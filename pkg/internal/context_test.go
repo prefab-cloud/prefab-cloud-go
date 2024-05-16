@@ -1,4 +1,4 @@
-package internal
+package internal_test
 
 import (
 	"testing"
@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
+	"github.com/prefab-cloud/prefab-cloud-go/pkg/internal"
 	"github.com/prefab-cloud/prefab-cloud-go/proto"
 )
 
@@ -16,22 +17,22 @@ func stringPtr(val string) *string {
 
 type ContextTestSuite struct {
 	suite.Suite
-	contextSet *ContextSet
+	contextSet *internal.ContextSet
 }
 
 func (suite *ContextTestSuite) SetupSuite() {
-	suite.contextSet = NewContextSet()
-	suite.contextSet.SetNamedContext(NewNamedContextWithValues("user", map[string]interface{}{
+	suite.contextSet = internal.NewContextSet()
+	suite.contextSet.SetNamedContext(internal.NewNamedContextWithValues("user", map[string]interface{}{
 		"key":   "u123",
 		"email": "me@example.com",
 		"admin": true,
 		"age":   int64(42),
 	}))
-	suite.contextSet.SetNamedContext(NewNamedContextWithValues("team", map[string]interface{}{
+	suite.contextSet.SetNamedContext(internal.NewNamedContextWithValues("team", map[string]interface{}{
 		"key":  "t123",
 		"name": "dev ops",
 	}))
-	suite.contextSet.SetNamedContext(NewNamedContextWithValues("", map[string]interface{}{
+	suite.contextSet.SetNamedContext(internal.NewNamedContextWithValues("", map[string]interface{}{
 		"key": "?234",
 		"id":  int64(3456),
 	}))
@@ -100,7 +101,7 @@ func (suite *ContextTestSuite) TestContextConversionFromProto() {
 				},
 			},
 		}
-		contextSet := NewContextSetFromProto(pContextSet)
+		contextSet := internal.NewContextSetFromProto(pContextSet)
 
 		val, valExists := contextSet.GetContextValue("user.key")
 		suite.True(valExists)
@@ -111,8 +112,8 @@ func (suite *ContextTestSuite) TestContextConversionFromProto() {
 
 func (suite *ContextTestSuite) TestModification() {
 	suite.Run("adding a new context replaces existing", func() {
-		contextSet := deepcopy.Copy(*suite.contextSet).(ContextSet)
-		contextSet.SetNamedContext(NewNamedContextWithValues("team", map[string]interface{}{
+		contextSet := deepcopy.Copy(*suite.contextSet).(internal.ContextSet)
+		contextSet.SetNamedContext(internal.NewNamedContextWithValues("team", map[string]interface{}{
 			"foo": "bar",
 		}))
 

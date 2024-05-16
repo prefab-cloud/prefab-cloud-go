@@ -15,13 +15,13 @@ type APIConfigStore struct {
 	highWatermark int64
 	projectEnvID  int64
 	sync.RWMutex
-	initialized bool
+	Initialized bool
 }
 
 func BuildAPIConfigStore() *APIConfigStore {
 	return &APIConfigStore{
 		configMap:     make(map[string]*prefabProto.Config),
-		initialized:   false,
+		Initialized:   false,
 		highWatermark: 0,
 		projectEnvID:  0,
 	}
@@ -30,7 +30,7 @@ func BuildAPIConfigStore() *APIConfigStore {
 func (cs *APIConfigStore) SetConfigs(configs []*prefabProto.Config, envID int64) {
 	cs.Lock()
 	defer cs.Unlock()
-	cs.initialized = true
+	cs.Initialized = true
 	cs.projectEnvID = envID
 
 	for _, config := range configs {
