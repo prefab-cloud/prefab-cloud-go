@@ -11,10 +11,6 @@ import (
 	"github.com/prefab-cloud/prefab-cloud-go/proto"
 )
 
-func stringPtr(val string) *string {
-	return &val
-}
-
 type ContextTestSuite struct {
 	suite.Suite
 	contextSet *internal.ContextSet

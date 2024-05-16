@@ -10,15 +10,7 @@ import (
 	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
 )
 
-func Int64Ptr(val int64) *int64 {
-	return &val
-}
-
-func intPtr(val int) *int {
-	return &val
-}
-
-func RunTests(t *testing.T) {
+func TestApiConfigStore(t *testing.T) {
 	configFoo := &prefabProto.Config{
 		Key:        "foo",
 		Id:         10,
@@ -27,7 +19,7 @@ func RunTests(t *testing.T) {
 		ValueType:  prefabProto.Config_STRING,
 		Rows: []*prefabProto.ConfigRow{
 			{
-				ProjectEnvId: Int64Ptr(101),
+				ProjectEnvId: int64Ptr(101),
 				Values: []*prefabProto.ConditionalValue{
 					{
 						Value: createConfigValueAndAssertOk("foo-value", t),
@@ -53,7 +45,7 @@ func RunTests(t *testing.T) {
 		ValueType:  prefabProto.Config_STRING,
 		Rows: []*prefabProto.ConfigRow{
 			{
-				ProjectEnvId: Int64Ptr(101),
+				ProjectEnvId: int64Ptr(101),
 				Values: []*prefabProto.ConditionalValue{
 					{
 						Value: createConfigValueAndAssertOk("foo-value-two", t),
@@ -71,7 +63,7 @@ func RunTests(t *testing.T) {
 		ValueType:  prefabProto.Config_STRING,
 		Rows: []*prefabProto.ConfigRow{
 			{
-				ProjectEnvId: Int64Ptr(101),
+				ProjectEnvId: int64Ptr(101),
 				Values: []*prefabProto.ConditionalValue{
 					{
 						Value: createConfigValueAndAssertOk(1234, t),
@@ -197,8 +189,4 @@ func RunTests(t *testing.T) {
 		assert.NotNil(t, foo)
 		assert.Equal(t, configFooWithDifferentValue, foo)
 	})
-}
-
-func TestApiConfigStore(t *testing.T) {
-	RunTests(t)
 }

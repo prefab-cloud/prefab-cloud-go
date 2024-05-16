@@ -83,7 +83,7 @@ func (suite *ConfigRuleTestSuite) TestFullRuleEvaluation() {
 		SendToClientSdk: false,
 		Rows: []*prefabProto.ConfigRow{
 			{
-				ProjectEnvId: Int64Ptr(matchingProjectEnvID),
+				ProjectEnvId: int64Ptr(matchingProjectEnvID),
 				Values: []*prefabProto.ConditionalValue{
 					{
 						Criteria: []*prefabProto.Criterion{departmentNameEndsWithIngCriterion, securityClearance},
@@ -315,7 +315,7 @@ func (suite *ConfigRuleTestSuite) TestHierarchicalMatch() {
 func (suite *ConfigRuleTestSuite) TestInIntRangeCriterion() {
 	operator := prefabProto.Criterion_IN_INT_RANGE
 	contextPropertyName := "team.size"
-	defaultValueToMatch := &prefabProto.ConfigValue{Type: &prefabProto.ConfigValue_IntRange{IntRange: &prefabProto.IntRange{Start: Int64Ptr(0), End: Int64Ptr(100)}}}
+	defaultValueToMatch := &prefabProto.ConfigValue{Type: &prefabProto.ConfigValue_IntRange{IntRange: &prefabProto.IntRange{Start: int64Ptr(0), End: int64Ptr(100)}}}
 
 	tests := []struct {
 		name               string
@@ -330,8 +330,8 @@ func (suite *ConfigRuleTestSuite) TestInIntRangeCriterion() {
 		{"returns false when not range -- above range end", defaultValueToMatch, 101, true, false},
 		{"returns false when not range -- below range start", defaultValueToMatch, -10, true, false},
 		{"returns true when in range -- float", defaultValueToMatch, 10.4, true, true},
-		{"returns true when in range treating empty start as long-min", &prefabProto.ConfigValue{Type: &prefabProto.ConfigValue_IntRange{IntRange: &prefabProto.IntRange{End: Int64Ptr(100)}}}, 10, true, true},
-		{"returns true when in range treating empty end as long-min", &prefabProto.ConfigValue{Type: &prefabProto.ConfigValue_IntRange{IntRange: &prefabProto.IntRange{Start: Int64Ptr(0)}}}, 10, true, true},
+		{"returns true when in range treating empty start as long-min", &prefabProto.ConfigValue{Type: &prefabProto.ConfigValue_IntRange{IntRange: &prefabProto.IntRange{End: int64Ptr(100)}}}, 10, true, true},
+		{"returns true when in range treating empty end as long-min", &prefabProto.ConfigValue{Type: &prefabProto.ConfigValue_IntRange{IntRange: &prefabProto.IntRange{Start: int64Ptr(0)}}}, 10, true, true},
 		{"returns true when in range treating empty start and end as all numbers < long-min", &prefabProto.ConfigValue{Type: &prefabProto.ConfigValue_IntRange{IntRange: &prefabProto.IntRange{}}}, 10, true, true},
 		{"returns false when context value is a string", defaultValueToMatch, "foo", true, false},
 		{"returns false when context value does not exist", defaultValueToMatch, nil, false, false},
@@ -353,7 +353,7 @@ func (suite *ConfigRuleTestSuite) TestInIntRangeCriterion() {
 func (suite *ConfigRuleTestSuite) TestInSegmentCriterion() {
 	// this test is based on in-int range as the target segment
 	contextPropertyName := "team.size"
-	segmentTargetIntRangeConfig := suite.createInIntRangeSegmentTarget(prefabProto.Criterion_IN_INT_RANGE, contextPropertyName, Int64Ptr(0), Int64Ptr(100))
+	segmentTargetIntRangeConfig := suite.createInIntRangeSegmentTarget(prefabProto.Criterion_IN_INT_RANGE, contextPropertyName, int64Ptr(0), int64Ptr(100))
 	targetConfigKey := segmentTargetIntRangeConfig.GetKey()
 	defaultValueToMatch := createConfigValueAndAssertOk(targetConfigKey, suite.T())
 
@@ -392,7 +392,7 @@ func (suite *ConfigRuleTestSuite) TestInSegmentCriterion() {
 func (suite *ConfigRuleTestSuite) TestNotInSegmentCriterion() {
 	// this test is based on in-int range as the target segment
 	contextPropertyName := "team.size"
-	segmentTargetIntRangeConfig := suite.createInIntRangeSegmentTarget(prefabProto.Criterion_IN_INT_RANGE, contextPropertyName, Int64Ptr(0), Int64Ptr(100))
+	segmentTargetIntRangeConfig := suite.createInIntRangeSegmentTarget(prefabProto.Criterion_IN_INT_RANGE, contextPropertyName, int64Ptr(0), int64Ptr(100))
 	targetConfigKey := segmentTargetIntRangeConfig.GetKey()
 	defaultValueToMatch := createConfigValueAndAssertOk(targetConfigKey, suite.T())
 
@@ -451,7 +451,7 @@ func (suite *ConfigRuleTestSuite) createInIntRangeSegmentTarget(operator prefabP
 		SendToClientSdk: false,
 		Rows: []*prefabProto.ConfigRow{
 			{
-				ProjectEnvId: Int64Ptr(suite.projectEnvID),
+				ProjectEnvId: int64Ptr(suite.projectEnvID),
 				Values: []*prefabProto.ConditionalValue{
 					{
 						Criteria: []*prefabProto.Criterion{inIntRangeCriterion},
