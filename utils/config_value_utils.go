@@ -204,7 +204,7 @@ func ExtractDurationValue(cv *prefabProto.ConfigValue) (time.Duration, bool) {
 		{
 			duration, err := durationParser.Parse(v.Duration.GetDefinition())
 			if err != nil {
-				slog.Debug(fmt.Sprintf("Failed to parse duration value: %s", v.Duration.GetDefinition()))
+				slog.Debug("Failed to parse duration value: " + v.Duration.GetDefinition())
 
 				return time.Duration(0), false
 			}
