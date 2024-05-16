@@ -12,6 +12,8 @@ type Encryption struct{}
 
 var ErrInvalidValueFormat = errors.New("invalid value format")
 
+const validPartCount = 3
+
 func (d *Encryption) DecryptValue(secretKeyString string, value string) (string, error) {
 	// Decode the hex-encoded secret key
 	secretKey, err := hex.DecodeString(strings.ToUpper(secretKeyString))
@@ -20,8 +22,8 @@ func (d *Encryption) DecryptValue(secretKeyString string, value string) (string,
 	}
 
 	// Split the value into data, IV, and auth tag parts
-	parts := strings.SplitN(strings.ToUpper(value), "--", 3)
-	if len(parts) < 3 {
+	parts := strings.SplitN(strings.ToUpper(value), "--", validPartCount)
+	if len(parts) < validPartCount {
 		return "", ErrInvalidValueFormat
 	}
 
