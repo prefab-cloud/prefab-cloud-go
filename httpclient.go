@@ -45,7 +45,9 @@ func (c *HttpClient) Load(offset int32) (*prefabProto.Configs, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	req.SetBasicAuth("1", apikey)
+
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, err

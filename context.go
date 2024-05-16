@@ -51,12 +51,14 @@ func NewContextSet() *ContextSet {
 
 func NewContextSetFromProto(protoContextSet *prefabProto.ContextSet) *ContextSet {
 	contextSet := NewContextSet()
+
 	if protoContextSet != nil {
 		for _, context := range protoContextSet.Contexts {
 			namedContext := NewNamedContextFromProto(context)
 			contextSet.Data[context.GetType()] = namedContext
 		}
 	}
+
 	return contextSet
 }
 

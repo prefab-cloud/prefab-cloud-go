@@ -38,6 +38,7 @@ func NewClient(options Options) (*Client, error) {
 	if options.ConfigDirectory != nil {
 		configStores = append(configStores, NewLocalConfigStore(*options.ConfigDirectory, &options))
 	}
+
 	configStore := BuildCompositeConfigStore(configStores...)
 
 	configResolver := NewConfigResolver(configStore, apiConfigStore, apiConfigStore)
@@ -54,7 +55,6 @@ func (c *Client) fetchFromServer(offset int32) {
 	if err != nil {
 		slog.Error(fmt.Sprintf("unable to get data via http %v", err))
 	} else {
-
 		slog.Info("Loaded configuration data")
 
 		c.apiConfigStore.SetFromConfigsProto(configs)
@@ -63,19 +63,18 @@ func (c *Client) fetchFromServer(offset int32) {
 		})
 		slog.Info("Initialization complete called")
 	}
-
 }
 
 func clientInternalGetValueFunc[T any](key string, contextSet ContextSet, parseFunc func(*prefabProto.ConfigValue) (T, bool)) func(c *Client) (T, bool, error) {
 	var zeroValue T
 
 	return func(c *Client) (T, bool, error) {
-
 		fetchResult, fetchOk, fetchErr := c.fetchAndProcessValue(key, contextSet, func(cv *prefabProto.ConfigValue) (any, bool) {
 			pVal, pOk := clientParseValueWrapper(cv, parseFunc)
 			if !pOk {
 				return nil, false
 			}
+
 			return pVal, pOk
 		})
 
@@ -123,6 +122,7 @@ func (c *Client) GetIntValueWithDefault(key string, contextSet ContextSet, defau
 	if err != nil || !ok {
 		return defaultValue, true
 	}
+
 	return value, ok
 }
 
@@ -136,6 +136,7 @@ func (c *Client) GetStringValueWithDefault(key string, contextSet ContextSet, de
 	if err != nil || !ok {
 		return defaultValue, true
 	}
+
 	return value, ok
 }
 
@@ -154,6 +155,7 @@ func (c *Client) GetBoolValueWithDefault(key string, contextSet ContextSet, defa
 	if err != nil || !ok {
 		return defaultValue, true
 	}
+
 	return value, ok
 }
 
@@ -167,6 +169,7 @@ func (c *Client) GetFloatValueWithDefault(key string, contextSet ContextSet, def
 	if err != nil || !ok {
 		return defaultValue, true
 	}
+
 	return value, ok
 }
 
@@ -180,6 +183,7 @@ func (c *Client) GetStringSliceValueWithDefault(key string, contextSet ContextSe
 	if err != nil || !ok {
 		return defaultValue, true
 	}
+
 	return value, ok
 }
 
@@ -193,6 +197,7 @@ func (c *Client) GetDurationWithDefault(key string, contextSet ContextSet, defau
 	if err != nil || !ok {
 		return defaultValue, true
 	}
+
 	return value, ok
 }
 
@@ -206,9 +211,11 @@ func (c *Client) fetchAndProcessValue(key string, contextSet ContextSet, parser 
 	if err != nil {
 		return nil, false, err
 	}
+
 	if getResult.configValue == nil {
 		return nil, false, errors.New("config did not produce a result and no default is specified")
 	}
+
 	parsedValue, ok := parser(getResult.configValue)
 	if !ok {
 		return nil, false, nil

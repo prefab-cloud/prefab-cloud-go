@@ -46,6 +46,7 @@ linters-settings:
       - i
       - j
       - k
+      - ok
   depguard:
     rules:
       prevent_unmaintained_packages:

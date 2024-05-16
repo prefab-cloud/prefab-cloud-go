@@ -1,9 +1,10 @@
 package prefab
 
 import (
+	"testing"
+
 	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
 	"github.com/prefab-cloud/prefab-cloud-go/utils"
-	"testing"
 )
 
 func createConfigValueAndAssertOk(value any, t *testing.T) *prefabProto.ConfigValue {
@@ -11,6 +12,6 @@ func createConfigValueAndAssertOk(value any, t *testing.T) *prefabProto.ConfigVa
 	if !ok {
 		t.Fatalf("Unable to create a config value given %v", value)
 	}
-	return val
 
+	return val
 }

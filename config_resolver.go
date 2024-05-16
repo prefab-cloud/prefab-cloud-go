@@ -69,6 +69,7 @@ func (c ConfigResolver) ResolveValue(key string, contextSet ContextValueGetter) 
 	if !configExists {
 		return ConfigMatch{isMatch: false, originalKey: key}, ErrConfigDoesNotExist
 	}
+
 	contextSet = makeMultiContextGetter(contextSet, c.contextGetter)
 
 	ruleMatchResults := c.ruleEvaluator.EvaluateConfig(config, contextSet)
@@ -151,6 +152,7 @@ func coerceValue(value string, valueType prefabProto.Config_ValueType) (any, boo
 			return bValue, true
 		}
 	}
+
 	return nil, false
 }
 
@@ -165,7 +167,9 @@ func (c ConfigResolver) handleDecryption(configValue *prefabProto.ConfigValue, c
 				if !ok {
 					return "", errors.New("secret key is not a string")
 				}
+
 				decryptedValue, decryptionError := c.decrypter.DecryptValue(keyStr, configValue.GetString_())
+
 				return decryptedValue, decryptionError
 			} else {
 				return "", errors.New("secret key lookup failed")
@@ -196,7 +200,7 @@ func (c multiContextGetter) GetContextValue(propertyName string) (any, bool) {
 		if value, valueExists := context.GetContextValue(propertyName); valueExists {
 			return value, true
 		}
-
 	}
+
 	return nil, false
 }

@@ -3,14 +3,15 @@ package prefab
 import (
 	"errors"
 	"fmt"
-	"github.com/google/go-cmp/cmp"
-	"github.com/prefab-cloud/prefab-cloud-go/anyhelpers"
 	"log/slog"
 	"os"
 	"path/filepath"
 	"reflect"
 	"testing"
 	"time"
+
+	"github.com/google/go-cmp/cmp"
+	"github.com/prefab-cloud/prefab-cloud-go/anyhelpers"
 
 	"github.com/stretchr/testify/suite"
 	"gopkg.in/yaml.v3"
@@ -166,6 +167,7 @@ func (suite *GeneratedTestSuite) makeGetCall(client *Client, dataType *string, k
 		if !ok {
 			suite.Require().Fail("unsupported type for case with default value", "Type was %s", dataType)
 		}
+
 		method := reflect.ValueOf(fn)
 		returnOfGetCall = method.Call([]reflect.Value{
 			reflect.ValueOf(client),
@@ -173,12 +175,12 @@ func (suite *GeneratedTestSuite) makeGetCall(client *Client, dataType *string, k
 			reflect.ValueOf(*contextSet),
 			reflect.ValueOf(defaultValue),
 		})
-
 	} else {
 		fn, ok := typeMap[*dataType]
 		if !ok {
 			suite.Require().Fail("unsupported type", "Type was %s", dataType)
 		}
+
 		method := reflect.ValueOf(fn)
 		returnOfGetCall = method.Call([]reflect.Value{
 			reflect.ValueOf(client),
@@ -189,6 +191,7 @@ func (suite *GeneratedTestSuite) makeGetCall(client *Client, dataType *string, k
 
 	ok, okOk := returnOfGetCall[1].Interface().(bool)
 	suite.Require().True(okOk, "Expected fetch of ok value to work, check reflection code in test")
+
 	result := configLookupResult{defaultPresented: hasDefault, defaultValue: defaultValue, value: returnOfGetCall[0].Interface(), valueOk: ok}
 
 	if !hasDefault {
@@ -204,6 +207,7 @@ func (suite *GeneratedTestSuite) makeGetCall(client *Client, dataType *string, k
 			suite.Require().Fail(fmt.Sprintf("Expected at least three return values from the function, but got: %d", len(returnOfGetCall)))
 		}
 	}
+
 	return result
 }
 
@@ -211,24 +215,28 @@ func buildClient(apiKey string, testCase *getTestCase) (client *Client, err erro
 	options := NewOptions(func(opts *Options) {
 		opts.ApiUrl = "https://api.staging-prefab.cloud"
 		opts.ApiKey = apiKey
+
 		if testCase.ClientOverrides != nil {
 			if testCase.ClientOverrides.OnInitFailure != nil {
 				onInitFailure, onInitFailureMappingErr := mapStringToOnInitializationFailure(*testCase.ClientOverrides.OnInitFailure)
 				if onInitFailureMappingErr != nil {
 					panic(onInitFailureMappingErr)
 				}
+
 				opts.OnInitializationFailure = onInitFailure
 			}
+
 			if testCase.ClientOverrides.InitializationTimeOutSec != nil {
 				opts.InitializationTimeoutSeconds = *testCase.ClientOverrides.InitializationTimeOutSec
 			}
+
 			if testCase.ClientOverrides.PrefabApiUrl != nil {
 				opts.ApiUrl = *testCase.ClientOverrides.PrefabApiUrl
 			}
 		}
-
 	})
 	client, err = NewClient(options)
+
 	return client, err
 }
 
@@ -238,17 +246,18 @@ type expectedResult struct {
 }
 
 func (suite *GeneratedTestSuite) executeGetTest(filename string) {
-
 	testCases := suite.LoadGetTestCasesFromYAML(filename)
 	for _, testCase := range testCases {
 		suite.Run(buildTestCaseName(testCase, filename), func() {
 			client, err := buildClient(suite.ApiKey, testCase)
 			suite.Require().NoError(err, "client constructor failed")
+
 			expectedValue, foundExpectedValue := processExpectedResult(testCase)
 			suite.Require().True(foundExpectedValue, "no expected value for test case %s", testCase.CaseName)
 			defaultValue, defaultValueExists := getDefaultValue(testCase)
 			context, contextErr := processContext(testCase)
 			suite.Require().NoError(contextErr, "error building context")
+
 			configKey, configKeyErr := getConfigKeyToUse(testCase)
 			suite.Require().NoError(configKeyErr)
 			result := suite.makeGetCall(client, testCase.Type, configKey, context, defaultValueExists, defaultValue)
@@ -260,6 +269,7 @@ func (suite *GeneratedTestSuite) executeGetTest(filename string) {
 				suite.True(cmp.Equal(result.value, expectedValue.value))
 			} else if expectedValue.err != nil {
 				suite.Require().Error(result.err, "there should be some kind of error")
+
 				switch *expectedValue.err {
 				case "unable_to_coerce_env_var":
 					suite.Require().ErrorContains(result.err, "type coercion failed")
@@ -274,10 +284,10 @@ func (suite *GeneratedTestSuite) executeGetTest(filename string) {
 				default:
 					suite.Failf("unsupported expected error type", "type was %s", *expectedValue.err)
 				}
-
 			} else {
 				// expected nil value
 				suite.Require().False(result.valueOk, "Expected nil return so the ok return from getter should be false")
+
 				if !result.defaultPresented {
 					suite.ErrorContains(result.err, "does not exist", "Error should be present containing `does not exist`")
 				}
@@ -292,10 +302,12 @@ func (suite *GeneratedTestSuite) enabledTest(filename string) {
 		suite.Run(buildTestCaseName(testCase, filename), func() {
 			client, err := buildClient(suite.ApiKey, testCase)
 			suite.Require().NoError(err, "client constructor failed")
+
 			expectedResult, foundExpectedResult := processExpectedResult(testCase)
 			suite.Require().True(foundExpectedResult, "no expected value for test case %s", testCase.CaseName)
 			context, contextErr := processContext(testCase)
 			suite.Require().NoError(contextErr, "error building context")
+
 			featureIsOn, featureIsOnOk := client.FeatureIsOn(*testCase.Input.Flag, *context)
 			suite.Require().True(featureIsOnOk, "FeatureIsOn should work")
 			suite.Require().NotNil(expectedResult.value, "expected result's value field should not be nil")
@@ -310,6 +322,7 @@ func buildTestCaseName(testCase *getTestCase, filename string) string {
 	if testCase.TestName != nil {
 		testName = *testCase.TestName
 	}
+
 	return fmt.Sprintf("%s::%s::%s", filename, testName, testCase.CaseName)
 }
 
@@ -317,6 +330,7 @@ func getDefaultValue(testCase *getTestCase) (interface{}, bool) {
 	if testCase.Input.Default == nil {
 		return nil, false
 	}
+
 	return *testCase.Input.Default, true
 }
 
@@ -326,21 +340,25 @@ func processContext(testCase *getTestCase) (*ContextSet, error) {
 	}
 	// handle context stacking for tests here because the client doesn't yet support it
 	contextSet := NewContextSet()
+
 	if testCase.TestContext != nil {
 		for key, value := range *testCase.TestContext {
 			contextSet.SetNamedContext(NewNamedContextWithValues(key, value))
 		}
 	}
+
 	if testCase.TestContext != nil {
 		for key, value := range *testCase.TestContext {
 			contextSet.SetNamedContext(NewNamedContextWithValues(key, value))
 		}
 	}
+
 	if testCase.Input.Context != nil {
 		for key, value := range *testCase.Input.Context {
 			contextSet.SetNamedContext(NewNamedContextWithValues(key, value))
 		}
 	}
+
 	return contextSet, nil
 }
 
@@ -348,24 +366,28 @@ func getConfigKeyToUse(testCase *getTestCase) (string, error) {
 	if testCase.Input.Key != nil {
 		return *testCase.Input.Key, nil
 	}
+
 	if testCase.Input.Flag != nil {
 		return *testCase.Input.Flag, nil
 	}
-	return "", errors.New("no key or flag in testCase.Input")
 
+	return "", errors.New("no key or flag in testCase.Input")
 }
 
 func processExpectedResult(testCase *getTestCase) (expectedResult, bool) {
 	if testCase.Expected.Millis != nil {
 		return expectedResult{value: time.Duration(*testCase.Expected.Millis) * time.Millisecond}, true
 	}
+
 	if testCase.Expected.Value != nil {
 		switch val := (*testCase.Expected.Value).(type) {
 		case []any:
 			if properSlice, isSlice := anyhelpers.CanonicalizeSlice(val); isSlice {
 				return expectedResult{value: properSlice}, true
 			}
+
 			slog.Warn("slice has mixed type contents, unable to canonicalize")
+
 			return expectedResult{}, false
 		case int:
 			return expectedResult{value: int64(val)}, true
@@ -373,6 +395,7 @@ func processExpectedResult(testCase *getTestCase) (expectedResult, bool) {
 			return expectedResult{value: val}, true
 		}
 	}
+
 	if testCase.Expected.Error != nil {
 		return expectedResult{err: testCase.Expected.Error}, true
 	}
