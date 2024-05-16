@@ -7,7 +7,9 @@ import (
 	"github.com/prefab-cloud/prefab-cloud-go/utils"
 )
 
-func createConfigValueAndAssertOk(value any, t *testing.T) *prefabProto.ConfigValue {
+func createConfigValueAndAssertOk(t *testing.T, value any) *prefabProto.ConfigValue {
+	t.Helper()
+
 	val, ok := utils.Create(value)
 	if !ok {
 		t.Fatalf("Unable to create a config value given %v", value)

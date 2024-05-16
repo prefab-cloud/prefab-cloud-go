@@ -117,7 +117,7 @@ func TestConfigResolver_ResolveValue(t *testing.T) {
 
 	weightedValueOne := &prefabProto.WeightedValue{
 		Weight: 100,
-		Value:  createConfigValueAndAssertOk(1, t),
+		Value:  createConfigValueAndAssertOk(t, 1),
 	}
 	weightedValues := &prefabProto.WeightedValues{
 		HashByPropertyName: stringPtr("some.property"),
@@ -131,7 +131,7 @@ func TestConfigResolver_ResolveValue(t *testing.T) {
 			WeightedValues: weightedValues,
 		},
 	}
-	configValueOne := createConfigValueAndAssertOk("one", t)
+	configValueOne := createConfigValueAndAssertOk(t, "one")
 
 	type keyValuePair struct {
 		name  string
@@ -200,7 +200,7 @@ func TestConfigResolver_ResolveValue(t *testing.T) {
 			name:      "config has provided set",
 			configKey: theKey,
 			wantConfigMatch: internal.ConfigMatch{
-				Match:                 createConfigValueAndAssertOk(providedEnvVarValue, t),
+				Match:                 createConfigValueAndAssertOk(t, providedEnvVarValue),
 				IsMatch:               true,
 				OriginalKey:           theKey,
 				OriginalMatch:         providedConfigValue,
@@ -232,7 +232,7 @@ func TestConfigResolver_ResolveValue(t *testing.T) {
 			configKey:   theKey,
 			expectError: true,
 			wantConfigMatch: internal.ConfigMatch{
-				Match:                 createConfigValueAndAssertOk(providedEnvVarValue, t),
+				Match:                 createConfigValueAndAssertOk(t, providedEnvVarValue),
 				IsMatch:               true,
 				OriginalKey:           theKey,
 				OriginalMatch:         providedConfigValue,
