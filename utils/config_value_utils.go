@@ -218,12 +218,16 @@ func ExtractDurationValue(cv *prefabProto.ConfigValue) (time.Duration, bool) {
 	}
 }
 
+const hoursInADay = 24
+const daysInAMonth = 30
+const daysInAYear = 365
+
 func durationToISO8601(d time.Duration) string {
 	var (
-		years   = int64(d / (365 * 24 * time.Hour))
-		months  = int64(d % (365 * 24 * time.Hour) / (30 * 24 * time.Hour))
-		days    = int64(d % (30 * 24 * time.Hour) / (24 * time.Hour))
-		hours   = int64(d % (24 * time.Hour) / time.Hour)
+		years   = int64(d / (daysInAYear * hoursInADay * time.Hour))
+		months  = int64(d % (daysInAYear * hoursInADay * time.Hour) / (daysInAMonth * hoursInADay * time.Hour))
+		days    = int64(d % (daysInAMonth * hoursInADay * time.Hour) / (hoursInADay * time.Hour))
+		hours   = int64(d % (hoursInADay * time.Hour) / time.Hour)
 		minutes = int64(d % time.Hour / time.Minute)
 		seconds = float64(d%time.Minute) / float64(time.Second)
 	)

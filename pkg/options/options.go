@@ -38,11 +38,13 @@ type Options struct {
 	OnInitializationFailure      OnInitializationFailure
 }
 
+const timeoutDefault = 10.0
+
 var DefaultOptions = Options{
 	APIKey:                       "",
 	APIUrl:                       "https://api.prefab.cloud",
 	Datasource:                   ALL,
-	InitializationTimeoutSeconds: 10,
+	InitializationTimeoutSeconds: timeoutDefault,
 	OnInitializationFailure:      RAISE,
 	EnvironmentNames:             getDefaultEnvironmentNames(),
 	ConfigDirectory:              getHomeDir(),
