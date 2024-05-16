@@ -19,8 +19,9 @@ type Options = options.Options
 type OnInitializationFailure = options.OnInitializationFailure
 
 var NewOptions = options.NewOptions
-var RAISE = options.RAISE
-var UNLOCK = options.UNLOCK
+
+const RAISE = options.RAISE
+const UNLOCK = options.UNLOCK
 
 // End re-exported types and functions
 
