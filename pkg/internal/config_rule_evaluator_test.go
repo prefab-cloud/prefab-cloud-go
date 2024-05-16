@@ -52,25 +52,25 @@ func (suite *ConfigRuleTestSuite) TestFullRuleEvaluation() {
 	mismatchingProjectEnvID := int64(102)
 	departmentNameEndsWithIngCriterion := &prefabProto.Criterion{
 		Operator:     prefabProto.Criterion_PROP_ENDS_WITH_ONE_OF,
-		ValueToMatch: createConfigValueAndAssertOk([]string{"ing"}, suite.T()),
+		ValueToMatch: createConfigValueAndAssertOk(suite.T(), []string{"ing"}),
 		PropertyName: "department.name",
 	}
 
 	departmentNameIsComplianceOrSecurity := &prefabProto.Criterion{
 		Operator:     prefabProto.Criterion_PROP_IS_ONE_OF,
-		ValueToMatch: createConfigValueAndAssertOk([]string{"compliance", "security"}, suite.T()),
+		ValueToMatch: createConfigValueAndAssertOk(suite.T(), []string{"compliance", "security"}),
 		PropertyName: "department.name",
 	}
 
 	departmentNameIsAliens := &prefabProto.Criterion{
 		Operator:     prefabProto.Criterion_PROP_IS_ONE_OF,
-		ValueToMatch: createConfigValueAndAssertOk([]string{"aliens"}, suite.T()),
+		ValueToMatch: createConfigValueAndAssertOk(suite.T(), []string{"aliens"}),
 		PropertyName: "department.name",
 	}
 
 	securityClearance := &prefabProto.Criterion{
 		Operator:     prefabProto.Criterion_PROP_IS_ONE_OF,
-		ValueToMatch: createConfigValueAndAssertOk([]string{"top secret", "top top secret"}, suite.T()),
+		ValueToMatch: createConfigValueAndAssertOk(suite.T(), []string{"top secret", "top top secret"}),
 		PropertyName: "security.clearance",
 	}
 
@@ -87,15 +87,15 @@ func (suite *ConfigRuleTestSuite) TestFullRuleEvaluation() {
 				Values: []*prefabProto.ConditionalValue{
 					{
 						Criteria: []*prefabProto.Criterion{departmentNameEndsWithIngCriterion, securityClearance},
-						Value:    createConfigValueAndAssertOk(1, suite.T()),
+						Value:    createConfigValueAndAssertOk(suite.T(), 1),
 					},
 					{
 						Criteria: []*prefabProto.Criterion{departmentNameEndsWithIngCriterion},
-						Value:    createConfigValueAndAssertOk(2, suite.T()),
+						Value:    createConfigValueAndAssertOk(suite.T(), 2),
 					},
 					{
 						Criteria: []*prefabProto.Criterion{departmentNameIsComplianceOrSecurity},
-						Value:    createConfigValueAndAssertOk(3, suite.T()),
+						Value:    createConfigValueAndAssertOk(suite.T(), 3),
 					},
 				},
 			},
@@ -103,10 +103,10 @@ func (suite *ConfigRuleTestSuite) TestFullRuleEvaluation() {
 				Values: []*prefabProto.ConditionalValue{
 					{
 						Criteria: []*prefabProto.Criterion{departmentNameIsAliens},
-						Value:    createConfigValueAndAssertOk(10, suite.T()),
+						Value:    createConfigValueAndAssertOk(suite.T(), 10),
 					},
 					{
-						Value: createConfigValueAndAssertOk(11, suite.T()),
+						Value: createConfigValueAndAssertOk(suite.T(), 11),
 					},
 				},
 			},
@@ -121,14 +121,14 @@ func (suite *ConfigRuleTestSuite) TestFullRuleEvaluation() {
 		expectedConditionalValueIndex int
 		contextMockings               []ContextMocking
 	}{
-		{"returns 1 for high security clearance mining department with matching projectEnv", matchingProjectEnvID, createConfigValueAndAssertOk(1, suite.T()), 0, 0, []ContextMocking{{contextPropertyName: "department.name", value: "mining", exists: true}, {contextPropertyName: "security.clearance", value: "top secret", exists: true}}},
-		{"returns 2 for no security clearance mining department with matching projectEnv", matchingProjectEnvID, createConfigValueAndAssertOk(2, suite.T()), 0, 1, []ContextMocking{{contextPropertyName: "department.name", value: "mining", exists: true}, {contextPropertyName: "security.clearance", value: nil, exists: false}}},
-		{"returns 3 for security department with matching projectEnv", matchingProjectEnvID, createConfigValueAndAssertOk(3, suite.T()), 0, 2, []ContextMocking{{contextPropertyName: "department.name", value: "security", exists: true}}},
-		{"returns 10 for aliens department with matching projectEnv", matchingProjectEnvID, createConfigValueAndAssertOk(10, suite.T()), 1, 0, []ContextMocking{{contextPropertyName: "department.name", value: "aliens", exists: true}}},
-		{"returns 11 for cleanup department with matching projectEnv", matchingProjectEnvID, createConfigValueAndAssertOk(11, suite.T()), 1, 1, []ContextMocking{{contextPropertyName: "department.name", value: "cleanup", exists: true}}},
-		{"returns 10 for aliens department with mismatching projectEnv", mismatchingProjectEnvID, createConfigValueAndAssertOk(10, suite.T()), 0, 0, []ContextMocking{{contextPropertyName: "department.name", value: "aliens", exists: true}}},
-		{"returns 11 for cleanup department with mismatching projectEnv", mismatchingProjectEnvID, createConfigValueAndAssertOk(11, suite.T()), 0, 1, []ContextMocking{{contextPropertyName: "department.name", value: "cleanup", exists: true}}},
-		{"returns 11 for high security clearance mining department with mismatching projectEnv", mismatchingProjectEnvID, createConfigValueAndAssertOk(11, suite.T()), 0, 1, []ContextMocking{{contextPropertyName: "department.name", value: "mining", exists: true}, {contextPropertyName: "security.clearance", value: "top secret", exists: true}}},
+		{"returns 1 for high security clearance mining department with matching projectEnv", matchingProjectEnvID, createConfigValueAndAssertOk(suite.T(), 1), 0, 0, []ContextMocking{{contextPropertyName: "department.name", value: "mining", exists: true}, {contextPropertyName: "security.clearance", value: "top secret", exists: true}}},
+		{"returns 2 for no security clearance mining department with matching projectEnv", matchingProjectEnvID, createConfigValueAndAssertOk(suite.T(), 2), 0, 1, []ContextMocking{{contextPropertyName: "department.name", value: "mining", exists: true}, {contextPropertyName: "security.clearance", value: nil, exists: false}}},
+		{"returns 3 for security department with matching projectEnv", matchingProjectEnvID, createConfigValueAndAssertOk(suite.T(), 3), 0, 2, []ContextMocking{{contextPropertyName: "department.name", value: "security", exists: true}}},
+		{"returns 10 for aliens department with matching projectEnv", matchingProjectEnvID, createConfigValueAndAssertOk(suite.T(), 10), 1, 0, []ContextMocking{{contextPropertyName: "department.name", value: "aliens", exists: true}}},
+		{"returns 11 for cleanup department with matching projectEnv", matchingProjectEnvID, createConfigValueAndAssertOk(suite.T(), 11), 1, 1, []ContextMocking{{contextPropertyName: "department.name", value: "cleanup", exists: true}}},
+		{"returns 10 for aliens department with mismatching projectEnv", mismatchingProjectEnvID, createConfigValueAndAssertOk(suite.T(), 10), 0, 0, []ContextMocking{{contextPropertyName: "department.name", value: "aliens", exists: true}}},
+		{"returns 11 for cleanup department with mismatching projectEnv", mismatchingProjectEnvID, createConfigValueAndAssertOk(suite.T(), 11), 0, 1, []ContextMocking{{contextPropertyName: "department.name", value: "cleanup", exists: true}}},
+		{"returns 11 for high security clearance mining department with mismatching projectEnv", mismatchingProjectEnvID, createConfigValueAndAssertOk(suite.T(), 11), 0, 1, []ContextMocking{{contextPropertyName: "department.name", value: "mining", exists: true}, {contextPropertyName: "security.clearance", value: "top secret", exists: true}}},
 	}
 
 	for _, testCase := range tests {
@@ -162,7 +162,7 @@ func (suite *ConfigRuleTestSuite) TestNotSetCriteria() {
 func (suite *ConfigRuleTestSuite) TestPropEndsWithCriteriaEvaluation() {
 	operator := prefabProto.Criterion_PROP_ENDS_WITH_ONE_OF
 	contextPropertyName := "user.email"
-	defaultValueToMatch := createConfigValueAndAssertOk([]string{"example.com", "splat"}, suite.T())
+	defaultValueToMatch := createConfigValueAndAssertOk(suite.T(), []string{"example.com", "splat"})
 
 	tests := []struct {
 		name               string
@@ -174,7 +174,7 @@ func (suite *ConfigRuleTestSuite) TestPropEndsWithCriteriaEvaluation() {
 		{"returns true for email ending with example.com", defaultValueToMatch, "me@example.com", true, true},
 		{"returns false for email ending with prefab.cloud", defaultValueToMatch, "me@prefab.cloud", true, false},
 		{"returns false when context does not exist", defaultValueToMatch, nil, false, false},
-		{"returns false when valueToMatch is not a string slice", createConfigValueAndAssertOk("example.com", suite.T()), "doesn't matter", true, false},
+		{"returns false when valueToMatch is not a string slice", createConfigValueAndAssertOk(suite.T(), "example.com"), "doesn't matter", true, false},
 	}
 
 	for _, testCase := range tests {
@@ -192,7 +192,7 @@ func (suite *ConfigRuleTestSuite) TestPropEndsWithCriteriaEvaluation() {
 func (suite *ConfigRuleTestSuite) TestPropNotEndsWithCriteriaEvaluation() {
 	operator := prefabProto.Criterion_PROP_DOES_NOT_END_WITH_ONE_OF
 	contextPropertyName := "user.email"
-	defaultValueToMatch := createConfigValueAndAssertOk([]string{"example.com", "splat"}, suite.T())
+	defaultValueToMatch := createConfigValueAndAssertOk(suite.T(), []string{"example.com", "splat"})
 
 	tests := []struct {
 		name               string
@@ -204,7 +204,7 @@ func (suite *ConfigRuleTestSuite) TestPropNotEndsWithCriteriaEvaluation() {
 		{"returns false for email ending with example.com", defaultValueToMatch, "me@example.com", true, false},
 		{"returns true for email ending with prefab.cloud", defaultValueToMatch, "me@prefab.cloud", true, true},
 		{"returns true when context does not exist", defaultValueToMatch, nil, false, true},
-		{"returns true when valueToMatch is not a string slice", createConfigValueAndAssertOk("example.com", suite.T()), "doesn't matter", true, true},
+		{"returns true when valueToMatch is not a string slice", createConfigValueAndAssertOk(suite.T(), "example.com"), "doesn't matter", true, true},
 	}
 
 	for _, testCase := range tests {
@@ -222,7 +222,7 @@ func (suite *ConfigRuleTestSuite) TestPropNotEndsWithCriteriaEvaluation() {
 func (suite *ConfigRuleTestSuite) TestPropIsOneOf() {
 	operator := prefabProto.Criterion_PROP_IS_ONE_OF
 	contextPropertyName := "user.email.domain"
-	defaultValueToMatch := createConfigValueAndAssertOk([]string{"yahoo.com", "example.com"}, suite.T())
+	defaultValueToMatch := createConfigValueAndAssertOk(suite.T(), []string{"yahoo.com", "example.com"})
 
 	tests := []struct {
 		name               string
@@ -235,7 +235,7 @@ func (suite *ConfigRuleTestSuite) TestPropIsOneOf() {
 		{"returns false when not in set", defaultValueToMatch, "gmail.com", true, false},
 		{"returns false when context value is not a string", defaultValueToMatch, 1, true, false},
 		{"returns false when context value does not exist", defaultValueToMatch, nil, false, false},
-		{"returns false when valueToMatch is not a string slice", createConfigValueAndAssertOk("example.com", suite.T()), "doesn't matter", true, false},
+		{"returns false when valueToMatch is not a string slice", createConfigValueAndAssertOk(suite.T(), "example.com"), "doesn't matter", true, false},
 	}
 
 	for _, testCase := range tests {
@@ -253,7 +253,7 @@ func (suite *ConfigRuleTestSuite) TestPropIsOneOf() {
 func (suite *ConfigRuleTestSuite) TestPropIsNotOneOf() {
 	operator := prefabProto.Criterion_PROP_IS_NOT_ONE_OF
 	contextPropertyName := "user.email.domain"
-	defaultValueToMatch := createConfigValueAndAssertOk([]string{"yahoo.com", "example.com"}, suite.T())
+	defaultValueToMatch := createConfigValueAndAssertOk(suite.T(), []string{"yahoo.com", "example.com"})
 
 	tests := []struct {
 		name               string
@@ -266,7 +266,7 @@ func (suite *ConfigRuleTestSuite) TestPropIsNotOneOf() {
 		{"returns true when not in set", defaultValueToMatch, "gmail.com", true, true},
 		{"returns true when context value is not a string", defaultValueToMatch, 1, true, true},
 		{"returns true when context value does not exist", defaultValueToMatch, nil, false, true},
-		{"returns true when valueToMatch is not a string slice", createConfigValueAndAssertOk("example.com", suite.T()), "doesn't matter", true, true},
+		{"returns true when valueToMatch is not a string slice", createConfigValueAndAssertOk(suite.T(), "example.com"), "doesn't matter", true, true},
 	}
 
 	for _, testCase := range tests {
@@ -284,7 +284,7 @@ func (suite *ConfigRuleTestSuite) TestPropIsNotOneOf() {
 func (suite *ConfigRuleTestSuite) TestHierarchicalMatch() {
 	operator := prefabProto.Criterion_HIERARCHICAL_MATCH
 	contextPropertyName := "team.path"
-	defaultValueToMatch := createConfigValueAndAssertOk("a.b.c", suite.T())
+	defaultValueToMatch := createConfigValueAndAssertOk(suite.T(), "a.b.c")
 
 	tests := []struct {
 		name               string
@@ -297,7 +297,7 @@ func (suite *ConfigRuleTestSuite) TestHierarchicalMatch() {
 		{"returns false when not matched", defaultValueToMatch, "a.b", true, false},
 		{"returns false when context value is not a string", defaultValueToMatch, 1, true, false},
 		{"returns false when context value does not exist", defaultValueToMatch, nil, false, false},
-		{"returns false when valueToMatch is not a string", createConfigValueAndAssertOk(100, suite.T()), "a.b.c.d", true, false},
+		{"returns false when valueToMatch is not a string", createConfigValueAndAssertOk(suite.T(), 100), "a.b.c.d", true, false},
 	}
 
 	for _, testCase := range tests {
@@ -335,7 +335,7 @@ func (suite *ConfigRuleTestSuite) TestInIntRangeCriterion() {
 		{"returns true when in range treating empty start and end as all numbers < long-min", &prefabProto.ConfigValue{Type: &prefabProto.ConfigValue_IntRange{IntRange: &prefabProto.IntRange{}}}, 10, true, true},
 		{"returns false when context value is a string", defaultValueToMatch, "foo", true, false},
 		{"returns false when context value does not exist", defaultValueToMatch, nil, false, false},
-		{"returns false when value to match isn't an int range", createConfigValueAndAssertOk("what's up doc", suite.T()), nil, false, false},
+		{"returns false when value to match isn't an int range", createConfigValueAndAssertOk(suite.T(), "what's up doc"), nil, false, false},
 	}
 
 	for _, testCase := range tests {
@@ -355,7 +355,7 @@ func (suite *ConfigRuleTestSuite) TestInSegmentCriterion() {
 	contextPropertyName := "team.size"
 	segmentTargetIntRangeConfig := suite.createInIntRangeSegmentTarget(prefabProto.Criterion_IN_INT_RANGE, contextPropertyName, int64Ptr(0), int64Ptr(100))
 	targetConfigKey := segmentTargetIntRangeConfig.GetKey()
-	defaultValueToMatch := createConfigValueAndAssertOk(targetConfigKey, suite.T())
+	defaultValueToMatch := createConfigValueAndAssertOk(suite.T(), targetConfigKey)
 
 	tests := []struct {
 		name                string
@@ -394,7 +394,7 @@ func (suite *ConfigRuleTestSuite) TestNotInSegmentCriterion() {
 	contextPropertyName := "team.size"
 	segmentTargetIntRangeConfig := suite.createInIntRangeSegmentTarget(prefabProto.Criterion_IN_INT_RANGE, contextPropertyName, int64Ptr(0), int64Ptr(100))
 	targetConfigKey := segmentTargetIntRangeConfig.GetKey()
-	defaultValueToMatch := createConfigValueAndAssertOk(targetConfigKey, suite.T())
+	defaultValueToMatch := createConfigValueAndAssertOk(suite.T(), targetConfigKey)
 
 	tests := []struct {
 		name                string
@@ -455,10 +455,10 @@ func (suite *ConfigRuleTestSuite) createInIntRangeSegmentTarget(operator prefabP
 				Values: []*prefabProto.ConditionalValue{
 					{
 						Criteria: []*prefabProto.Criterion{inIntRangeCriterion},
-						Value:    createConfigValueAndAssertOk(true, suite.T()),
+						Value:    createConfigValueAndAssertOk(suite.T(), true),
 					},
 					{
-						Value: createConfigValueAndAssertOk(false, suite.T()),
+						Value: createConfigValueAndAssertOk(suite.T(), false),
 					},
 				},
 			},

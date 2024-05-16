@@ -218,9 +218,11 @@ func ExtractDurationValue(cv *prefabProto.ConfigValue) (time.Duration, bool) {
 	}
 }
 
-const hoursInADay = 24
-const daysInAMonth = 30
-const daysInAYear = 365
+const (
+	hoursInADay  = 24
+	daysInAMonth = 30
+	daysInAYear  = 365
+)
 
 func durationToISO8601(d time.Duration) string {
 	var (

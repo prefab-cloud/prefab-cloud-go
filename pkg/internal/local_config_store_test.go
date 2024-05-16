@@ -39,11 +39,11 @@ func (suite *LocalConfigStoreSuite) TestNewLocalConfigStore() {
 				EnvironmentNames: []string{},
 			},
 			expectedConfigs: []configExpectation{
-				{key: "cool.bool.enabled", expected: createConfigValueAndAssertOk(true, suite.T())},
+				{key: "cool.bool.enabled", expected: createConfigValueAndAssertOk(suite.T(), true)},
 				{key: "cool.bool", exists: false},
 				{key: "hot.int", exists: false},
-				{key: "sample_to_override", expected: createConfigValueAndAssertOk("value from override in default", suite.T())},
-				{key: "cool.count", expected: createConfigValueAndAssertOk(100, suite.T())},
+				{key: "sample_to_override", expected: createConfigValueAndAssertOk(suite.T(), "value from override in default")},
+				{key: "cool.count", expected: createConfigValueAndAssertOk(suite.T(), 100)},
 			},
 		},
 		{
@@ -53,11 +53,11 @@ func (suite *LocalConfigStoreSuite) TestNewLocalConfigStore() {
 				EnvironmentNames: []string{"production"},
 			},
 			expectedConfigs: []configExpectation{
-				{key: "cool.bool.enabled", expected: createConfigValueAndAssertOk(false, suite.T())},
+				{key: "cool.bool.enabled", expected: createConfigValueAndAssertOk(suite.T(), false)},
 				{key: "cool.bool", exists: false},
-				{key: "hot.int", expected: createConfigValueAndAssertOk(212, suite.T())},
-				{key: "sample_to_override", expected: createConfigValueAndAssertOk("value from override in production", suite.T())},
-				{key: "cool.count", expected: createConfigValueAndAssertOk(100, suite.T())},
+				{key: "hot.int", expected: createConfigValueAndAssertOk(suite.T(), 212)},
+				{key: "sample_to_override", expected: createConfigValueAndAssertOk(suite.T(), "value from override in production")},
+				{key: "cool.count", expected: createConfigValueAndAssertOk(suite.T(), 100)},
 			},
 		},
 	}

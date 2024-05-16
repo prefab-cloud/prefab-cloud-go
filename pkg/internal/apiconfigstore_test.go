@@ -22,7 +22,7 @@ func TestApiConfigStore(t *testing.T) {
 				ProjectEnvId: int64Ptr(101),
 				Values: []*prefabProto.ConditionalValue{
 					{
-						Value: createConfigValueAndAssertOk("foo-value", t),
+						Value: createConfigValueAndAssertOk(t, "foo-value"),
 					},
 				},
 			},
@@ -48,7 +48,7 @@ func TestApiConfigStore(t *testing.T) {
 				ProjectEnvId: int64Ptr(101),
 				Values: []*prefabProto.ConditionalValue{
 					{
-						Value: createConfigValueAndAssertOk("foo-value-two", t),
+						Value: createConfigValueAndAssertOk(t, "foo-value-two"),
 					},
 				},
 			},
@@ -66,7 +66,7 @@ func TestApiConfigStore(t *testing.T) {
 				ProjectEnvId: int64Ptr(101),
 				Values: []*prefabProto.ConditionalValue{
 					{
-						Value: createConfigValueAndAssertOk(1234, t),
+						Value: createConfigValueAndAssertOk(t, 1234),
 					},
 				},
 			},

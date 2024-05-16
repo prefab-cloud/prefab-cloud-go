@@ -75,24 +75,24 @@ func (suite *ContextTestSuite) TestContextConversionFromProto() {
 				{
 					Type: stringPtr("user"),
 					Values: map[string]*proto.ConfigValue{
-						"key":   createConfigValueAndAssertOk("u123", suite.T()),
-						"email": createConfigValueAndAssertOk("me@example.com", suite.T()),
-						"admin": createConfigValueAndAssertOk(true, suite.T()),
-						"age":   createConfigValueAndAssertOk(42, suite.T()),
+						"key":   createConfigValueAndAssertOk(suite.T(), "u123"),
+						"email": createConfigValueAndAssertOk(suite.T(), "me@example.com"),
+						"admin": createConfigValueAndAssertOk(suite.T(), true),
+						"age":   createConfigValueAndAssertOk(suite.T(), 42),
 					},
 				},
 				{
 					Type: stringPtr("team"),
 					Values: map[string]*proto.ConfigValue{
-						"key":  createConfigValueAndAssertOk("t123", suite.T()),
-						"name": createConfigValueAndAssertOk("dev ops", suite.T()),
+						"key":  createConfigValueAndAssertOk(suite.T(), "t123"),
+						"name": createConfigValueAndAssertOk(suite.T(), "dev ops"),
 					},
 				},
 				{
 					Type: stringPtr(""),
 					Values: map[string]*proto.ConfigValue{
-						"key": createConfigValueAndAssertOk("?234", suite.T()),
-						"id":  createConfigValueAndAssertOk(3456, suite.T()),
+						"key": createConfigValueAndAssertOk(suite.T(), "?234"),
+						"id":  createConfigValueAndAssertOk(suite.T(), 3456),
 					},
 				},
 			},

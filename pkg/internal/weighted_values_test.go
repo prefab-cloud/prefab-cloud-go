@@ -47,15 +47,15 @@ func (suite *WeightedValueResolverTestSuite) SetupTest() {
 func (suite *WeightedValueResolverTestSuite) TestValueSelectionInRandomCases() {
 	wv1 := &prefabProto.WeightedValue{
 		Weight: 100,
-		Value:  createConfigValueAndAssertOk(1, suite.T()),
+		Value:  createConfigValueAndAssertOk(suite.T(), 1),
 	}
 	wv2 := &prefabProto.WeightedValue{
 		Weight: 50,
-		Value:  createConfigValueAndAssertOk(2, suite.T()),
+		Value:  createConfigValueAndAssertOk(suite.T(), 2),
 	}
 	wv3 := &prefabProto.WeightedValue{
 		Weight: 50,
-		Value:  createConfigValueAndAssertOk(3, suite.T()),
+		Value:  createConfigValueAndAssertOk(suite.T(), 3),
 	}
 	weightedValuesWithoutHashValue := &prefabProto.WeightedValues{
 		WeightedValues: []*prefabProto.WeightedValue{
@@ -133,15 +133,15 @@ func (suite *WeightedValueResolverTestSuite) TestValueSelectionInRandomCases() {
 func (suite *WeightedValueResolverTestSuite) TestValueSelectionInHashingCases() {
 	wv1 := &prefabProto.WeightedValue{
 		Weight: 100,
-		Value:  createConfigValueAndAssertOk(1, suite.T()),
+		Value:  createConfigValueAndAssertOk(suite.T(), 1),
 	}
 	wv2 := &prefabProto.WeightedValue{
 		Weight: 50,
-		Value:  createConfigValueAndAssertOk(2, suite.T()),
+		Value:  createConfigValueAndAssertOk(suite.T(), 2),
 	}
 	wv3 := &prefabProto.WeightedValue{
 		Weight: 50,
-		Value:  createConfigValueAndAssertOk(3, suite.T()),
+		Value:  createConfigValueAndAssertOk(suite.T(), 3),
 	}
 	hashByPropertyName := "some.property"
 	weightedValuesWithHashValue := &prefabProto.WeightedValues{

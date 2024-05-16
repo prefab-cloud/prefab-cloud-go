@@ -55,7 +55,7 @@ func (s *LocalConfigYamlParserTestSuite) TestLocalConfigYamlParser_parse() {
 			name:      "simple int",
 			yamlInput: "sample_int: 123",
 			wantConfigs: []*prefabProto.Config{
-				s.createConfig("sample_int", createConfigValueAndAssertOk(123, s.T()), prefabProto.ConfigType_CONFIG, prefabProto.Config_INT),
+				s.createConfig("sample_int", createConfigValueAndAssertOk(s.T(), 123), prefabProto.ConfigType_CONFIG, prefabProto.Config_INT),
 			},
 			wantErr: assert.NoError,
 		},
@@ -63,7 +63,7 @@ func (s *LocalConfigYamlParserTestSuite) TestLocalConfigYamlParser_parse() {
 			name:      "string feature flag",
 			yamlInput: `flag_with_a_value: { "feature_flag": "true", value: "all-features" }`,
 			wantConfigs: []*prefabProto.Config{
-				s.createConfig("flag_with_a_value", createConfigValueAndAssertOk("all-features", s.T()), prefabProto.ConfigType_FEATURE_FLAG, prefabProto.Config_STRING),
+				s.createConfig("flag_with_a_value", createConfigValueAndAssertOk(s.T(), "all-features"), prefabProto.ConfigType_FEATURE_FLAG, prefabProto.Config_STRING),
 			},
 			wantErr: assert.NoError,
 		},
@@ -76,8 +76,8 @@ prefab:
       timeout: 2
       enabled: true`,
 			wantConfigs: []*prefabProto.Config{
-				s.createConfig("prefab.api.liveness.timeout", createConfigValueAndAssertOk(2, s.T()), prefabProto.ConfigType_CONFIG, prefabProto.Config_INT),
-				s.createConfig("prefab.api.liveness.enabled", createConfigValueAndAssertOk(true, s.T()), prefabProto.ConfigType_CONFIG, prefabProto.Config_BOOL),
+				s.createConfig("prefab.api.liveness.timeout", createConfigValueAndAssertOk(s.T(), 2), prefabProto.ConfigType_CONFIG, prefabProto.Config_INT),
+				s.createConfig("prefab.api.liveness.enabled", createConfigValueAndAssertOk(s.T(), true), prefabProto.ConfigType_CONFIG, prefabProto.Config_BOOL),
 			},
 			wantErr: assert.NoError,
 		},
@@ -93,9 +93,9 @@ log-level:
         router:
           DefaultRouteBuilder: debug`,
 			wantConfigs: []*prefabProto.Config{
-				s.createConfig("log-level", createConfigValueAndAssertOk(&prefabProto.ConfigValue_LogLevel{LogLevel: prefabProto.LogLevel_WARN}, s.T()), prefabProto.ConfigType_LOG_LEVEL, prefabProto.Config_LOG_LEVEL),
-				s.createConfig("log-level.io.micronaut.web", createConfigValueAndAssertOk(&prefabProto.ConfigValue_LogLevel{LogLevel: prefabProto.LogLevel_INFO}, s.T()), prefabProto.ConfigType_LOG_LEVEL, prefabProto.Config_LOG_LEVEL),
-				s.createConfig("log-level.io.micronaut.web.router.DefaultRouteBuilder", createConfigValueAndAssertOk(&prefabProto.ConfigValue_LogLevel{LogLevel: prefabProto.LogLevel_DEBUG}, s.T()), prefabProto.ConfigType_LOG_LEVEL, prefabProto.Config_LOG_LEVEL),
+				s.createConfig("log-level", createConfigValueAndAssertOk(s.T(), &prefabProto.ConfigValue_LogLevel{LogLevel: prefabProto.LogLevel_WARN}), prefabProto.ConfigType_LOG_LEVEL, prefabProto.Config_LOG_LEVEL),
+				s.createConfig("log-level.io.micronaut.web", createConfigValueAndAssertOk(s.T(), &prefabProto.ConfigValue_LogLevel{LogLevel: prefabProto.LogLevel_INFO}), prefabProto.ConfigType_LOG_LEVEL, prefabProto.Config_LOG_LEVEL),
+				s.createConfig("log-level.io.micronaut.web.router.DefaultRouteBuilder", createConfigValueAndAssertOk(s.T(), &prefabProto.ConfigValue_LogLevel{LogLevel: prefabProto.LogLevel_DEBUG}), prefabProto.ConfigType_LOG_LEVEL, prefabProto.Config_LOG_LEVEL),
 			},
 			wantErr: assert.NoError,
 		},
