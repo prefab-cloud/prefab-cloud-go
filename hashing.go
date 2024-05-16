@@ -9,8 +9,7 @@ import (
 
 type Hashing struct{}
 
-// HashZeroToOne
-func (Hashing) HashZeroToOne(value string) (hashedValue float64, ok bool) {
+func (Hashing) HashZeroToOne(value string) (float64, bool) {
 	h32 := murmur3.New32()
 
 	_, err := h32.Write([]byte(value))

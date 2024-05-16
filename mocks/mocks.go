@@ -10,20 +10,22 @@ type MockContextGetter struct {
 	mock.Mock
 }
 
-func (m *MockContextGetter) GetContextValue(propertyName string) (value interface{}, valueExists bool) {
+func (m *MockContextGetter) GetContextValue(propertyName string) (interface{}, bool) {
+	var value interface{}
+
 	args := m.Called(propertyName)
 	if args.Get(0) != nil {
-		value = args.Get(0).(interface{})
+		value = args.Get(0)
 	} else {
 		value = nil
 	}
 
-	valueExists = args.Bool(1)
+	valueExists := args.Bool(1)
 
 	return value, valueExists
 }
 
-func NewMockContext(contextPropertyName string, contextValue interface{}, contextExistsValue bool) (mockedContext *MockContextGetter) {
+func NewMockContext(contextPropertyName string, contextValue interface{}, contextExistsValue bool) *MockContextGetter {
 	mockContext := MockContextGetter{}
 	if contextExistsValue {
 		// When context exists, return the provided contextValue and true.
@@ -43,7 +45,7 @@ type ContextMocking struct {
 	Exists              bool
 }
 
-func NewMockContextWithMultipleValues(mockings []ContextMocking) (mockedContext *MockContextGetter) {
+func NewMockContextWithMultipleValues(mockings []ContextMocking) *MockContextGetter {
 	mockContext := &MockContextGetter{}
 
 	for _, mocking := range mockings {
@@ -64,7 +66,9 @@ type MockConfigStoreGetter struct {
 	mock.Mock
 }
 
-func (m *MockConfigStoreGetter) GetConfig(key string) (config *prefabProto.Config, configExists bool) {
+func (m *MockConfigStoreGetter) GetConfig(key string) (*prefabProto.Config, bool) {
+	var config *prefabProto.Config
+
 	args := m.Called(key)
 	if args.Get(0) != nil {
 		config = args.Get(0).(*prefabProto.Config)
@@ -72,7 +76,7 @@ func (m *MockConfigStoreGetter) GetConfig(key string) (config *prefabProto.Confi
 		config = nil
 	}
 
-	configExists = args.Bool(1)
+	configExists := args.Bool(1)
 
 	return config, configExists
 }

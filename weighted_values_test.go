@@ -23,7 +23,7 @@ type MockHasher struct {
 	mock.Mock
 }
 
-func (m *MockHasher) HashZeroToOne(value string) (hashedValue float64, ok bool) {
+func (m *MockHasher) HashZeroToOne(value string) (float64, bool) {
 	args := m.Called(value)
 	return args.Get(0).(float64), args.Bool(1)
 }

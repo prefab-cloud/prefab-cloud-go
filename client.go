@@ -96,12 +96,6 @@ func clientInternalGetValueFunc[T any](key string, contextSet ContextSet, parseF
 	}
 }
 
-// returnDefaultValue is a generic function that returns the default (zero) value for type T.
-func returnZeroValue[T any]() T {
-	var value T // Automatically initialized to the zero value of T
-	return value
-}
-
 func (c *Client) GetRawConfigValueProto(key string, contextSet ContextSet) (*prefabProto.ConfigValue, bool, error) {
 	resolutionResult, err := c.internalGetValue(key, contextSet)
 	if err != nil {
@@ -145,12 +139,12 @@ func (c *Client) GetStringValue(key string, contextSet ContextSet) (string, bool
 	return value, ok, err
 }
 
-func (c *Client) FeatureIsOn(key string, contextSet ContextSet) (value bool, ok bool) {
-	value, ok = c.GetBoolValueWithDefault(key, contextSet, false)
+func (c *Client) FeatureIsOn(key string, contextSet ContextSet) (bool, bool) {
+	value, ok := c.GetBoolValueWithDefault(key, contextSet, false)
 	return value, ok
 }
 
-func (c *Client) GetBoolValueWithDefault(key string, contextSet ContextSet, defaultValue bool) (value bool, ok bool) {
+func (c *Client) GetBoolValueWithDefault(key string, contextSet ContextSet, defaultValue bool) (bool, bool) {
 	value, ok, err := c.GetBoolValue(key, contextSet)
 	if err != nil || !ok {
 		return defaultValue, true
@@ -159,12 +153,12 @@ func (c *Client) GetBoolValueWithDefault(key string, contextSet ContextSet, defa
 	return value, ok
 }
 
-func (c *Client) GetBoolValue(key string, contextSet ContextSet) (value bool, ok bool, err error) {
-	value, ok, err = clientInternalGetValueFunc(key, contextSet, utils.ExtractBoolValue)(c)
+func (c *Client) GetBoolValue(key string, contextSet ContextSet) (bool, bool, error) {
+	value, ok, err := clientInternalGetValueFunc(key, contextSet, utils.ExtractBoolValue)(c)
 	return value, ok, err
 }
 
-func (c *Client) GetFloatValueWithDefault(key string, contextSet ContextSet, defaultValue float64) (value float64, ok bool) {
+func (c *Client) GetFloatValueWithDefault(key string, contextSet ContextSet, defaultValue float64) (float64, bool) {
 	value, ok, err := c.GetFloatValue(key, contextSet)
 	if err != nil || !ok {
 		return defaultValue, true
@@ -173,12 +167,12 @@ func (c *Client) GetFloatValueWithDefault(key string, contextSet ContextSet, def
 	return value, ok
 }
 
-func (c *Client) GetFloatValue(key string, contextSet ContextSet) (value float64, ok bool, err error) {
-	value, ok, err = clientInternalGetValueFunc(key, contextSet, utils.ExtractFloatValue)(c)
+func (c *Client) GetFloatValue(key string, contextSet ContextSet) (float64, bool, error) {
+	value, ok, err := clientInternalGetValueFunc(key, contextSet, utils.ExtractFloatValue)(c)
 	return value, ok, err
 }
 
-func (c *Client) GetStringSliceValueWithDefault(key string, contextSet ContextSet, defaultValue []string) (value []string, ok bool) {
+func (c *Client) GetStringSliceValueWithDefault(key string, contextSet ContextSet, defaultValue []string) ([]string, bool) {
 	value, ok, err := c.GetStringSliceValue(key, contextSet)
 	if err != nil || !ok {
 		return defaultValue, true
@@ -187,12 +181,12 @@ func (c *Client) GetStringSliceValueWithDefault(key string, contextSet ContextSe
 	return value, ok
 }
 
-func (c *Client) GetStringSliceValue(key string, contextSet ContextSet) (value []string, ok bool, err error) {
-	value, ok, err = clientInternalGetValueFunc(key, contextSet, utils.ExtractStringListValue)(c)
+func (c *Client) GetStringSliceValue(key string, contextSet ContextSet) ([]string, bool, error) {
+	value, ok, err := clientInternalGetValueFunc(key, contextSet, utils.ExtractStringListValue)(c)
 	return value, ok, err
 }
 
-func (c *Client) GetDurationWithDefault(key string, contextSet ContextSet, defaultValue time.Duration) (value time.Duration, ok bool) {
+func (c *Client) GetDurationWithDefault(key string, contextSet ContextSet, defaultValue time.Duration) (time.Duration, bool) {
 	value, ok, err := c.GetDurationValue(key, contextSet)
 	if err != nil || !ok {
 		return defaultValue, true
@@ -201,8 +195,8 @@ func (c *Client) GetDurationWithDefault(key string, contextSet ContextSet, defau
 	return value, ok
 }
 
-func (c *Client) GetDurationValue(key string, contextSet ContextSet) (value time.Duration, ok bool, err error) {
-	value, ok, err = clientInternalGetValueFunc(key, contextSet, utils.ExtractDurationValue)(c)
+func (c *Client) GetDurationValue(key string, contextSet ContextSet) (time.Duration, bool, error) {
+	value, ok, err := clientInternalGetValueFunc(key, contextSet, utils.ExtractDurationValue)(c)
 	return value, ok, err
 }
 
@@ -224,7 +218,7 @@ func (c *Client) fetchAndProcessValue(key string, contextSet ContextSet, parser 
 	return parsedValue, true, nil
 }
 
-func (c *Client) internalGetValue(key string, contextSet ContextSet) (resolutionResult resolutionResult, err error) {
+func (c *Client) internalGetValue(key string, contextSet ContextSet) (resolutionResult, error) {
 	if c.awaitInitialization() == TIMEOUT {
 		if c.options.OnInitializationFailure == UNLOCK {
 			c.closeInitializationCompleteOnce.Do(func() {
@@ -278,7 +272,7 @@ func clientParseValueWrapper[T any](cv *prefabProto.ConfigValue, parseFunc func(
 	}
 }
 
-func (c *Client) awaitInitialization() (result awaitInitializationResult) {
+func (c *Client) awaitInitialization() awaitInitializationResult {
 	select {
 	case <-c.initializationComplete:
 		return SUCCESS

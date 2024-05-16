@@ -62,7 +62,7 @@ func NewContextSetFromProto(protoContextSet *prefabProto.ContextSet) *ContextSet
 	return contextSet
 }
 
-func (c *ContextSet) GetContextValue(propertyName string) (value any, valueExists bool) {
+func (c *ContextSet) GetContextValue(propertyName string) (any, bool) {
 	contextName, key := splitAtFirstDot(propertyName)
 	if namedContext, namedContextExists := c.Data[contextName]; namedContextExists {
 		value, valueExists := namedContext.Data[key]
@@ -90,7 +90,7 @@ func (c *ContextSet) WithNamedContextValues(name string, values map[string]inter
 // two strings: the part before the dot and the part after the dot.
 // If the string starts with ".", the first return value is "" and the second is the rest of the string.
 // If there is no ".", it returns "", and the whole string as the second part.
-func splitAtFirstDot(input string) (prefix string, suffix string) {
+func splitAtFirstDot(input string) (string, string) {
 	// Special case for strings starting with "."
 	if strings.HasPrefix(input, ".") {
 		return "", input[1:]

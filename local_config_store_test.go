@@ -86,12 +86,12 @@ func (suite *LocalConfigStoreSuite) TestNewLocalConfigStore() {
 	}
 }
 
-func (s *LocalConfigStoreSuite) onlyValue(config *prefabProto.Config) (value *prefabProto.ConfigValue, onlyValue bool) {
+func (suite *LocalConfigStoreSuite) onlyValue(config *prefabProto.Config) (*prefabProto.ConfigValue, bool) {
 	if len(config.Rows) != 1 {
 		return nil, false
 	}
 
-	value = nil
+	var value *prefabProto.ConfigValue
 
 	for _, row := range config.Rows {
 		for _, conditional := range row.Values {

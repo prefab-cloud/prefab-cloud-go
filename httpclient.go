@@ -39,7 +39,7 @@ func (c *HTTPClient) Load(offset int32) (*prefabProto.Configs, error) {
 	// TODO target the cdn first
 	uri := fmt.Sprintf("%s/api/v1/configs/%d", c.apiURL, offset)
 
-	slog.Info(fmt.Sprintf("Getting data from %s", uri))
+	slog.Info("Getting data from " + uri)
 
 	// Perform the HTTP GET request
 	req, err := http.NewRequest(http.MethodGet, uri, nil)

@@ -43,8 +43,8 @@ func (cs *APIConfigStore) SetFromConfigsProto(configs *prefabProto.Configs) {
 	cs.SetConfigs(configs.Configs, configs.ConfigServicePointer.GetProjectEnvId())
 }
 
-func (cs *APIConfigStore) GetContextValue(propertyName string) (value interface{}, valueExists bool) {
-	value, valueExists = cs.contextSet.GetContextValue(propertyName)
+func (cs *APIConfigStore) GetContextValue(propertyName string) (interface{}, bool) {
+	value, valueExists := cs.contextSet.GetContextValue(propertyName)
 	return value, valueExists
 }
 

@@ -181,7 +181,7 @@ func defaultInt(maybeInt *int64, defaultValue int64) int64 {
 	return defaultValue
 }
 
-func rowWithMatchingEnvID(config *prefabProto.Config, envID int64) (row *prefabProto.ConfigRow, rowWasFound bool) {
+func rowWithMatchingEnvID(config *prefabProto.Config, envID int64) (*prefabProto.ConfigRow, bool) {
 	for _, row := range config.GetRows() {
 		if row.ProjectEnvId != nil && *row.ProjectEnvId == envID {
 			return row, true
@@ -191,7 +191,7 @@ func rowWithMatchingEnvID(config *prefabProto.Config, envID int64) (row *prefabP
 	return nil, false
 }
 
-func rowWithoutEnvID(config *prefabProto.Config) (row *prefabProto.ConfigRow, rowWasFound bool) {
+func rowWithoutEnvID(config *prefabProto.Config) (*prefabProto.ConfigRow, bool) {
 	for _, row := range config.GetRows() {
 		if row.ProjectEnvId == nil {
 			return row, true

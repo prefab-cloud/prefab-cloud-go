@@ -4,13 +4,17 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"encoding/hex"
-	"fmt"
+	"errors"
 	"strings"
 )
 
 type Encryption struct{}
 
-func (d *Encryption) DecryptValue(secretKeyString string, value string) (decryptedValue string, err error) {
+var (
+	ErrInvalidValueFormat = errors.New("invalid value format")
+)
+
+func (d *Encryption) DecryptValue(secretKeyString string, value string) (string, error) {
 	// Decode the hex-encoded secret key
 	secretKey, err := hex.DecodeString(strings.ToUpper(secretKeyString))
 	if err != nil {
@@ -20,7 +24,7 @@ func (d *Encryption) DecryptValue(secretKeyString string, value string) (decrypt
 	// Split the value into data, IV, and auth tag parts
 	parts := strings.SplitN(strings.ToUpper(value), "--", 3)
 	if len(parts) < 3 {
-		return "", fmt.Errorf("invalid value format")
+		return "", ErrInvalidValueFormat
 	}
 
 	dataStr, ivStr, authTagStr := parts[0], parts[1], parts[2]

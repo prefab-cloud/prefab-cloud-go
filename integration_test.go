@@ -78,22 +78,22 @@ func (suite *GeneratedTestSuite) SetupSuite() {
 
 func (suite *GeneratedTestSuite) LoadGetTestCasesFromYAML(filename string) []*getTestCase {
 	fileContents, err := os.ReadFile(filepath.Join(suite.BaseDirectory, filename))
-	suite.NoError(err)
+	suite.Require().NoError(err)
 
 	var data map[string]interface{}
 
 	err = yaml.Unmarshal(fileContents, &data)
-	suite.NoError(err)
+	suite.Require().NoError(err)
 
 	testsData, ok := data["tests"].([]interface{})
 	suite.True(ok, "Failed to find 'tests' array in YAML file")
 
 	casesBytes, err := yaml.Marshal(testsData)
-	suite.NoError(err)
+	suite.Require().NoError(err)
 
 	var tests []*getTest
 	err = yaml.Unmarshal(casesBytes, &tests)
-	suite.NoError(err)
+	suite.Require().NoError(err)
 
 	var testCases []*getTestCase
 
@@ -212,7 +212,7 @@ func (suite *GeneratedTestSuite) makeGetCall(client *Client, dataType *string, k
 	return result
 }
 
-func buildClient(apiKey string, testCase *getTestCase) (client *Client, err error) {
+func buildClient(apiKey string, testCase *getTestCase) (*Client, error) {
 	options := NewOptions(func(opts *Options) {
 		opts.APIUrl = "https://api.staging-prefab.cloud"
 		opts.APIKey = apiKey
@@ -236,7 +236,7 @@ func buildClient(apiKey string, testCase *getTestCase) (client *Client, err erro
 			}
 		}
 	})
-	client, err = NewClient(options)
+	client, err := NewClient(options)
 
 	return client, err
 }

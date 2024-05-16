@@ -15,15 +15,16 @@ type MockContextGetter struct {
 	mock.Mock
 }
 
-func (m *MockContextGetter) GetContextValue(propertyName string) (value interface{}, valueExists bool) {
+func (m *MockContextGetter) GetContextValue(propertyName string) (interface{}, bool) {
+	var value interface{}
 	args := m.Called(propertyName)
 	if args.Get(0) != nil {
-		value = args.Get(0).(interface{})
+		value = args.Get(0)
 	} else {
 		value = nil
 	}
 
-	valueExists = args.Bool(1)
+	valueExists := args.Bool(1)
 
 	return value, valueExists
 }
@@ -144,7 +145,7 @@ func (suite *ConfigRuleTestSuite) TestAlwaysTrueCriteria() {
 	suite.Run("returns true", func() {
 		criterion := &prefabProto.Criterion{Operator: prefabProto.Criterion_ALWAYS_TRUE}
 		isMatch := suite.evaluator.EvaluateCriterion(criterion, NewContextSet())
-		suite.Assert().True(isMatch)
+		suite.True(isMatch)
 	})
 }
 
@@ -152,7 +153,7 @@ func (suite *ConfigRuleTestSuite) TestNotSetCriteria() {
 	suite.Run("returns false", func() {
 		criterion := &prefabProto.Criterion{Operator: prefabProto.Criterion_NOT_SET}
 		isMatch := suite.evaluator.EvaluateCriterion(criterion, NewContextSet())
-		suite.Assert().False(isMatch)
+		suite.False(isMatch)
 	})
 }
 
@@ -465,7 +466,7 @@ func (suite *ConfigRuleTestSuite) createInIntRangeSegmentTarget(operator prefabP
 	return targetSegmentConfig
 }
 
-func (suite *ConfigRuleTestSuite) setupMockContext(contextPropertyName string, contextValue interface{}, contextExistsValue bool) (mockedContext *MockContextGetter, cleanup func()) {
+func (suite *ConfigRuleTestSuite) setupMockContext(contextPropertyName string, contextValue interface{}, contextExistsValue bool) (*MockContextGetter, func()) {
 	mockContext := MockContextGetter{}
 	if contextExistsValue {
 		// When context exists, return the provided contextValue and true.
@@ -489,7 +490,7 @@ type ContextMocking struct {
 	exists              bool
 }
 
-func (suite *ConfigRuleTestSuite) setupMockContextWithMultipleValues(mockings []ContextMocking) (mockedContext *MockContextGetter, cleanup func()) {
+func (suite *ConfigRuleTestSuite) setupMockContextWithMultipleValues(mockings []ContextMocking) (*MockContextGetter, func()) {
 	mockContext := &MockContextGetter{}
 
 	for _, mocking := range mockings {
@@ -510,7 +511,7 @@ func (suite *ConfigRuleTestSuite) setupMockContextWithMultipleValues(mockings []
 	return mockContext, cleanupFunc
 }
 
-func (suite *ConfigRuleTestSuite) setupMockConfigStoreGetter(configKey string, config *prefabProto.Config, configExists bool) (cleanup func()) {
+func (suite *ConfigRuleTestSuite) setupMockConfigStoreGetter(configKey string, config *prefabProto.Config, configExists bool) func() {
 	suite.mockConfigStoreGetter.On("GetConfig", configKey).Return(config, configExists)
 
 	cleanupFunc := func() {
