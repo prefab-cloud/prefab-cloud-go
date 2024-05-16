@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"testing"
 
-	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
+
+	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
 )
 
 // LocalConfigYamlParserTestSuite structure for running test suite.
@@ -43,10 +44,10 @@ func (s *LocalConfigYamlParserTestSuite) collectKeys(configs []*prefabProto.Conf
 // TestLocalConfigYamlParser_parse tests the YAML parser function.
 func (s *LocalConfigYamlParserTestSuite) TestLocalConfigYamlParser_parse() {
 	tests := []struct {
+		wantErr     assert.ErrorAssertionFunc
 		name        string
 		yamlInput   string
 		wantConfigs []*prefabProto.Config
-		wantErr     assert.ErrorAssertionFunc
 	}{
 		{
 			name:      "simple int",
@@ -98,17 +99,17 @@ log-level:
 		},
 	}
 
-	for _, tt := range tests {
-		s.Run(tt.name, func() {
+	for _, testCase := range tests {
+		s.Run(testCase.name, func() {
 			p := &LocalConfigYamlParser{}
 
-			gotConfigValues, err := p.parse([]byte(tt.yamlInput))
-			if !tt.wantErr(s.T(), err, fmt.Sprintf("parse(%v)", tt.yamlInput)) {
+			gotConfigValues, err := p.parse([]byte(testCase.yamlInput))
+			if !testCase.wantErr(s.T(), err, fmt.Sprintf("parse(%v)", testCase.yamlInput)) {
 				return
 			}
 
-			assert.ElementsMatch(s.T(), s.collectKeys(tt.wantConfigs), s.collectKeys(gotConfigValues))
-			assert.ElementsMatchf(s.T(), tt.wantConfigs, gotConfigValues, "parse(%v)", tt.yamlInput)
+			assert.ElementsMatch(s.T(), s.collectKeys(testCase.wantConfigs), s.collectKeys(gotConfigValues))
+			assert.ElementsMatchf(s.T(), testCase.wantConfigs, gotConfigValues, "parse(%v)", testCase.yamlInput)
 		})
 	}
 }

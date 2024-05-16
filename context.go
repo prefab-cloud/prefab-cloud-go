@@ -8,8 +8,8 @@ import (
 )
 
 type NamedContext struct {
-	Name string
 	Data map[string]any
+	Name string
 }
 
 func NewNamedContextWithValues(name string, values map[string]any) *NamedContext {

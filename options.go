@@ -23,24 +23,24 @@ const (
 )
 
 const (
-	ApiKeyEnvVar = "PREFAB_API_KEY"
-	ApiUrlVar    = "PREFAB_API_URL"
+	APIKeyEnvVar = "PREFAB_API_KEY"
+	APIURLVar    = "PREFAB_API_URL"
 )
 
 type Options struct {
-	ApiKey                       string
-	Datasource                   Datasource
-	ApiUrl                       string
-	InitializationTimeoutSeconds float64
-	OnInitializationFailure      OnInitializationFailure
-	EnvironmentNames             []string
 	ConfigDirectory              *string
 	ConfigOverrideDirectory      *string
+	APIKey                       string
+	APIUrl                       string
+	EnvironmentNames             []string
+	Datasource                   Datasource
+	InitializationTimeoutSeconds float64
+	OnInitializationFailure      OnInitializationFailure
 }
 
 var DefaultOptions = Options{
-	ApiKey:                       "",
-	ApiUrl:                       "https://api.prefab.cloud",
+	APIKey:                       "",
+	APIUrl:                       "https://api.prefab.cloud",
 	Datasource:                   ALL,
 	InitializationTimeoutSeconds: 10,
 	OnInitializationFailure:      RAISE,
@@ -81,30 +81,30 @@ func NewOptions(modifyFn func(*Options)) Options {
 }
 
 func (o *Options) apiKeySettingOrEnvVar() (string, error) {
-	if o.ApiKey == "" {
+	if o.APIKey == "" {
 		// Attempt to read from an environment variable if APIKey is not directly set
-		envAPIKey := os.Getenv(ApiKeyEnvVar)
+		envAPIKey := os.Getenv(APIKeyEnvVar)
 		if envAPIKey == "" {
-			return "", errors.New(fmt.Sprintf("API key is not set and not found in environment variable %s", ApiKeyEnvVar))
+			return "", fmt.Errorf("API key is not set and not found in environment variable %s", APIKeyEnvVar)
 		}
 
-		o.ApiKey = envAPIKey
+		o.APIKey = envAPIKey
 	}
 
-	return o.ApiKey, nil
+	return o.APIKey, nil
 }
 
-func (o *Options) PrefabApiUrlEnvVarOrSetting() (string, error) {
-	apiUrlFromEnvVar := os.Getenv(ApiUrlVar)
-	if apiUrlFromEnvVar != "" {
-		o.ApiUrl = apiUrlFromEnvVar
+func (o *Options) PrefabAPIURLEnvVarOrSetting() (string, error) {
+	apiURLFromEnvVar := os.Getenv(APIURLVar)
+	if apiURLFromEnvVar != "" {
+		o.APIUrl = apiURLFromEnvVar
 	}
 
-	if o.ApiUrl == "" {
+	if o.APIUrl == "" {
 		return "", errors.New("no PrefabApiUrl set")
 	}
 
-	return o.ApiUrl, nil
+	return o.APIUrl, nil
 }
 
 func StringPtr(string string) *string {

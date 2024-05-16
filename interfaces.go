@@ -10,8 +10,8 @@ type ConfigStoreGetter interface {
 	GetConfig(key string) (config *prefabProto.Config, exists bool)
 }
 
-type ProjectEnvIdSupplier interface {
-	GetProjectEnvId() int64
+type ProjectEnvIDSupplier interface {
+	GetProjectEnvID() int64
 }
 
 type ConfigEvaluator interface {

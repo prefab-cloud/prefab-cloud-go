@@ -7,8 +7,8 @@ import (
 )
 
 type EncryptionTestSuite struct {
-	suite.Suite
 	decrypter Encryption
+	suite.Suite
 }
 
 func (suite *EncryptionTestSuite) TestDecryptionWorks() {

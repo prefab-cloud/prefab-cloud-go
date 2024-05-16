@@ -3,9 +3,10 @@ package prefab
 import (
 	"testing"
 
+	"github.com/stretchr/testify/mock"
+
 	"github.com/prefab-cloud/prefab-cloud-go/mocks"
 	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
-	"github.com/stretchr/testify/mock"
 
 	"github.com/stretchr/testify/suite"
 )
@@ -30,22 +31,22 @@ func (m *MockContextGetter) GetContextValue(propertyName string) (value interfac
 type ConfigRuleTestSuite struct {
 	suite.Suite
 	evaluator                 *ConfigRuleEvaluator
-	projectEnvId              int64
-	mockConfigStoreGetter     mocks.MockConfigStoreGetter
-	mockProjectEnvIdSupplier  mocks.MockProjectEnvIdSupplier
 	nonBoolReturnSimpleConfig *prefabProto.Config
+	mockConfigStoreGetter     mocks.MockConfigStoreGetter
+	mockProjectEnvIDSupplier  mocks.MockProjectEnvIDSupplier
+	projectEnvID              int64
 }
 
 func (suite *ConfigRuleTestSuite) SetupTest() {
 	suite.mockConfigStoreGetter = mocks.MockConfigStoreGetter{}
-	suite.projectEnvId = 101
-	suite.mockProjectEnvIdSupplier = *mocks.NewMockProjectEnvIdSupplier(suite.projectEnvId)
-	suite.evaluator = NewConfigRuleEvaluator(&suite.mockConfigStoreGetter, &suite.mockProjectEnvIdSupplier)
+	suite.projectEnvID = 101
+	suite.mockProjectEnvIDSupplier = *mocks.NewMockProjectEnvIDSupplier(suite.projectEnvID)
+	suite.evaluator = NewConfigRuleEvaluator(&suite.mockConfigStoreGetter, &suite.mockProjectEnvIDSupplier)
 }
 
 func (suite *ConfigRuleTestSuite) TestFullRuleEvaluation() {
-	matchingProjectEnvId := int64(101)
-	mismatchingProjectEnvId := int64(102)
+	matchingProjectEnvID := int64(101)
+	mismatchingProjectEnvID := int64(102)
 	departmentNameEndsWithIngCriterion := &prefabProto.Criterion{
 		Operator:     prefabProto.Criterion_PROP_ENDS_WITH_ONE_OF,
 		ValueToMatch: createConfigValueAndAssertOk([]string{"ing"}, suite.T()),
@@ -79,7 +80,7 @@ func (suite *ConfigRuleTestSuite) TestFullRuleEvaluation() {
 		SendToClientSdk: false,
 		Rows: []*prefabProto.ConfigRow{
 			{
-				ProjectEnvId: Int64Ptr(matchingProjectEnvId),
+				ProjectEnvId: Int64Ptr(matchingProjectEnvID),
 				Values: []*prefabProto.ConditionalValue{
 					{
 						Criteria: []*prefabProto.Criterion{departmentNameEndsWithIngCriterion, securityClearance},
@@ -111,30 +112,30 @@ func (suite *ConfigRuleTestSuite) TestFullRuleEvaluation() {
 
 	tests := []struct {
 		name                          string
-		projectEnvId                  int64
+		projectEnvID                  int64
 		expectedValue                 *prefabProto.ConfigValue
 		expectedRowIndex              int
 		expectedConditionalValueIndex int
 		contextMockings               []ContextMocking
 	}{
-		{"returns 1 for high security clearance mining department with matching projectEnv", matchingProjectEnvId, createConfigValueAndAssertOk(1, suite.T()), 0, 0, []ContextMocking{{contextPropertyName: "department.name", value: "mining", exists: true}, {contextPropertyName: "security.clearance", value: "top secret", exists: true}}},
-		{"returns 2 for no security clearance mining department with matching projectEnv", matchingProjectEnvId, createConfigValueAndAssertOk(2, suite.T()), 0, 1, []ContextMocking{{contextPropertyName: "department.name", value: "mining", exists: true}, {contextPropertyName: "security.clearance", value: nil, exists: false}}},
-		{"returns 3 for security department with matching projectEnv", matchingProjectEnvId, createConfigValueAndAssertOk(3, suite.T()), 0, 2, []ContextMocking{{contextPropertyName: "department.name", value: "security", exists: true}}},
-		{"returns 10 for aliens department with matching projectEnv", matchingProjectEnvId, createConfigValueAndAssertOk(10, suite.T()), 1, 0, []ContextMocking{{contextPropertyName: "department.name", value: "aliens", exists: true}}},
-		{"returns 11 for cleanup department with matching projectEnv", matchingProjectEnvId, createConfigValueAndAssertOk(11, suite.T()), 1, 1, []ContextMocking{{contextPropertyName: "department.name", value: "cleanup", exists: true}}},
-		{"returns 10 for aliens department with mismatching projectEnv", mismatchingProjectEnvId, createConfigValueAndAssertOk(10, suite.T()), 0, 0, []ContextMocking{{contextPropertyName: "department.name", value: "aliens", exists: true}}},
-		{"returns 11 for cleanup department with mismatching projectEnv", mismatchingProjectEnvId, createConfigValueAndAssertOk(11, suite.T()), 0, 1, []ContextMocking{{contextPropertyName: "department.name", value: "cleanup", exists: true}}},
-		{"returns 11 for high security clearance mining department with mismatching projectEnv", mismatchingProjectEnvId, createConfigValueAndAssertOk(11, suite.T()), 0, 1, []ContextMocking{{contextPropertyName: "department.name", value: "mining", exists: true}, {contextPropertyName: "security.clearance", value: "top secret", exists: true}}},
+		{"returns 1 for high security clearance mining department with matching projectEnv", matchingProjectEnvID, createConfigValueAndAssertOk(1, suite.T()), 0, 0, []ContextMocking{{contextPropertyName: "department.name", value: "mining", exists: true}, {contextPropertyName: "security.clearance", value: "top secret", exists: true}}},
+		{"returns 2 for no security clearance mining department with matching projectEnv", matchingProjectEnvID, createConfigValueAndAssertOk(2, suite.T()), 0, 1, []ContextMocking{{contextPropertyName: "department.name", value: "mining", exists: true}, {contextPropertyName: "security.clearance", value: nil, exists: false}}},
+		{"returns 3 for security department with matching projectEnv", matchingProjectEnvID, createConfigValueAndAssertOk(3, suite.T()), 0, 2, []ContextMocking{{contextPropertyName: "department.name", value: "security", exists: true}}},
+		{"returns 10 for aliens department with matching projectEnv", matchingProjectEnvID, createConfigValueAndAssertOk(10, suite.T()), 1, 0, []ContextMocking{{contextPropertyName: "department.name", value: "aliens", exists: true}}},
+		{"returns 11 for cleanup department with matching projectEnv", matchingProjectEnvID, createConfigValueAndAssertOk(11, suite.T()), 1, 1, []ContextMocking{{contextPropertyName: "department.name", value: "cleanup", exists: true}}},
+		{"returns 10 for aliens department with mismatching projectEnv", mismatchingProjectEnvID, createConfigValueAndAssertOk(10, suite.T()), 0, 0, []ContextMocking{{contextPropertyName: "department.name", value: "aliens", exists: true}}},
+		{"returns 11 for cleanup department with mismatching projectEnv", mismatchingProjectEnvID, createConfigValueAndAssertOk(11, suite.T()), 0, 1, []ContextMocking{{contextPropertyName: "department.name", value: "cleanup", exists: true}}},
+		{"returns 11 for high security clearance mining department with mismatching projectEnv", mismatchingProjectEnvID, createConfigValueAndAssertOk(11, suite.T()), 0, 1, []ContextMocking{{contextPropertyName: "department.name", value: "mining", exists: true}, {contextPropertyName: "security.clearance", value: "top secret", exists: true}}},
 	}
 
-	for _, tt := range tests {
-		suite.Run(tt.name, func() {
-			suite.evaluator = NewConfigRuleEvaluator(&suite.mockConfigStoreGetter, mocks.NewMockProjectEnvIdSupplier(tt.projectEnvId))
-			mockContext, _ := suite.setupMockContextWithMultipleValues(tt.contextMockings)
+	for _, testCase := range tests {
+		suite.Run(testCase.name, func() {
+			suite.evaluator = NewConfigRuleEvaluator(&suite.mockConfigStoreGetter, mocks.NewMockProjectEnvIDSupplier(testCase.projectEnvID))
+			mockContext, _ := suite.setupMockContextWithMultipleValues(testCase.contextMockings)
 			conditionMatch := suite.evaluator.EvaluateConfig(config, mockContext)
-			suite.Equal(tt.expectedValue, conditionMatch.match, "value should match")
-			suite.Equal(tt.expectedRowIndex, conditionMatch.rowIndex, "rowIndex should match")
-			suite.Equal(tt.expectedConditionalValueIndex, conditionMatch.conditionalValueIndex, "conditionalValueIndex should match")
+			suite.Equal(testCase.expectedValue, conditionMatch.match, "value should match")
+			suite.Equal(testCase.expectedRowIndex, conditionMatch.rowIndex, "rowIndex should match")
+			suite.Equal(testCase.expectedConditionalValueIndex, conditionMatch.conditionalValueIndex, "conditionalValueIndex should match")
 		})
 	}
 }
@@ -173,14 +174,14 @@ func (suite *ConfigRuleTestSuite) TestPropEndsWithCriteriaEvaluation() {
 		{"returns false when valueToMatch is not a string slice", createConfigValueAndAssertOk("example.com", suite.T()), "doesn't matter", true, false},
 	}
 
-	for _, tt := range tests {
-		suite.Run(tt.name, func() {
-			mockContext, assertMockCalled := suite.setupMockContext(contextPropertyName, tt.contextValue, tt.contextValueExists)
+	for _, testCase := range tests {
+		suite.Run(testCase.name, func() {
+			mockContext, assertMockCalled := suite.setupMockContext(contextPropertyName, testCase.contextValue, testCase.contextValueExists)
 			defer assertMockCalled()
 
-			criterion := &prefabProto.Criterion{Operator: operator, ValueToMatch: tt.valueToMatch, PropertyName: contextPropertyName}
+			criterion := &prefabProto.Criterion{Operator: operator, ValueToMatch: testCase.valueToMatch, PropertyName: contextPropertyName}
 			isMatch := suite.evaluator.EvaluateCriterion(criterion, mockContext)
-			suite.Equal(tt.expected, isMatch)
+			suite.Equal(testCase.expected, isMatch)
 		})
 	}
 }
@@ -203,14 +204,14 @@ func (suite *ConfigRuleTestSuite) TestPropNotEndsWithCriteriaEvaluation() {
 		{"returns true when valueToMatch is not a string slice", createConfigValueAndAssertOk("example.com", suite.T()), "doesn't matter", true, true},
 	}
 
-	for _, tt := range tests {
-		suite.Run(tt.name, func() {
-			mockContext, assertMockCalled := suite.setupMockContext(contextPropertyName, tt.contextValue, tt.contextValueExists)
+	for _, testCase := range tests {
+		suite.Run(testCase.name, func() {
+			mockContext, assertMockCalled := suite.setupMockContext(contextPropertyName, testCase.contextValue, testCase.contextValueExists)
 			defer assertMockCalled()
 
-			criterion := &prefabProto.Criterion{Operator: operator, ValueToMatch: tt.valueToMatch, PropertyName: contextPropertyName}
+			criterion := &prefabProto.Criterion{Operator: operator, ValueToMatch: testCase.valueToMatch, PropertyName: contextPropertyName}
 			isMatch := suite.evaluator.EvaluateCriterion(criterion, mockContext)
-			suite.Equal(tt.expected, isMatch)
+			suite.Equal(testCase.expected, isMatch)
 		})
 	}
 }
@@ -234,14 +235,14 @@ func (suite *ConfigRuleTestSuite) TestPropIsOneOf() {
 		{"returns false when valueToMatch is not a string slice", createConfigValueAndAssertOk("example.com", suite.T()), "doesn't matter", true, false},
 	}
 
-	for _, tt := range tests {
-		suite.Run(tt.name, func() {
-			mockContext, assertMockCalled := suite.setupMockContext(contextPropertyName, tt.contextValue, tt.contextValueExists)
+	for _, testCase := range tests {
+		suite.Run(testCase.name, func() {
+			mockContext, assertMockCalled := suite.setupMockContext(contextPropertyName, testCase.contextValue, testCase.contextValueExists)
 			defer assertMockCalled()
 
-			criterion := &prefabProto.Criterion{Operator: operator, ValueToMatch: tt.valueToMatch, PropertyName: contextPropertyName}
+			criterion := &prefabProto.Criterion{Operator: operator, ValueToMatch: testCase.valueToMatch, PropertyName: contextPropertyName}
 			isMatch := suite.evaluator.EvaluateCriterion(criterion, mockContext)
-			suite.Equal(tt.expected, isMatch)
+			suite.Equal(testCase.expected, isMatch)
 		})
 	}
 }
@@ -265,14 +266,14 @@ func (suite *ConfigRuleTestSuite) TestPropIsNotOneOf() {
 		{"returns true when valueToMatch is not a string slice", createConfigValueAndAssertOk("example.com", suite.T()), "doesn't matter", true, true},
 	}
 
-	for _, tt := range tests {
-		suite.Run(tt.name, func() {
-			mockContext, assertMockCalled := suite.setupMockContext(contextPropertyName, tt.contextValue, tt.contextValueExists)
+	for _, testCase := range tests {
+		suite.Run(testCase.name, func() {
+			mockContext, assertMockCalled := suite.setupMockContext(contextPropertyName, testCase.contextValue, testCase.contextValueExists)
 			defer assertMockCalled()
 
-			criterion := &prefabProto.Criterion{Operator: operator, ValueToMatch: tt.valueToMatch, PropertyName: contextPropertyName}
+			criterion := &prefabProto.Criterion{Operator: operator, ValueToMatch: testCase.valueToMatch, PropertyName: contextPropertyName}
 			isMatch := suite.evaluator.EvaluateCriterion(criterion, mockContext)
-			suite.Equal(tt.expected, isMatch)
+			suite.Equal(testCase.expected, isMatch)
 		})
 	}
 }
@@ -296,14 +297,14 @@ func (suite *ConfigRuleTestSuite) TestHierarchicalMatch() {
 		{"returns false when valueToMatch is not a string", createConfigValueAndAssertOk(100, suite.T()), "a.b.c.d", true, false},
 	}
 
-	for _, tt := range tests {
-		suite.Run(tt.name, func() {
-			mockContext, assertMockCalled := suite.setupMockContext(contextPropertyName, tt.contextValue, tt.contextValueExists)
+	for _, testCase := range tests {
+		suite.Run(testCase.name, func() {
+			mockContext, assertMockCalled := suite.setupMockContext(contextPropertyName, testCase.contextValue, testCase.contextValueExists)
 			defer assertMockCalled()
 
-			criterion := &prefabProto.Criterion{Operator: operator, ValueToMatch: tt.valueToMatch, PropertyName: contextPropertyName}
+			criterion := &prefabProto.Criterion{Operator: operator, ValueToMatch: testCase.valueToMatch, PropertyName: contextPropertyName}
 			isMatch := suite.evaluator.EvaluateCriterion(criterion, mockContext)
-			suite.Equal(tt.expected, isMatch)
+			suite.Equal(testCase.expected, isMatch)
 		})
 	}
 }
@@ -334,14 +335,14 @@ func (suite *ConfigRuleTestSuite) TestInIntRangeCriterion() {
 		{"returns false when value to match isn't an int range", createConfigValueAndAssertOk("what's up doc", suite.T()), nil, false, false},
 	}
 
-	for _, tt := range tests {
-		suite.Run(tt.name, func() {
-			mockContext, assertMockCalled := suite.setupMockContext(contextPropertyName, tt.contextValue, tt.contextValueExists)
+	for _, testCase := range tests {
+		suite.Run(testCase.name, func() {
+			mockContext, assertMockCalled := suite.setupMockContext(contextPropertyName, testCase.contextValue, testCase.contextValueExists)
 			defer assertMockCalled()
 
-			criterion := &prefabProto.Criterion{Operator: operator, ValueToMatch: tt.valueToMatch, PropertyName: contextPropertyName}
+			criterion := &prefabProto.Criterion{Operator: operator, ValueToMatch: testCase.valueToMatch, PropertyName: contextPropertyName}
 			isMatch := suite.evaluator.EvaluateCriterion(criterion, mockContext)
-			suite.Equal(tt.expected, isMatch)
+			suite.Equal(testCase.expected, isMatch)
 		})
 	}
 }
@@ -368,19 +369,19 @@ func (suite *ConfigRuleTestSuite) TestInSegmentCriterion() {
 		{"returns false if target segment returns non boolean value", defaultValueToMatch, 1000, true, suite.nonBoolReturnSimpleConfig, true, false},
 	}
 
-	for _, tt := range tests {
-		suite.Run(tt.name, func() {
-			mockContext, assertMockCalled := suite.setupMockContext(contextPropertyName, tt.contextValue, tt.contextValueExists)
+	for _, testCase := range tests {
+		suite.Run(testCase.name, func() {
+			mockContext, assertMockCalled := suite.setupMockContext(contextPropertyName, testCase.contextValue, testCase.contextValueExists)
 			mockContext.On("GetContextValue", "").Return(nil, false)
 
 			defer assertMockCalled()
 
-			assertMockConfigStoreGetterCalled := suite.setupMockConfigStoreGetter(targetConfigKey, tt.targetSegmentConfig, tt.targetSegmentExists)
+			assertMockConfigStoreGetterCalled := suite.setupMockConfigStoreGetter(targetConfigKey, testCase.targetSegmentConfig, testCase.targetSegmentExists)
 			defer assertMockConfigStoreGetterCalled()
 
-			criterion := &prefabProto.Criterion{Operator: prefabProto.Criterion_IN_SEG, ValueToMatch: tt.valueToMatch}
+			criterion := &prefabProto.Criterion{Operator: prefabProto.Criterion_IN_SEG, ValueToMatch: testCase.valueToMatch}
 			isMatch := suite.evaluator.EvaluateCriterion(criterion, mockContext)
-			suite.Equal(tt.expected, isMatch)
+			suite.Equal(testCase.expected, isMatch)
 		})
 	}
 }
@@ -407,19 +408,19 @@ func (suite *ConfigRuleTestSuite) TestNotInSegmentCriterion() {
 		{"returns true if target segment returns non boolean value", defaultValueToMatch, 1000, true, suite.nonBoolReturnSimpleConfig, true, true},
 	}
 
-	for _, tt := range tests {
-		suite.Run(tt.name, func() {
-			mockContext, assertMockCalled := suite.setupMockContext(contextPropertyName, tt.contextValue, tt.contextValueExists)
+	for _, testCase := range tests {
+		suite.Run(testCase.name, func() {
+			mockContext, assertMockCalled := suite.setupMockContext(contextPropertyName, testCase.contextValue, testCase.contextValueExists)
 			mockContext.On("GetContextValue", "").Return(nil, false)
 
 			defer assertMockCalled()
 
-			assertMockConfigStoreGetterCalled := suite.setupMockConfigStoreGetter(targetConfigKey, tt.targetSegmentConfig, tt.targetSegmentExists)
+			assertMockConfigStoreGetterCalled := suite.setupMockConfigStoreGetter(targetConfigKey, testCase.targetSegmentConfig, testCase.targetSegmentExists)
 			defer assertMockConfigStoreGetterCalled()
 
-			criterion := &prefabProto.Criterion{Operator: prefabProto.Criterion_NOT_IN_SEG, ValueToMatch: tt.valueToMatch}
+			criterion := &prefabProto.Criterion{Operator: prefabProto.Criterion_NOT_IN_SEG, ValueToMatch: testCase.valueToMatch}
 			isMatch := suite.evaluator.EvaluateCriterion(criterion, mockContext)
-			suite.Equal(tt.expected, isMatch)
+			suite.Equal(testCase.expected, isMatch)
 		})
 	}
 }
@@ -447,7 +448,7 @@ func (suite *ConfigRuleTestSuite) createInIntRangeSegmentTarget(operator prefabP
 		SendToClientSdk: false,
 		Rows: []*prefabProto.ConfigRow{
 			{
-				ProjectEnvId: Int64Ptr(suite.projectEnvId),
+				ProjectEnvId: Int64Ptr(suite.projectEnvID),
 				Values: []*prefabProto.ConditionalValue{
 					{
 						Criteria: []*prefabProto.Criterion{inIntRangeCriterion},
@@ -483,8 +484,8 @@ func (suite *ConfigRuleTestSuite) setupMockContext(contextPropertyName string, c
 }
 
 type ContextMocking struct {
-	contextPropertyName string
 	value               interface{}
+	contextPropertyName string
 	exists              bool
 }
 

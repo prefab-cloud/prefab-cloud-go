@@ -13,21 +13,21 @@ import (
 
 type Client struct {
 	options                         *Options
-	httpClient                      *HttpClient
+	httpClient                      *HTTPClient
 	configStore                     ConfigStoreGetter
-	apiConfigStore                  *ApiConfigStore // temporary until wrapped in a fetcher/auto updater
+	apiConfigStore                  *APIConfigStore // temporary until wrapped in a fetcher/auto updater
 	configResolver                  *ConfigResolver
 	initializationComplete          chan struct{}
 	closeInitializationCompleteOnce sync.Once
 }
 
 func NewClient(options Options) (*Client, error) {
-	httpClient, err := BuildHttpClient(options)
+	httpClient, err := BuildHTTPClient(options)
 	if err != nil {
 		panic(err)
 	}
 
-	apiConfigStore := BuildApiConfigStore()
+	apiConfigStore := BuildAPIConfigStore()
 
 	var configStores []ConfigStoreGetter
 	if options.ConfigOverrideDirectory != nil {
@@ -251,8 +251,8 @@ const (
 )
 
 type resolutionResult struct {
-	resultType  resolutionResultType
 	configValue *prefabProto.ConfigValue
+	resultType  resolutionResultType
 }
 
 func resolutionResultError() resolutionResult {

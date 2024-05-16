@@ -3,10 +3,11 @@ package prefab
 import (
 	"testing"
 
-	"github.com/prefab-cloud/prefab-cloud-go/mocks"
-	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
+
+	"github.com/prefab-cloud/prefab-cloud-go/mocks"
+	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
 )
 
 type MockRandomer struct {
@@ -66,12 +67,12 @@ func (suite *WeightedValueResolverTestSuite) TestValueSelectionInRandomCases() {
 	}
 
 	tests := []struct {
-		name           string
 		weightedValues *prefabProto.WeightedValues
 		expectedValue  *prefabProto.ConfigValue
+		contextMocking *mocks.ContextMocking
+		name           string
 		expectedIndex  int
 		randomValue    float64
-		contextMocking *mocks.ContextMocking
 	}{
 		{
 			name:           "Three weighted values returns first value with low random because no hash by property name is set",
@@ -107,20 +108,20 @@ func (suite *WeightedValueResolverTestSuite) TestValueSelectionInRandomCases() {
 		},
 	}
 
-	for _, tt := range tests {
-		suite.Run(tt.name, func() {
+	for _, testCase := range tests {
+		suite.Run(testCase.name, func() {
 			suite.SetupTest() // call this manually to reset instances at this "sub" test level
-			suite.randomer.On("Float64").Return(tt.randomValue)
+			suite.randomer.On("Float64").Return(testCase.randomValue)
 
 			var mockings []mocks.ContextMocking
-			if tt.contextMocking != nil {
-				mockings = append(mockings, *tt.contextMocking)
+			if testCase.contextMocking != nil {
+				mockings = append(mockings, *testCase.contextMocking)
 			}
 
-			result, index := suite.weightedValueResolver.Resolve(tt.weightedValues, "property name", mocks.NewMockContextWithMultipleValues(mockings))
+			result, index := suite.weightedValueResolver.Resolve(testCase.weightedValues, "property name", mocks.NewMockContextWithMultipleValues(mockings))
 
-			suite.Equal(tt.expectedValue, result)
-			suite.Equal(tt.expectedIndex, index)
+			suite.Equal(testCase.expectedValue, result)
+			suite.Equal(testCase.expectedIndex, index)
 			suite.randomer.AssertExpectations(suite.T())
 		})
 	}
@@ -148,13 +149,13 @@ func (suite *WeightedValueResolverTestSuite) TestValueSelectionInHashingCases() 
 	}
 
 	tests := []struct {
-		name                 string
 		weightedValues       *prefabProto.WeightedValues
 		expectedValue        *prefabProto.ConfigValue
+		contextMocking       *mocks.ContextMocking
+		name                 string
+		expectedHashArgument string
 		expectedIndex        int
 		hashValue            float64
-		contextMocking       *mocks.ContextMocking
-		expectedHashArgument string
 	}{
 		{
 			name:                 "Three weighted values returns first value with low hash",
@@ -176,19 +177,19 @@ func (suite *WeightedValueResolverTestSuite) TestValueSelectionInHashingCases() 
 		},
 	}
 
-	for _, tt := range tests {
-		suite.Run(tt.name, func() {
+	for _, testCase := range tests {
+		suite.Run(testCase.name, func() {
 			suite.SetupTest() // call this manually to reset instances at this "sub" test level
-			suite.hasher.On("HashZeroToOne", tt.expectedHashArgument).Return(tt.hashValue, true)
+			suite.hasher.On("HashZeroToOne", testCase.expectedHashArgument).Return(testCase.hashValue, true)
 
 			var mockings []mocks.ContextMocking
-			if tt.contextMocking != nil {
-				mockings = append(mockings, *tt.contextMocking)
+			if testCase.contextMocking != nil {
+				mockings = append(mockings, *testCase.contextMocking)
 			}
 
-			result, index := suite.weightedValueResolver.Resolve(tt.weightedValues, "property name", mocks.NewMockContextWithMultipleValues(mockings))
-			suite.Equal(tt.expectedValue, result)
-			suite.Equal(tt.expectedIndex, index)
+			result, index := suite.weightedValueResolver.Resolve(testCase.weightedValues, "property name", mocks.NewMockContextWithMultipleValues(mockings))
+			suite.Equal(testCase.expectedValue, result)
+			suite.Equal(testCase.expectedIndex, index)
 			suite.randomer.AssertExpectations(suite.T())
 			suite.hasher.AssertExpectations(suite.T())
 		})

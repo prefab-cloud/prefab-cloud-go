@@ -3,9 +3,10 @@ package prefab
 import (
 	"testing"
 
-	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/protobuf/proto"
+
+	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
 )
 
 func Int64Ptr(val int64) *int64 {
@@ -84,7 +85,7 @@ func RunTests(t *testing.T) {
 	emptyConfigs := &prefabProto.Configs{}
 
 	t.Run("store initialized after set called and has two values", func(t *testing.T) {
-		store := BuildApiConfigStore()
+		store := BuildAPIConfigStore()
 		store.SetFromConfigsProto(configs)
 		assert.Equal(t, 2, store.Len())
 		assert.True(t, store.initialized)
@@ -102,7 +103,7 @@ func RunTests(t *testing.T) {
 	})
 
 	t.Run("store initialized with empty configs still marked initialized", func(t *testing.T) {
-		store := BuildApiConfigStore()
+		store := BuildAPIConfigStore()
 		store.SetFromConfigsProto(emptyConfigs)
 		assert.Equal(t, 0, store.Len())
 		assert.True(t, store.initialized)
@@ -114,7 +115,7 @@ func RunTests(t *testing.T) {
 	})
 
 	t.Run("updating with tombstoned config foo deletes", func(t *testing.T) {
-		store := BuildApiConfigStore()
+		store := BuildAPIConfigStore()
 		store.SetFromConfigsProto(configs)
 		assert.Equal(t, 2, store.Len())
 		assert.True(t, store.initialized)
@@ -134,7 +135,7 @@ func RunTests(t *testing.T) {
 	})
 
 	t.Run("updating with tombstoned config foo does nothing with smaller id", func(t *testing.T) {
-		store := BuildApiConfigStore()
+		store := BuildAPIConfigStore()
 		store.SetFromConfigsProto(configs)
 		assert.Equal(t, 2, store.Len())
 		assert.True(t, store.initialized)
@@ -144,9 +145,9 @@ func RunTests(t *testing.T) {
 		assert.NotNil(t, foo)
 		assert.Equal(t, configFoo, foo)
 
-		configFooTombstoneWithSmallerId := proto.Clone(configFooTombstone).(*prefabProto.Config)
-		configFooTombstoneWithSmallerId.Id = 1
-		store.SetFromConfigsProto(&prefabProto.Configs{Configs: []*prefabProto.Config{configFooTombstoneWithSmallerId}})
+		configFooTombstoneWithSmallerID := proto.Clone(configFooTombstone).(*prefabProto.Config)
+		configFooTombstoneWithSmallerID.Id = 1
+		store.SetFromConfigsProto(&prefabProto.Configs{Configs: []*prefabProto.Config{configFooTombstoneWithSmallerID}})
 		assert.Equal(t, 2, store.Len())
 
 		foo, fooExists = store.GetConfig("foo")
@@ -156,7 +157,7 @@ func RunTests(t *testing.T) {
 	})
 
 	t.Run("updating with changed config foo does nothing with smaller id", func(t *testing.T) {
-		store := BuildApiConfigStore()
+		store := BuildAPIConfigStore()
 		store.SetFromConfigsProto(configs)
 		assert.Equal(t, 2, store.Len())
 		assert.True(t, store.initialized)
@@ -166,9 +167,9 @@ func RunTests(t *testing.T) {
 		assert.NotNil(t, foo)
 		assert.Equal(t, configFoo, foo)
 
-		configFooWithDifferentValuePlusSmallerId := proto.Clone(configFooWithDifferentValue).(*prefabProto.Config)
-		configFooWithDifferentValuePlusSmallerId.Id = 1
-		store.SetFromConfigsProto(&prefabProto.Configs{Configs: []*prefabProto.Config{configFooWithDifferentValuePlusSmallerId}})
+		configFooWithDifferentValuePlusSmallerID := proto.Clone(configFooWithDifferentValue).(*prefabProto.Config)
+		configFooWithDifferentValuePlusSmallerID.Id = 1
+		store.SetFromConfigsProto(&prefabProto.Configs{Configs: []*prefabProto.Config{configFooWithDifferentValuePlusSmallerID}})
 		assert.Equal(t, 2, store.Len())
 
 		foo, fooExists = store.GetConfig("foo")
@@ -178,7 +179,7 @@ func RunTests(t *testing.T) {
 	})
 
 	t.Run("updating with changed config foo updates when id is larger", func(t *testing.T) {
-		store := BuildApiConfigStore()
+		store := BuildAPIConfigStore()
 		store.SetFromConfigsProto(configs)
 		assert.Equal(t, 2, store.Len())
 		assert.True(t, store.initialized)
