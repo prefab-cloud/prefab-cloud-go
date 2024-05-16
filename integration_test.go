@@ -264,11 +264,12 @@ func (suite *GeneratedTestSuite) executeGetTest(filename string) {
 			result := suite.makeGetCall(client, testCase.Type, configKey, context, defaultValueExists, defaultValue)
 			suite.Require().True(foundExpectedValue, "should have found some expected value or error")
 
-			if expectedValue.value != nil {
+			switch {
+			case expectedValue.value != nil:
 				suite.Require().True(result.valueOk, "GetConfigValue should work")
 				suite.Require().NoError(result.err, "error looking up key %s", testCase.Input.Key)
 				suite.True(cmp.Equal(result.value, expectedValue.value))
-			} else if expectedValue.err != nil {
+			case expectedValue.err != nil:
 				suite.Require().Error(result.err, "there should be some kind of error")
 
 				switch *expectedValue.err {
@@ -285,7 +286,7 @@ func (suite *GeneratedTestSuite) executeGetTest(filename string) {
 				default:
 					suite.Failf("unsupported expected error type", "type was %s", *expectedValue.err)
 				}
-			} else {
+			default:
 				// expected nil value
 				suite.Require().False(result.valueOk, "Expected nil return so the ok return from getter should be false")
 

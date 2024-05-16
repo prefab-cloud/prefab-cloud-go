@@ -105,8 +105,7 @@ func ExtractValue(cv *prefabProto.ConfigValue) (any, bool, error) {
 }
 
 func handleProvided(provided *prefabProto.Provided) (string, bool) {
-	switch provided.GetSource() {
-	case prefabProto.ProvidedSource_ENV_VAR:
+	if provided.GetSource() == prefabProto.ProvidedSource_ENV_VAR {
 		if provided.Lookup != nil {
 			envValue, envValueExists := os.LookupEnv(provided.GetLookup())
 			return envValue, envValueExists
