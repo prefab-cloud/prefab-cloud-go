@@ -168,7 +168,7 @@ func clientInternalGetValueFunc[T any](key string, contextSet internal.ContextSe
 
 		typedValue, ok := (fetchResult).(T)
 		if !ok {
-			slog.Warn("unexpected type for %T value: %T", zeroValue, fetchResult)
+			slog.Warn(fmt.Sprintf("unexpected type for %T value: %T", zeroValue, fetchResult))
 			return zeroValue, false, nil
 		}
 
@@ -346,10 +346,10 @@ func clientParseValueWrapper[T any](cv *prefabProto.ConfigValue, parseFunc func(
 	if cv != nil {
 		pValue, pOk := parseFunc(cv)
 		return pValue, pOk
-	} else {
-		var zeroValue T
-		return zeroValue, false
 	}
+
+	var zeroValue T
+	return zeroValue, false
 }
 
 func (c *Client) awaitInitialization() awaitInitializationResult {

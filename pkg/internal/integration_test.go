@@ -78,7 +78,7 @@ func (suite *GeneratedTestSuite) SetupSuite() {
 	suite.Require().NotEmpty(suite.APIKey, "No API key found in environment var PREFAB_INTEGRATION_TEST_API_KEY")
 }
 
-func (suite *GeneratedTestSuite) LoadGetTestCasesFromYAML(filename string) []*getTestCase {
+func (suite *GeneratedTestSuite) loadGetTestCasesFromYAML(filename string) []*getTestCase {
 	fileContents, err := os.ReadFile(filepath.Join(suite.BaseDirectory, filename))
 	suite.Require().NoError(err)
 
@@ -197,18 +197,19 @@ func (suite *GeneratedTestSuite) makeGetCall(client *prefab.Client, dataType *st
 
 	result := configLookupResult{defaultPresented: hasDefault, defaultValue: defaultValue, value: returnOfGetCall[0].Interface(), valueOk: ok}
 
-	if !hasDefault {
-		if len(returnOfGetCall) >= 3 {
-			returnedValue := returnOfGetCall[2].Interface()
-			if returnedValue == nil {
-			} else {
-				var errOk bool
-				result.err, errOk = returnedValue.(error)
-				suite.Require().True(errOk, fmt.Sprintf("Expected third return value to be of type error, but got: %T", returnedValue))
-			}
-		} else {
-			suite.Require().Fail(fmt.Sprintf("Expected at least three return values from the function, but got: %d", len(returnOfGetCall)))
+	if hasDefault {
+		return result
+	}
+
+	if len(returnOfGetCall) >= 3 {
+		returnedValue := returnOfGetCall[2].Interface()
+		if returnedValue != nil {
+			var errOk bool
+			result.err, errOk = returnedValue.(error)
+			suite.Require().True(errOk, fmt.Sprintf("Expected third return value to be of type error, but got: %T", returnedValue))
 		}
+	} else {
+		suite.Require().Fail(fmt.Sprintf("Expected at least three return values from the function, but got: %d", len(returnOfGetCall)))
 	}
 
 	return result
@@ -250,7 +251,7 @@ type expectedResult struct {
 }
 
 func (suite *GeneratedTestSuite) executeGetTest(filename string) {
-	testCases := suite.LoadGetTestCasesFromYAML(filename)
+	testCases := suite.loadGetTestCasesFromYAML(filename)
 	for _, testCase := range testCases {
 		suite.Run(buildTestCaseName(testCase, filename), func() {
 			client, err := buildClient(suite.APIKey, testCase)
@@ -259,8 +260,7 @@ func (suite *GeneratedTestSuite) executeGetTest(filename string) {
 			expectedValue, foundExpectedValue := processExpectedResult(testCase)
 			suite.Require().True(foundExpectedValue, "no expected value for test case %s", testCase.CaseName)
 			defaultValue, defaultValueExists := getDefaultValue(testCase)
-			context, contextErr := processContext(testCase)
-			suite.Require().NoError(contextErr, "error building context")
+			context := processContext(testCase)
 
 			configKey, configKeyErr := getConfigKeyToUse(testCase)
 			suite.Require().NoError(configKeyErr)
@@ -302,7 +302,7 @@ func (suite *GeneratedTestSuite) executeGetTest(filename string) {
 }
 
 func (suite *GeneratedTestSuite) enabledTest(filename string) {
-	testCases := suite.LoadGetTestCasesFromYAML(filename)
+	testCases := suite.loadGetTestCasesFromYAML(filename)
 	for _, testCase := range testCases {
 		suite.Run(buildTestCaseName(testCase, filename), func() {
 			client, err := buildClient(suite.APIKey, testCase)
@@ -310,8 +310,7 @@ func (suite *GeneratedTestSuite) enabledTest(filename string) {
 
 			expected, ok := processExpectedResult(testCase)
 			suite.Require().True(ok, "no expected value for test case %s", testCase.CaseName)
-			context, contextErr := processContext(testCase)
-			suite.Require().NoError(contextErr, "error building context")
+			context := processContext(testCase)
 
 			featureIsOn, featureIsOnOk := client.FeatureIsOn(*testCase.Input.Flag, *context)
 			suite.Require().True(featureIsOnOk, "FeatureIsOn should work")
@@ -339,9 +338,9 @@ func getDefaultValue(testCase *getTestCase) (interface{}, bool) {
 	return *testCase.Input.Default, true
 }
 
-func processContext(testCase *getTestCase) (*internal.ContextSet, error) {
+func processContext(testCase *getTestCase) *internal.ContextSet {
 	if testCase.TestContext == nil && testCase.Input.Context == nil {
-		return &internal.ContextSet{}, nil
+		return &internal.ContextSet{}
 	}
 	// handle context stacking for tests here because the client doesn't yet support it
 	contextSet := internal.NewContextSet()
@@ -364,7 +363,7 @@ func processContext(testCase *getTestCase) (*internal.ContextSet, error) {
 		}
 	}
 
-	return contextSet, nil
+	return contextSet
 }
 
 func getConfigKeyToUse(testCase *getTestCase) (string, error) {
