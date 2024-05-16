@@ -14,6 +14,7 @@ type WeightedValueResolver struct {
 
 func NewWeightedValueResolver(seed int64, hasher Hasher) *WeightedValueResolver {
 	src := rand.NewSource(seed)
+	// #nosec G404
 	r := rand.New(src)
 
 	return &WeightedValueResolver{

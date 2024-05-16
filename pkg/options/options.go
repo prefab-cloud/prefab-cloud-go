@@ -23,6 +23,7 @@ const (
 )
 
 const (
+	// #nosec G101
 	APIKeyEnvVar = "PREFAB_API_KEY"
 	APIURLVar    = "PREFAB_API_URL"
 )
