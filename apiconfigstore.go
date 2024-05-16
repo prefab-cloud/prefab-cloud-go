@@ -39,8 +39,8 @@ func (cs *APIConfigStore) SetConfigs(configs []*prefabProto.Config, envID int64)
 }
 
 func (cs *APIConfigStore) SetFromConfigsProto(configs *prefabProto.Configs) {
-	cs.contextSet = NewContextSetFromProto(configs.DefaultContext)
-	cs.SetConfigs(configs.Configs, configs.ConfigServicePointer.GetProjectEnvId())
+	cs.contextSet = NewContextSetFromProto(configs.GetDefaultContext())
+	cs.SetConfigs(configs.GetConfigs(), configs.GetConfigServicePointer().GetProjectEnvId())
 }
 
 func (cs *APIConfigStore) GetContextValue(propertyName string) (interface{}, bool) {
@@ -53,18 +53,18 @@ func (cs *APIConfigStore) Len() int {
 }
 
 func (cs *APIConfigStore) setConfig(newConfig *prefabProto.Config) {
-	newConfigIsEmpty := len(newConfig.Rows) == 0
-	currentConfig, exists := cs.configMap[newConfig.Key]
+	newConfigIsEmpty := len(newConfig.GetRows()) == 0
+	currentConfig, exists := cs.configMap[newConfig.GetKey()]
 
 	switch {
-	case newConfigIsEmpty && exists && newConfig.Id > currentConfig.Id:
-		delete(cs.configMap, newConfig.Key)
-	case !newConfigIsEmpty && (exists && newConfig.Id > currentConfig.Id) || (!exists):
-		cs.configMap[newConfig.Key] = newConfig
+	case newConfigIsEmpty && exists && newConfig.GetId() > currentConfig.GetId():
+		delete(cs.configMap, newConfig.GetKey())
+	case !newConfigIsEmpty && (exists && newConfig.GetId() > currentConfig.GetId()) || (!exists):
+		cs.configMap[newConfig.GetKey()] = newConfig
 	}
 
-	if newConfig.Id > cs.highWatermark {
-		cs.highWatermark = newConfig.Id
+	if newConfig.GetId() > cs.highWatermark {
+		cs.highWatermark = newConfig.GetId()
 	}
 }
 

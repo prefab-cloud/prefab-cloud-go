@@ -36,7 +36,7 @@ func (s *LocalConfigYamlParserTestSuite) createConfig(key string, cv *prefabProt
 func (s *LocalConfigYamlParserTestSuite) collectKeys(configs []*prefabProto.Config) []string {
 	keys := make([]string, 0, len(configs))
 	for _, config := range configs {
-		keys = append(keys, config.Key)
+		keys = append(keys, config.GetKey())
 	}
 
 	return keys

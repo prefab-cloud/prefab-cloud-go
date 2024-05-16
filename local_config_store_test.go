@@ -87,19 +87,19 @@ func (suite *LocalConfigStoreSuite) TestNewLocalConfigStore() {
 }
 
 func (suite *LocalConfigStoreSuite) onlyValue(config *prefabProto.Config) (*prefabProto.ConfigValue, bool) {
-	if len(config.Rows) != 1 {
+	if len(config.GetRows()) != 1 {
 		return nil, false
 	}
 
 	var value *prefabProto.ConfigValue
 
-	for _, row := range config.Rows {
-		for _, conditional := range row.Values {
+	for _, row := range config.GetRows() {
+		for _, conditional := range row.GetValues() {
 			if value != nil {
 				return nil, false
 			}
 
-			value = conditional.Value
+			value = conditional.GetValue()
 		}
 	}
 

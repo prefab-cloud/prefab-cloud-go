@@ -386,7 +386,7 @@ func TestConfigResolver_ResolveValue(t *testing.T) {
 			name:      "config has weighted values, succeeds", // need to resolve two configs, the main one and the one with the key
 			configKey: theKey,
 			wantConfigMatch: ConfigMatch{
-				match:                 weightedValueOne.Value,
+				match:                 weightedValueOne.GetValue(),
 				isMatch:               true,
 				originalKey:           theKey,
 				originalMatch:         weightedValuesConfigValue,

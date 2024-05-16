@@ -60,7 +60,7 @@ func (cve *ConfigRuleEvaluator) EvaluateRow(row *prefabProto.ConfigRow, contextS
 	conditionMatch := ConditionMatch{}
 	conditionMatch.isMatch = false
 
-	for conditionalValueIndex, conditionalValue := range row.Values {
+	for conditionalValueIndex, conditionalValue := range row.GetValues() {
 		matchedValue, matched := cve.EvaluateConditionalValue(conditionalValue, contextSet)
 		if matched {
 			conditionMatch.isMatch = true
@@ -76,7 +76,7 @@ func (cve *ConfigRuleEvaluator) EvaluateRow(row *prefabProto.ConfigRow, contextS
 }
 
 func (cve *ConfigRuleEvaluator) EvaluateConditionalValue(conditionalValue *prefabProto.ConditionalValue, contextSet ContextValueGetter) (*prefabProto.ConfigValue, bool) {
-	for _, criterion := range conditionalValue.Criteria {
+	for _, criterion := range conditionalValue.GetCriteria() {
 		if !cve.EvaluateCriterion(criterion, contextSet) {
 			return nil, false
 		}
@@ -183,7 +183,7 @@ func defaultInt(maybeInt *int64, defaultValue int64) int64 {
 
 func rowWithMatchingEnvID(config *prefabProto.Config, envID int64) (*prefabProto.ConfigRow, bool) {
 	for _, row := range config.GetRows() {
-		if row.ProjectEnvId != nil && *row.ProjectEnvId == envID {
+		if row.ProjectEnvId != nil && row.GetProjectEnvId() == envID {
 			return row, true
 		}
 	}

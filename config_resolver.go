@@ -76,7 +76,7 @@ func (c ConfigResolver) ResolveValue(key string, contextSet ContextValueGetter) 
 	configMatch := NewConfigMatchFromConditionMatch(ruleMatchResults)
 	configMatch.originalKey = key
 
-	switch v := ruleMatchResults.match.Type.(type) {
+	switch v := ruleMatchResults.match.GetType().(type) {
 	case *prefabProto.ConfigValue_WeightedValues:
 		result, index := c.handleWeightedValue(key, v.WeightedValues, contextSet)
 		configMatch.weightedValueIndex = &index
@@ -86,7 +86,7 @@ func (c ConfigResolver) ResolveValue(key string, contextSet ContextValueGetter) 
 		if provided != nil {
 			envValue, envValueExists := c.handleProvided(provided)
 			if envValueExists {
-				if coercedValue, coercionWorked := coerceValue(envValue, config.ValueType); coercionWorked {
+				if coercedValue, coercionWorked := coerceValue(envValue, config.GetValueType()); coercionWorked {
 					newValue, _ := utils.Create(coercedValue)
 					configMatch.match = newValue
 				} else {
@@ -111,7 +111,7 @@ func (c ConfigResolver) ResolveValue(key string, contextSet ContextValueGetter) 
 
 	originalMatchIsConfidential := configMatch.originalMatch.GetConfidential()
 	if configMatch.originalMatch != configMatch.match && ruleMatchResults.match.GetDecryptWith() == "" && originalMatchIsConfidential {
-		configMatch.match.Confidential = configMatch.originalMatch.Confidential
+		configMatch.match.Confidential = boolPtr(configMatch.originalMatch.GetConfidential())
 	}
 
 	return configMatch, nil
