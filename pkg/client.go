@@ -13,20 +13,76 @@ import (
 	"github.com/prefab-cloud/prefab-cloud-go/utils"
 )
 
-// Begin Re-exported types and functions
-
 type Options = options.Options
+
+type Option func(*options.Options) error
+
 type OnInitializationFailure = options.OnInitializationFailure
 
-var NewOptions = options.NewOptions
+const (
+	RAISE  OnInitializationFailure = options.RAISE
+	UNLOCK OnInitializationFailure = options.UNLOCK
+)
 
-const RAISE = options.RAISE
-const UNLOCK = options.UNLOCK
+func WithConfigDirectory(configDirectory string) Option {
+	return func(o *options.Options) error {
+		o.ConfigDirectory = &configDirectory
+		return nil
+	}
+}
 
-// End re-exported types and functions
+func WithConfigOverrideDirectory(configOverrideDirectory string) Option {
+	return func(o *options.Options) error {
+		o.ConfigOverrideDirectory = &configOverrideDirectory
+		return nil
+	}
+}
+
+func WithEnvironmentNames(environmentNames []string) Option {
+	return func(o *options.Options) error {
+		o.EnvironmentNames = environmentNames
+		return nil
+	}
+}
+
+func WithAPIKey(apiKey string) Option {
+	return func(o *options.Options) error {
+		o.APIKey = apiKey
+		// TODO: validate API key
+		return nil
+	}
+}
+
+func WithAPIURL(apiURL string) Option {
+	return func(o *options.Options) error {
+		o.APIUrl = apiURL
+		return nil
+	}
+}
+
+func WithDatasource(datasource options.Datasource) Option {
+	return func(o *options.Options) error {
+		o.Datasource = datasource
+		return nil
+	}
+}
+
+func WithInitializationTimeoutSeconds(timeoutSeconds float64) Option {
+	return func(o *options.Options) error {
+		o.InitializationTimeoutSeconds = timeoutSeconds
+		return nil
+	}
+}
+
+func WithOnInitializationFailure(onInitializationFailure options.OnInitializationFailure) Option {
+	return func(o *options.Options) error {
+		o.OnInitializationFailure = onInitializationFailure
+		return nil
+	}
+}
 
 type Client struct {
-	options                         *Options
+	options                         *options.Options
 	httpClient                      *internal.HTTPClient
 	configStore                     internal.ConfigStoreGetter
 	apiConfigStore                  *internal.APIConfigStore // temporary until wrapped in a fetcher/auto updater
@@ -35,7 +91,17 @@ type Client struct {
 	closeInitializationCompleteOnce sync.Once
 }
 
-func NewClient(options Options) (*Client, error) {
+func NewClient(opts ...Option) (*Client, error) {
+	options := options.DefaultOptions
+
+	for _, opt := range opts {
+		if err := opt(&options); err != nil {
+			return nil, err
+		}
+	}
+
+	slog.Info("Initializing client", "options", options)
+
 	httpClient, err := internal.BuildHTTPClient(options)
 	if err != nil {
 		panic(err)

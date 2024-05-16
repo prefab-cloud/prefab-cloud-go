@@ -215,30 +215,31 @@ func (suite *GeneratedTestSuite) makeGetCall(client *prefab.Client, dataType *st
 }
 
 func buildClient(apiKey string, testCase *getTestCase) (*prefab.Client, error) {
-	options := prefab.NewOptions(func(opts *prefab.Options) {
-		opts.APIUrl = "https://api.staging-prefab.cloud"
-		opts.APIKey = apiKey
+	options := []prefab.Option{
+		prefab.WithAPIURL("https://api.staging-prefab.cloud"),
+		prefab.WithAPIKey(apiKey),
+	}
 
-		if testCase.ClientOverrides != nil {
-			if testCase.ClientOverrides.OnInitFailure != nil {
-				onInitFailure, onInitFailureMappingErr := mapStringToOnInitializationFailure(*testCase.ClientOverrides.OnInitFailure)
-				if onInitFailureMappingErr != nil {
-					panic(onInitFailureMappingErr)
-				}
-
-				opts.OnInitializationFailure = onInitFailure
+	if testCase.ClientOverrides != nil {
+		if testCase.ClientOverrides.OnInitFailure != nil {
+			onInitFailure, onInitFailureMappingErr := mapStringToOnInitializationFailure(*testCase.ClientOverrides.OnInitFailure)
+			if onInitFailureMappingErr != nil {
+				panic(onInitFailureMappingErr)
 			}
 
-			if testCase.ClientOverrides.InitializationTimeOutSec != nil {
-				opts.InitializationTimeoutSeconds = *testCase.ClientOverrides.InitializationTimeOutSec
-			}
-
-			if testCase.ClientOverrides.PrefabAPIURL != nil {
-				opts.APIUrl = *testCase.ClientOverrides.PrefabAPIURL
-			}
+			options = append(options, prefab.WithOnInitializationFailure(onInitFailure))
 		}
-	})
-	client, err := prefab.NewClient(options)
+
+		if testCase.ClientOverrides.InitializationTimeOutSec != nil {
+			options = append(options, prefab.WithInitializationTimeoutSeconds(*testCase.ClientOverrides.InitializationTimeOutSec))
+		}
+
+		if testCase.ClientOverrides.PrefabAPIURL != nil {
+			options = append(options, prefab.WithAPIURL(*testCase.ClientOverrides.PrefabAPIURL))
+		}
+	}
+
+	client, err := prefab.NewClient(options...)
 
 	return client, err
 }
