@@ -17,6 +17,7 @@ type MockRandomer struct {
 
 func (m *MockRandomer) Float64() float64 {
 	args := m.Called()
+
 	return args.Get(0).(float64)
 }
 
@@ -26,6 +27,7 @@ type MockHasher struct {
 
 func (m *MockHasher) HashZeroToOne(value string) (float64, bool) {
 	args := m.Called(value)
+
 	return args.Get(0).(float64), args.Bool(1)
 }
 

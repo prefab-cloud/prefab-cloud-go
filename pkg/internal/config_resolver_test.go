@@ -18,6 +18,7 @@ type mockDecrypter struct {
 
 func (m *mockDecrypter) DecryptValue(secretKey string, value string) (string, error) {
 	args := m.Called(secretKey, value)
+
 	return args.String(0), args.Error(1)
 }
 
@@ -43,6 +44,7 @@ type mockWeightedValueResolver struct {
 
 func (m *mockWeightedValueResolver) Resolve(weightedValues *prefabProto.WeightedValues, propertyName string, contextGetter internal.ContextValueGetter) (*prefabProto.ConfigValue, int) {
 	args := m.Called(weightedValues, propertyName, contextGetter)
+
 	return args.Get(0).(*prefabProto.ConfigValue), args.Int(1)
 }
 
@@ -68,6 +70,7 @@ type mockConfigEvaluator struct {
 
 func (m *mockConfigEvaluator) EvaluateConfig(config *prefabProto.Config, contextSet internal.ContextValueGetter) internal.ConditionMatch {
 	args := m.Called(config, contextSet)
+
 	return args.Get(0).(internal.ConditionMatch)
 }
 

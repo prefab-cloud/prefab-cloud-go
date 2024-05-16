@@ -66,6 +66,7 @@ func (c *ContextSet) GetContextValue(propertyName string) (any, bool) {
 	contextName, key := splitAtFirstDot(propertyName)
 	if namedContext, namedContextExists := c.Data[contextName]; namedContextExists {
 		value, valueExists := namedContext.Data[key]
+
 		return value, valueExists
 	}
 
@@ -78,11 +79,13 @@ func (c *ContextSet) SetNamedContext(newNamedContext *NamedContext) {
 
 func (c *ContextSet) WithNamedContext(newNamedContext *NamedContext) *ContextSet {
 	c.Data[newNamedContext.Name] = newNamedContext
+
 	return c
 }
 
 func (c *ContextSet) WithNamedContextValues(name string, values map[string]interface{}) *ContextSet {
 	c.Data[name] = NewNamedContextWithValues(name, values)
+
 	return c
 }
 

@@ -102,6 +102,7 @@ type MockProjectEnvIDSupplier struct {
 
 func (m *MockProjectEnvIDSupplier) GetProjectEnvID() int64 {
 	args := m.Called()
+
 	return args.Get(0).(int64)
 }
 

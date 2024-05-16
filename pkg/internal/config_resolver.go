@@ -125,6 +125,7 @@ func (c ConfigResolver) handleProvided(provided *prefabProto.Provided) (string, 
 	if provided.GetSource() == prefabProto.ProvidedSource_ENV_VAR {
 		if provided.Lookup != nil {
 			envValue, envValueExists := os.LookupEnv(provided.GetLookup())
+
 			return envValue, envValueExists
 		}
 	}
@@ -183,6 +184,7 @@ func (c ConfigResolver) handleDecryption(configValue *prefabProto.ConfigValue, c
 
 func (c ConfigResolver) handleWeightedValue(configKey string, values *prefabProto.WeightedValues, contextSet ContextValueGetter) (*prefabProto.ConfigValue, int) {
 	value, index := c.WeightedValueResolver.Resolve(values, configKey, contextSet)
+
 	return value, index
 }
 

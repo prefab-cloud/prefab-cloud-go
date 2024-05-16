@@ -45,6 +45,7 @@ func (cs *APIConfigStore) SetFromConfigsProto(configs *prefabProto.Configs) {
 
 func (cs *APIConfigStore) GetContextValue(propertyName string) (interface{}, bool) {
 	value, valueExists := cs.contextSet.GetContextValue(propertyName)
+
 	return value, valueExists
 }
 

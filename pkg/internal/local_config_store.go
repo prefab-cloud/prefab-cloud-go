@@ -52,5 +52,6 @@ func loadFileIntoMap(filePath string, configmap *map[string]*prefabProto.Config)
 
 func (s *LocalConfigStore) GetConfig(key string) (*prefabProto.Config, bool) {
 	config, exists := s.configMap[key]
+
 	return config, exists
 }

@@ -137,10 +137,12 @@ func (cve *ConfigRuleEvaluator) EvaluateCriterion(criterion *prefabProto.Criteri
 				if reflectedContextValue := reflect.ValueOf(contextValue); reflectedContextValue.IsValid() {
 					if reflectedContextValue.CanInt() {
 						intContextValue := reflectedContextValue.Int()
+
 						return intContextValue >= defaultInt(intRange.Start, int64(math.MinInt64)) &&
 							intContextValue < defaultInt(intRange.End, int64(math.MaxInt64))
 					} else if reflectedContextValue.CanFloat() {
 						floatContextValue := reflectedContextValue.Float()
+
 						return floatContextValue >= float64(defaultInt(intRange.Start, math.MinInt64)) &&
 							floatContextValue < float64(defaultInt(intRange.End, math.MaxInt64))
 					}
