@@ -61,6 +61,7 @@ func Create(value any) (*prefabProto.ConfigValue, bool) {
 		return nil, false
 	default:
 		slog.Warn(fmt.Sprintf("Unsupported type: %T", value))
+
 		return nil, false
 	}
 
@@ -97,6 +98,7 @@ func ExtractValue(cv *prefabProto.ConfigValue) (any, bool, error) {
 		return nil, false, err
 	case *prefabProto.ConfigValue_Provided:
 		val, ok := handleProvided(v.Provided)
+
 		return val, ok, nil
 	default:
 		// For other types, return the protobuf value itself and false.
@@ -108,6 +110,7 @@ func handleProvided(provided *prefabProto.Provided) (string, bool) {
 	if provided.GetSource() == prefabProto.ProvidedSource_ENV_VAR {
 		if provided.Lookup != nil {
 			envValue, envValueExists := os.LookupEnv(provided.GetLookup())
+
 			return envValue, envValueExists
 		}
 	}
@@ -190,6 +193,7 @@ func ExtractStringListValue(cv *prefabProto.ConfigValue) ([]string, bool) {
 		return v.StringList.GetValues(), true
 	default:
 		var zero []string
+
 		return zero, false
 	}
 }
@@ -201,6 +205,7 @@ func ExtractDurationValue(cv *prefabProto.ConfigValue) (time.Duration, bool) {
 			duration, err := durationParser.Parse(v.Duration.GetDefinition())
 			if err != nil {
 				slog.Debug(fmt.Sprintf("Failed to parse duration value: %s", v.Duration.GetDefinition()))
+
 				return time.Duration(0), false
 			}
 
@@ -208,6 +213,7 @@ func ExtractDurationValue(cv *prefabProto.ConfigValue) (time.Duration, bool) {
 		}
 	default:
 		var zero time.Duration
+
 		return zero, false
 	}
 }

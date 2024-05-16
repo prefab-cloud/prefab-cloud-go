@@ -130,6 +130,7 @@ func (p *LocalConfigYamlParser) createConfig(key string, value any, configType p
 			logLevel, ok := prefabProto.LogLevel_value[strings.ToUpper(v)]
 			if !ok {
 				slog.Info("key %s has invalid log level: %s", key, v)
+
 				return nil, false
 			}
 
@@ -137,10 +138,12 @@ func (p *LocalConfigYamlParser) createConfig(key string, value any, configType p
 
 			if !ok {
 				slog.Info("create value failed for key " + key)
+
 				return nil, false
 			}
 		default:
 			slog.Info("key %s should have a string value type but it was %T", key, value)
+
 			return nil, false
 		}
 	} else {
@@ -149,6 +152,7 @@ func (p *LocalConfigYamlParser) createConfig(key string, value any, configType p
 		configValue, ok = utils.Create(value)
 		if !ok {
 			slog.Info("create value failed for key " + key)
+
 			return nil, false
 		}
 	}

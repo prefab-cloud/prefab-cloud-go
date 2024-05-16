@@ -27,6 +27,7 @@ const (
 func WithConfigDirectory(configDirectory string) Option {
 	return func(o *options.Options) error {
 		o.ConfigDirectory = &configDirectory
+
 		return nil
 	}
 }
@@ -34,6 +35,7 @@ func WithConfigDirectory(configDirectory string) Option {
 func WithConfigOverrideDirectory(configOverrideDirectory string) Option {
 	return func(o *options.Options) error {
 		o.ConfigOverrideDirectory = &configOverrideDirectory
+
 		return nil
 	}
 }
@@ -41,6 +43,7 @@ func WithConfigOverrideDirectory(configOverrideDirectory string) Option {
 func WithEnvironmentNames(environmentNames []string) Option {
 	return func(o *options.Options) error {
 		o.EnvironmentNames = environmentNames
+
 		return nil
 	}
 }
@@ -56,6 +59,7 @@ func WithAPIKey(apiKey string) Option {
 func WithAPIURL(apiURL string) Option {
 	return func(o *options.Options) error {
 		o.APIUrl = apiURL
+
 		return nil
 	}
 }
@@ -63,6 +67,7 @@ func WithAPIURL(apiURL string) Option {
 func WithDatasource(datasource options.Datasource) Option {
 	return func(o *options.Options) error {
 		o.Datasource = datasource
+
 		return nil
 	}
 }
@@ -70,6 +75,7 @@ func WithDatasource(datasource options.Datasource) Option {
 func WithInitializationTimeoutSeconds(timeoutSeconds float64) Option {
 	return func(o *options.Options) error {
 		o.InitializationTimeoutSeconds = timeoutSeconds
+
 		return nil
 	}
 }
@@ -77,6 +83,7 @@ func WithInitializationTimeoutSeconds(timeoutSeconds float64) Option {
 func WithOnInitializationFailure(onInitializationFailure options.OnInitializationFailure) Option {
 	return func(o *options.Options) error {
 		o.OnInitializationFailure = onInitializationFailure
+
 		return nil
 	}
 }
@@ -169,6 +176,7 @@ func clientInternalGetValueFunc[T any](key string, contextSet internal.ContextSe
 		typedValue, ok := (fetchResult).(T)
 		if !ok {
 			slog.Warn(fmt.Sprintf("unexpected type for %T value: %T", zeroValue, fetchResult))
+
 			return zeroValue, false, nil
 		}
 
@@ -202,6 +210,7 @@ func (c *Client) GetIntValueWithDefault(key string, contextSet internal.ContextS
 
 func (c *Client) GetIntValue(key string, contextSet internal.ContextSet) (int64, bool, error) {
 	val, ok, err := clientInternalGetValueFunc(key, contextSet, utils.ExtractIntValue)(c)
+
 	return val, ok, err
 }
 
@@ -216,11 +225,13 @@ func (c *Client) GetStringValueWithDefault(key string, contextSet internal.Conte
 
 func (c *Client) GetStringValue(key string, contextSet internal.ContextSet) (string, bool, error) {
 	value, ok, err := clientInternalGetValueFunc(key, contextSet, utils.ExtractStringValue)(c)
+
 	return value, ok, err
 }
 
 func (c *Client) FeatureIsOn(key string, contextSet internal.ContextSet) (bool, bool) {
 	value, ok := c.GetBoolValueWithDefault(key, contextSet, false)
+
 	return value, ok
 }
 
@@ -235,6 +246,7 @@ func (c *Client) GetBoolValueWithDefault(key string, contextSet internal.Context
 
 func (c *Client) GetBoolValue(key string, contextSet internal.ContextSet) (bool, bool, error) {
 	value, ok, err := clientInternalGetValueFunc(key, contextSet, utils.ExtractBoolValue)(c)
+
 	return value, ok, err
 }
 
@@ -249,6 +261,7 @@ func (c *Client) GetFloatValueWithDefault(key string, contextSet internal.Contex
 
 func (c *Client) GetFloatValue(key string, contextSet internal.ContextSet) (float64, bool, error) {
 	value, ok, err := clientInternalGetValueFunc(key, contextSet, utils.ExtractFloatValue)(c)
+
 	return value, ok, err
 }
 
@@ -263,6 +276,7 @@ func (c *Client) GetStringSliceValueWithDefault(key string, contextSet internal.
 
 func (c *Client) GetStringSliceValue(key string, contextSet internal.ContextSet) ([]string, bool, error) {
 	value, ok, err := clientInternalGetValueFunc(key, contextSet, utils.ExtractStringListValue)(c)
+
 	return value, ok, err
 }
 
@@ -277,6 +291,7 @@ func (c *Client) GetDurationWithDefault(key string, contextSet internal.ContextS
 
 func (c *Client) GetDurationValue(key string, contextSet internal.ContextSet) (time.Duration, bool, error) {
 	value, ok, err := clientInternalGetValueFunc(key, contextSet, utils.ExtractDurationValue)(c)
+
 	return value, ok, err
 }
 
@@ -345,10 +360,12 @@ func resolutionResultSuccess(configValue *prefabProto.ConfigValue) resolutionRes
 func clientParseValueWrapper[T any](cv *prefabProto.ConfigValue, parseFunc func(*prefabProto.ConfigValue) (T, bool)) (T, bool) {
 	if cv != nil {
 		pValue, pOk := parseFunc(cv)
+
 		return pValue, pOk
 	}
 
 	var zeroValue T
+
 	return zeroValue, false
 }
 
@@ -358,6 +375,7 @@ func (c *Client) awaitInitialization() awaitInitializationResult {
 		return SUCCESS
 	case <-time.After(time.Duration(c.options.InitializationTimeoutSeconds) * time.Second):
 		slog.Warn(fmt.Sprintf("%f second timeout expired, proceeding without waiting further. Configure in options `InitializationTimeoutSeconds`", c.options.InitializationTimeoutSeconds))
+
 		return TIMEOUT
 	}
 }

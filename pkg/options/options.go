@@ -55,6 +55,7 @@ func getHomeDir() *string {
 		usr, err := user.Current()
 		if err != nil {
 			fmt.Println(err)
+
 			return nil
 		}
 

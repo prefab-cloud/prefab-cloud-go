@@ -15,6 +15,7 @@ func (Hashing) HashZeroToOne(value string) (float64, bool) {
 	_, err := h32.Write([]byte(value))
 	if err != nil {
 		fmt.Println("Error hashing data:", err)
+
 		return 0, false
 	}
 
