@@ -3,14 +3,15 @@ package utils
 import (
 	"errors"
 	"fmt"
-	"github.com/prefab-cloud/prefab-cloud-go/anyhelpers"
-	durationParser "github.com/sosodev/duration"
 	"log/slog"
 	"os"
 	"reflect"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/prefab-cloud/prefab-cloud-go/anyhelpers"
+	durationParser "github.com/sosodev/duration"
 
 	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
 )
@@ -54,7 +55,9 @@ func Create(value any) (*prefabProto.ConfigValue, bool) {
 		if v != nil {
 			return Create(*v)
 		}
+
 		slog.Warn("create unable to handle nil")
+
 		return nil, false
 	default:
 		slog.Warn(fmt.Sprintf("Unsupported type: %T", value))
@@ -90,6 +93,7 @@ func ExtractValue(cv *prefabProto.ConfigValue) (value any, simpleTypeAvailable b
 		if err != nil {
 			return duration, true, nil
 		}
+
 		return nil, false, err
 	case *prefabProto.ConfigValue_Provided:
 		val, ok := handleProvided(v.Provided)
@@ -139,7 +143,7 @@ func GetValueType(cv *prefabProto.ConfigValue) prefabProto.Config_ValueType {
 	case *prefabProto.ConfigValue_Json:
 		return prefabProto.Config_JSON
 	}
-	//For other types, return the protobuf value itself and false.
+	// For other types, return the protobuf value itself and false.
 	return prefabProto.Config_NOT_SET_VALUE_TYPE
 }
 
@@ -195,12 +199,12 @@ func ExtractDurationValue(cv *prefabProto.ConfigValue) (time.Duration, bool) {
 	switch v := cv.Type.(type) {
 	case *prefabProto.ConfigValue_Duration:
 		{
-
 			duration, err := durationParser.Parse(v.Duration.Definition)
 			if err != nil {
 				slog.Debug(fmt.Sprintf("Failed to parse duration value: %s", v.Duration.Definition))
 				return time.Duration(0), false
 			}
+
 			return duration.ToTimeDuration(), true
 		}
 	default:

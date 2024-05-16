@@ -2,11 +2,12 @@ package prefab
 
 import (
 	"errors"
+	"testing"
+
 	"github.com/prefab-cloud/prefab-cloud-go/mocks"
 	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"testing"
 )
 
 type mockDecrypter struct {

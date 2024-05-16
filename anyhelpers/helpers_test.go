@@ -53,6 +53,7 @@ func TestDetectAndReturnStringListIfPresent(t *testing.T) {
 		})
 	}
 }
+
 func TestCanonicalizeSlice(t *testing.T) {
 	tests := []struct {
 		name     string

@@ -72,6 +72,7 @@ func (p *LocalConfigYamlParser) handleMapKeyValue(keyPath []string, mapKey strin
 			if underscoreValue, underscoreExists := value["_"]; underscoreExists {
 				fullKeyName := strings.Join(append(keyPath, mapKey), ".")
 				configValue, ok := p.createConfig(fullKeyName, underscoreValue, configType)
+
 				if !ok {
 					return nil, fmt.Errorf("unable to create config for key %s", fullKeyName)
 				}
@@ -139,6 +140,7 @@ func (p *LocalConfigYamlParser) createConfig(key string, value any, configType p
 		}
 	} else {
 		var ok bool
+
 		configValue, ok = utils.Create(value)
 		if !ok {
 			slog.Info(fmt.Sprintf("create value failed for key %s", key))

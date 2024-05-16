@@ -13,6 +13,7 @@ func DetectAndReturnStringListIfPresent(input interface{}) ([]string, bool) {
 	if strSlice, ok := canonical.([]string); ok {
 		return strSlice, true
 	}
+
 	return nil, false
 }
 
@@ -42,8 +43,10 @@ func CanonicalizeSlice(input any) (any, bool) {
 		for i := 0; i < v.Len(); i++ {
 			result.Index(i).Set(reflect.ValueOf(v.Index(i).Interface()).Convert(firstElemType))
 		}
+
 		return result.Interface(), true
 	}
+
 	return input, true // Return as is if already a specific slice type
 }
 
