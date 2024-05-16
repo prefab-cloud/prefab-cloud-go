@@ -10,9 +10,7 @@ import (
 
 type Encryption struct{}
 
-var (
-	ErrInvalidValueFormat = errors.New("invalid value format")
-)
+var ErrInvalidValueFormat = errors.New("invalid value format")
 
 func (d *Encryption) DecryptValue(secretKeyString string, value string) (string, error) {
 	// Decode the hex-encoded secret key

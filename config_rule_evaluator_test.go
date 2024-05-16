@@ -17,6 +17,7 @@ type MockContextGetter struct {
 
 func (m *MockContextGetter) GetContextValue(propertyName string) (interface{}, bool) {
 	var value interface{}
+
 	args := m.Called(propertyName)
 	if args.Get(0) != nil {
 		value = args.Get(0)
@@ -352,7 +353,7 @@ func (suite *ConfigRuleTestSuite) TestInSegmentCriterion() {
 	// this test is based on in-int range as the target segment
 	contextPropertyName := "team.size"
 	segmentTargetIntRangeConfig := suite.createInIntRangeSegmentTarget(prefabProto.Criterion_IN_INT_RANGE, contextPropertyName, Int64Ptr(0), Int64Ptr(100))
-	targetConfigKey := segmentTargetIntRangeConfig.Key
+	targetConfigKey := segmentTargetIntRangeConfig.GetKey()
 	defaultValueToMatch := createConfigValueAndAssertOk(targetConfigKey, suite.T())
 
 	tests := []struct {
@@ -391,7 +392,7 @@ func (suite *ConfigRuleTestSuite) TestNotInSegmentCriterion() {
 	// this test is based on in-int range as the target segment
 	contextPropertyName := "team.size"
 	segmentTargetIntRangeConfig := suite.createInIntRangeSegmentTarget(prefabProto.Criterion_IN_INT_RANGE, contextPropertyName, Int64Ptr(0), Int64Ptr(100))
-	targetConfigKey := segmentTargetIntRangeConfig.Key
+	targetConfigKey := segmentTargetIntRangeConfig.GetKey()
 	defaultValueToMatch := createConfigValueAndAssertOk(targetConfigKey, suite.T())
 
 	tests := []struct {

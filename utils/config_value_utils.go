@@ -74,7 +74,7 @@ func ExtractValue(cv *prefabProto.ConfigValue) (any, bool, error) {
 		return nil, false, nil
 	}
 
-	switch v := cv.Type.(type) {
+	switch v := cv.GetType().(type) {
 	case *prefabProto.ConfigValue_Int:
 		return v.Int, true, nil
 	case *prefabProto.ConfigValue_String_:
@@ -87,9 +87,9 @@ func ExtractValue(cv *prefabProto.ConfigValue) (any, bool, error) {
 		return v.Bool, true, nil
 	case *prefabProto.ConfigValue_StringList:
 		// StringList is considered a simple type, returning the slice of strings directly.
-		return v.StringList.Values, true, nil
+		return v.StringList.GetValues(), true, nil
 	case *prefabProto.ConfigValue_Duration:
-		duration, err := time.ParseDuration(v.Duration.Definition)
+		duration, err := time.ParseDuration(v.Duration.GetDefinition())
 		if err != nil {
 			return duration, true, nil
 		}
@@ -122,7 +122,7 @@ func GetValueType(cv *prefabProto.ConfigValue) prefabProto.Config_ValueType {
 		return prefabProto.Config_NOT_SET_VALUE_TYPE
 	}
 
-	switch cv.Type.(type) {
+	switch cv.GetType().(type) {
 	case *prefabProto.ConfigValue_Int:
 		return prefabProto.Config_INT
 	case *prefabProto.ConfigValue_String_:
@@ -150,7 +150,7 @@ func GetValueType(cv *prefabProto.ConfigValue) prefabProto.Config_ValueType {
 type ExtractValueFunction func(*prefabProto.ConfigValue) (any, bool)
 
 func ExtractIntValue(cv *prefabProto.ConfigValue) (int64, bool) {
-	switch v := cv.Type.(type) {
+	switch v := cv.GetType().(type) {
 	case *prefabProto.ConfigValue_Int:
 		return v.Int, true
 	default:
@@ -159,7 +159,7 @@ func ExtractIntValue(cv *prefabProto.ConfigValue) (int64, bool) {
 }
 
 func ExtractStringValue(cv *prefabProto.ConfigValue) (string, bool) {
-	switch v := cv.Type.(type) {
+	switch v := cv.GetType().(type) {
 	case *prefabProto.ConfigValue_String_:
 		return v.String_, true
 	default:
@@ -168,7 +168,7 @@ func ExtractStringValue(cv *prefabProto.ConfigValue) (string, bool) {
 }
 
 func ExtractFloatValue(cv *prefabProto.ConfigValue) (float64, bool) {
-	switch v := cv.Type.(type) {
+	switch v := cv.GetType().(type) {
 	case *prefabProto.ConfigValue_Double:
 		return v.Double, true
 	default:
@@ -177,7 +177,7 @@ func ExtractFloatValue(cv *prefabProto.ConfigValue) (float64, bool) {
 }
 
 func ExtractBoolValue(cv *prefabProto.ConfigValue) (bool, bool) {
-	switch v := cv.Type.(type) {
+	switch v := cv.GetType().(type) {
 	case *prefabProto.ConfigValue_Bool:
 		return v.Bool, true
 	default:
@@ -186,9 +186,9 @@ func ExtractBoolValue(cv *prefabProto.ConfigValue) (bool, bool) {
 }
 
 func ExtractStringListValue(cv *prefabProto.ConfigValue) ([]string, bool) {
-	switch v := cv.Type.(type) {
+	switch v := cv.GetType().(type) {
 	case *prefabProto.ConfigValue_StringList:
-		return v.StringList.Values, true
+		return v.StringList.GetValues(), true
 	default:
 		var zero []string
 		return zero, false
@@ -196,12 +196,12 @@ func ExtractStringListValue(cv *prefabProto.ConfigValue) ([]string, bool) {
 }
 
 func ExtractDurationValue(cv *prefabProto.ConfigValue) (time.Duration, bool) {
-	switch v := cv.Type.(type) {
+	switch v := cv.GetType().(type) {
 	case *prefabProto.ConfigValue_Duration:
 		{
-			duration, err := durationParser.Parse(v.Duration.Definition)
+			duration, err := durationParser.Parse(v.Duration.GetDefinition())
 			if err != nil {
-				slog.Debug(fmt.Sprintf("Failed to parse duration value: %s", v.Duration.Definition))
+				slog.Debug(fmt.Sprintf("Failed to parse duration value: %s", v.Duration.GetDefinition()))
 				return time.Duration(0), false
 			}
 

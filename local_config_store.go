@@ -45,7 +45,7 @@ func loadFileIntoMap(filePath string, configmap *map[string]*prefabProto.Config)
 	}
 
 	for _, config := range configs {
-		(*configmap)[config.Key] = config
+		(*configmap)[config.GetKey()] = config
 	}
 }
 

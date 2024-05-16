@@ -26,26 +26,26 @@ func (wve *WeightedValueResolver) Resolve(weightedValues *prefabProto.WeightedVa
 	fractionThroughDistribution := wve.getUserFraction(weightedValues, propertyName, contextGetter)
 
 	sum := int32(0)
-	for _, weightedValue := range weightedValues.WeightedValues {
-		sum += weightedValue.Weight
+	for _, weightedValue := range weightedValues.GetWeightedValues() {
+		sum += weightedValue.GetWeight()
 	}
 
 	weightThreshold := fractionThroughDistribution * float64(sum)
 
 	runningSum := int32(0)
-	for index, weightedValue := range weightedValues.WeightedValues {
-		runningSum += weightedValue.Weight
+	for index, weightedValue := range weightedValues.GetWeightedValues() {
+		runningSum += weightedValue.GetWeight()
 		if float64(runningSum) >= weightThreshold {
-			return weightedValue.Value, index
+			return weightedValue.GetValue(), index
 		}
 	}
 
-	return weightedValues.WeightedValues[0].Value, 0
+	return weightedValues.GetWeightedValues()[0].GetValue(), 0
 }
 
 func (wve *WeightedValueResolver) getUserFraction(weightedValues *prefabProto.WeightedValues, propertyName string, contextGetter ContextValueGetter) float64 {
 	if weightedValues.HashByPropertyName != nil {
-		value, valueExists := contextGetter.GetContextValue(*weightedValues.HashByPropertyName)
+		value, valueExists := contextGetter.GetContextValue(weightedValues.GetHashByPropertyName())
 		if valueExists {
 			valueToBeHashed := fmt.Sprintf("%s%v", propertyName, value)
 			hashValue, _ := wve.hasher.HashZeroToOne(valueToBeHashed)

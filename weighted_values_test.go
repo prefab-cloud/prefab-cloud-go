@@ -77,7 +77,7 @@ func (suite *WeightedValueResolverTestSuite) TestValueSelectionInRandomCases() {
 		{
 			name:           "Three weighted values returns first value with low random because no hash by property name is set",
 			weightedValues: weightedValuesWithoutHashValue,
-			expectedValue:  wv1.Value,
+			expectedValue:  wv1.GetValue(),
 			expectedIndex:  0,
 			randomValue:    0.1,
 			contextMocking: nil,
@@ -85,7 +85,7 @@ func (suite *WeightedValueResolverTestSuite) TestValueSelectionInRandomCases() {
 		{
 			name:           "Three weighted values returns second value with medium random because no hash by property name is set",
 			weightedValues: weightedValuesWithoutHashValue,
-			expectedValue:  wv2.Value,
+			expectedValue:  wv2.GetValue(),
 			expectedIndex:  1,
 			randomValue:    0.51,
 			contextMocking: nil,
@@ -93,7 +93,7 @@ func (suite *WeightedValueResolverTestSuite) TestValueSelectionInRandomCases() {
 		{
 			name:           "Three weighted values returns third value with high random because no hash by property name is set",
 			weightedValues: weightedValuesWithoutHashValue,
-			expectedValue:  wv3.Value,
+			expectedValue:  wv3.GetValue(),
 			expectedIndex:  2,
 			randomValue:    0.99,
 			contextMocking: nil,
@@ -101,7 +101,7 @@ func (suite *WeightedValueResolverTestSuite) TestValueSelectionInRandomCases() {
 		{
 			name:           "Three weighted values returns third value with high random because hash by property name doesn't return a context value",
 			weightedValues: weightedValuesWithHashValue,
-			expectedValue:  wv3.Value,
+			expectedValue:  wv3.GetValue(),
 			expectedIndex:  2,
 			randomValue:    0.99,
 			contextMocking: &mocks.ContextMocking{ContextPropertyName: "some.property"},
@@ -160,7 +160,7 @@ func (suite *WeightedValueResolverTestSuite) TestValueSelectionInHashingCases() 
 		{
 			name:                 "Three weighted values returns first value with low hash",
 			weightedValues:       weightedValuesWithHashValue,
-			expectedValue:        wv1.Value,
+			expectedValue:        wv1.GetValue(),
 			expectedIndex:        0,
 			hashValue:            0.1,
 			contextMocking:       &mocks.ContextMocking{ContextPropertyName: hashByPropertyName, Value: "james", Exists: true},
@@ -169,7 +169,7 @@ func (suite *WeightedValueResolverTestSuite) TestValueSelectionInHashingCases() 
 		{
 			name:                 "Three weighted values returns second value with low hash",
 			weightedValues:       weightedValuesWithHashValue,
-			expectedValue:        wv1.Value,
+			expectedValue:        wv1.GetValue(),
 			expectedIndex:        0,
 			hashValue:            0.1,
 			contextMocking:       &mocks.ContextMocking{ContextPropertyName: hashByPropertyName, Value: 100, Exists: true},
