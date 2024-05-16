@@ -63,7 +63,7 @@ func NewClient(options Options) (*Client, error) {
 	return &client, nil
 }
 
-// TODO replace this with a fetcher type to manage first fetch and polling (plus SSE eventually)
+// TODO: replace this with a fetcher type to manage first fetch and polling (plus SSE eventually)
 func (c *Client) fetchFromServer(offset int32) {
 	configs, err := c.httpClient.Load(offset) // retry me!
 	if err != nil {

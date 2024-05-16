@@ -17,7 +17,7 @@ type HTTPClient struct {
 	Options             *options.Options
 	apiURL              string
 	cdnURL              string
-	prefabVersionHeader string // TODO calculate this from version
+	prefabVersionHeader string // TODO: calculate this from version
 }
 
 func BuildHTTPClient(options options.Options) (*HTTPClient, error) {
@@ -37,7 +37,7 @@ func (c *HTTPClient) Load(offset int32) (*prefabProto.Configs, error) {
 	if err != nil {
 		return nil, err
 	}
-	// TODO target the cdn first
+	// TODO: target the cdn first
 	uri := fmt.Sprintf("%s/api/v1/configs/%d", c.apiURL, offset)
 
 	slog.Info("Getting data from " + uri)
