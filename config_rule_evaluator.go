@@ -10,22 +10,22 @@ import (
 )
 
 type ConditionMatch struct {
-	isMatch                  bool
 	match                    *prefabProto.ConfigValue
+	selectedConditionalValue *prefabProto.ConditionalValue
 	rowIndex                 int
 	conditionalValueIndex    int
-	selectedConditionalValue *prefabProto.ConditionalValue
+	isMatch                  bool
 }
 
 type ConfigRuleEvaluator struct {
 	configStore          ConfigStoreGetter
-	projectEnvIdSupplier ProjectEnvIdSupplier
+	projectEnvIDSupplier ProjectEnvIDSupplier
 }
 
-func NewConfigRuleEvaluator(configStore ConfigStoreGetter, supplier ProjectEnvIdSupplier) *ConfigRuleEvaluator {
+func NewConfigRuleEvaluator(configStore ConfigStoreGetter, supplier ProjectEnvIDSupplier) *ConfigRuleEvaluator {
 	return &ConfigRuleEvaluator{
 		configStore:          configStore,
-		projectEnvIdSupplier: supplier,
+		projectEnvIDSupplier: supplier,
 	}
 }
 
@@ -34,7 +34,7 @@ func (cve *ConfigRuleEvaluator) EvaluateConfig(config *prefabProto.Config, conte
 	// iterate over conditional values in rows
 	// evaluate criterion
 	noEnvRowIndex := 0
-	envRow, envRowExists := rowWithMatchingEnvId(config, cve.projectEnvIdSupplier.GetProjectEnvId())
+	envRow, envRowExists := rowWithMatchingEnvID(config, cve.projectEnvIDSupplier.GetProjectEnvID())
 
 	if envRowExists {
 		noEnvRowIndex = 1
@@ -45,7 +45,7 @@ func (cve *ConfigRuleEvaluator) EvaluateConfig(config *prefabProto.Config, conte
 		}
 	}
 
-	noEnvRow, noEnvRowExists := rowWithoutEnvId(config)
+	noEnvRow, noEnvRowExists := rowWithoutEnvID(config)
 	if noEnvRowExists {
 		match := cve.EvaluateRow(noEnvRow, contextSet, noEnvRowIndex)
 		if match.isMatch {
@@ -181,9 +181,9 @@ func defaultInt(maybeInt *int64, defaultValue int64) int64 {
 	return defaultValue
 }
 
-func rowWithMatchingEnvId(config *prefabProto.Config, envId int64) (row *prefabProto.ConfigRow, rowWasFound bool) {
+func rowWithMatchingEnvID(config *prefabProto.Config, envID int64) (row *prefabProto.ConfigRow, rowWasFound bool) {
 	for _, row := range config.GetRows() {
-		if row.ProjectEnvId != nil && *row.ProjectEnvId == envId {
+		if row.ProjectEnvId != nil && *row.ProjectEnvId == envID {
 			return row, true
 		}
 	}
@@ -191,7 +191,7 @@ func rowWithMatchingEnvId(config *prefabProto.Config, envId int64) (row *prefabP
 	return nil, false
 }
 
-func rowWithoutEnvId(config *prefabProto.Config) (row *prefabProto.ConfigRow, rowWasFound bool) {
+func rowWithoutEnvID(config *prefabProto.Config) (row *prefabProto.ConfigRow, rowWasFound bool) {
 	for _, row := range config.GetRows() {
 		if row.ProjectEnvId == nil {
 			return row, true

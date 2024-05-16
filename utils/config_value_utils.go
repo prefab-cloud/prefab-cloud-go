@@ -10,8 +10,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/prefab-cloud/prefab-cloud-go/anyhelpers"
 	durationParser "github.com/sosodev/duration"
+
+	"github.com/prefab-cloud/prefab-cloud-go/anyhelpers"
 
 	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
 )
@@ -26,34 +27,34 @@ func Create(value any) (*prefabProto.ConfigValue, bool) {
 
 	configValue := &prefabProto.ConfigValue{}
 
-	switch v := value.(type) {
+	switch valueType := value.(type) {
 	case int, int8, int16, int32, int64:
 		val := reflect.ValueOf(value)
 		configValue.Type = &prefabProto.ConfigValue_Int{Int: val.Int()}
 	case string:
-		configValue.Type = &prefabProto.ConfigValue_String_{String_: v}
+		configValue.Type = &prefabProto.ConfigValue_String_{String_: valueType}
 	case []string:
 		// Assuming ConfigValue has a StringList field to handle a list of strings
-		configValue.Type = &prefabProto.ConfigValue_StringList{StringList: &prefabProto.StringList{Values: v}}
+		configValue.Type = &prefabProto.ConfigValue_StringList{StringList: &prefabProto.StringList{Values: valueType}}
 	case []any:
-		stringList, ok := anyhelpers.DetectAndReturnStringListIfPresent(v)
+		stringList, ok := anyhelpers.DetectAndReturnStringListIfPresent(valueType)
 		if ok {
 			configValue.Type = &prefabProto.ConfigValue_StringList{StringList: &prefabProto.StringList{Values: stringList}}
 		}
 	case []byte:
-		configValue.Type = &prefabProto.ConfigValue_Bytes{Bytes: v}
+		configValue.Type = &prefabProto.ConfigValue_Bytes{Bytes: valueType}
 	case bool:
-		configValue.Type = &prefabProto.ConfigValue_Bool{Bool: v}
+		configValue.Type = &prefabProto.ConfigValue_Bool{Bool: valueType}
 	case float64, float32:
 		val := reflect.ValueOf(value)
 		configValue.Type = &prefabProto.ConfigValue_Double{Double: val.Float()}
 	case *prefabProto.ConfigValue_LogLevel:
-		configValue.Type = v
+		configValue.Type = valueType
 	case time.Duration:
-		configValue.Type = &prefabProto.ConfigValue_Duration{Duration: &prefabProto.IsoDuration{Definition: durationToISO8601(v)}}
+		configValue.Type = &prefabProto.ConfigValue_Duration{Duration: &prefabProto.IsoDuration{Definition: durationToISO8601(valueType)}}
 	case *any:
-		if v != nil {
-			return Create(*v)
+		if valueType != nil {
+			return Create(*valueType)
 		}
 
 		slog.Warn("create unable to handle nil")

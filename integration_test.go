@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/google/go-cmp/cmp"
+
 	"github.com/prefab-cloud/prefab-cloud-go/anyhelpers"
 
 	"github.com/stretchr/testify/suite"
@@ -19,7 +20,7 @@ import (
 
 type clientOverridesYaml struct {
 	InitializationTimeOutSec *float64 `yaml:"initialization_timeout_sec"`
-	PrefabApiUrl             *string  `yaml:"prefab_api_url"`
+	PrefabAPIURL             *string  `yaml:"prefab_api_url"`
 	OnInitFailure            *string  `yaml:"on_init_failure"`
 }
 
@@ -44,25 +45,25 @@ type getTest struct {
 }
 
 type getTestCaseYaml struct {
+	Input           input                `yaml:"input"`
+	Expected        expected             `yaml:"expected"`
+	Type            *string              `yaml:"type"`
+	ClientOverrides *clientOverridesYaml `yaml:"client_overrides"`
 	CaseName        string               `yaml:"name"`
 	Client          string               `yaml:"client"`
 	Function        string               `yaml:"function"`
-	Type            *string              `yaml:"type"`
-	Input           input                `yaml:"input"`
-	Expected        expected             `yaml:"expected"`
-	ClientOverrides *clientOverridesYaml `yaml:"client_overrides"`
 }
 
 type getTestCase struct {
-	getTestCaseYaml
 	TestName    *string
 	TestContext *map[string]map[string]interface{}
+	getTestCaseYaml
 }
 
 type GeneratedTestSuite struct {
 	suite.Suite
 	BaseDirectory string
-	ApiKey        string
+	APIKey        string
 }
 
 func TestGeneratedSuite(t *testing.T) {
@@ -71,8 +72,8 @@ func TestGeneratedSuite(t *testing.T) {
 
 func (suite *GeneratedTestSuite) SetupSuite() {
 	suite.BaseDirectory = "./testdata/prefab-cloud-integration-test-data/tests/current"
-	suite.ApiKey = os.Getenv("PREFAB_INTEGRATION_TEST_API_KEY")
-	suite.Require().NotEmpty(suite.ApiKey, "No API key found in environment var PREFAB_INTEGRATION_TEST_API_KEY")
+	suite.APIKey = os.Getenv("PREFAB_INTEGRATION_TEST_API_KEY")
+	suite.Require().NotEmpty(suite.APIKey, "No API key found in environment var PREFAB_INTEGRATION_TEST_API_KEY")
 }
 
 func (suite *GeneratedTestSuite) LoadGetTestCasesFromYAML(filename string) []*getTestCase {
@@ -126,11 +127,11 @@ var typeWithDefaultsMap = map[string]interface{}{
 }
 
 type configLookupResult struct {
-	defaultPresented bool
 	defaultValue     any
 	value            any
+	err              error
+	defaultPresented bool
 	valueOk          bool
-	err              error // only present when default not presented
 }
 
 func (suite *GeneratedTestSuite) TestGet() {
@@ -213,8 +214,8 @@ func (suite *GeneratedTestSuite) makeGetCall(client *Client, dataType *string, k
 
 func buildClient(apiKey string, testCase *getTestCase) (client *Client, err error) {
 	options := NewOptions(func(opts *Options) {
-		opts.ApiUrl = "https://api.staging-prefab.cloud"
-		opts.ApiKey = apiKey
+		opts.APIUrl = "https://api.staging-prefab.cloud"
+		opts.APIKey = apiKey
 
 		if testCase.ClientOverrides != nil {
 			if testCase.ClientOverrides.OnInitFailure != nil {
@@ -230,8 +231,8 @@ func buildClient(apiKey string, testCase *getTestCase) (client *Client, err erro
 				opts.InitializationTimeoutSeconds = *testCase.ClientOverrides.InitializationTimeOutSec
 			}
 
-			if testCase.ClientOverrides.PrefabApiUrl != nil {
-				opts.ApiUrl = *testCase.ClientOverrides.PrefabApiUrl
+			if testCase.ClientOverrides.PrefabAPIURL != nil {
+				opts.APIUrl = *testCase.ClientOverrides.PrefabAPIURL
 			}
 		}
 	})
@@ -249,7 +250,7 @@ func (suite *GeneratedTestSuite) executeGetTest(filename string) {
 	testCases := suite.LoadGetTestCasesFromYAML(filename)
 	for _, testCase := range testCases {
 		suite.Run(buildTestCaseName(testCase, filename), func() {
-			client, err := buildClient(suite.ApiKey, testCase)
+			client, err := buildClient(suite.APIKey, testCase)
 			suite.Require().NoError(err, "client constructor failed")
 
 			expectedValue, foundExpectedValue := processExpectedResult(testCase)
@@ -300,19 +301,19 @@ func (suite *GeneratedTestSuite) enabledTest(filename string) {
 	testCases := suite.LoadGetTestCasesFromYAML(filename)
 	for _, testCase := range testCases {
 		suite.Run(buildTestCaseName(testCase, filename), func() {
-			client, err := buildClient(suite.ApiKey, testCase)
+			client, err := buildClient(suite.APIKey, testCase)
 			suite.Require().NoError(err, "client constructor failed")
 
-			expectedResult, foundExpectedResult := processExpectedResult(testCase)
-			suite.Require().True(foundExpectedResult, "no expected value for test case %s", testCase.CaseName)
+			expected, ok := processExpectedResult(testCase)
+			suite.Require().True(ok, "no expected value for test case %s", testCase.CaseName)
 			context, contextErr := processContext(testCase)
 			suite.Require().NoError(contextErr, "error building context")
 
 			featureIsOn, featureIsOnOk := client.FeatureIsOn(*testCase.Input.Flag, *context)
 			suite.Require().True(featureIsOnOk, "FeatureIsOn should work")
-			suite.Require().NotNil(expectedResult.value, "expected result's value field should not be nil")
+			suite.Require().NotNil(expected.value, "expected result's value field should not be nil")
 
-			suite.Require().Equal(expectedResult.value, featureIsOn, "FeatureIsOn should be %v", expectedResult.value)
+			suite.Require().Equal(expected.value, featureIsOn, "FeatureIsOn should be %v", expected.value)
 		})
 	}
 }
@@ -404,13 +405,13 @@ func processExpectedResult(testCase *getTestCase) (expectedResult, bool) {
 }
 
 // Mapping function from string to OnInitializationFailure
-func mapStringToOnInitializationFailure(s string) (OnInitializationFailure, error) {
-	switch s {
+func mapStringToOnInitializationFailure(str string) (OnInitializationFailure, error) {
+	switch str {
 	case ":raise":
 		return RAISE, nil
 	case ":return":
 		return UNLOCK, nil
 	default:
-		return RAISE, errors.New(fmt.Sprintf("unknown OnInitializationFailure value %s", s))
+		return RAISE, fmt.Errorf("unknown OnInitializationFailure value %s", str)
 	}
 }

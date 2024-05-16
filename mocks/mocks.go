@@ -1,8 +1,9 @@
 package mocks
 
 import (
-	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
 	"github.com/stretchr/testify/mock"
+
+	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
 )
 
 type MockContextGetter struct {
@@ -37,8 +38,8 @@ func NewMockContext(contextPropertyName string, contextValue interface{}, contex
 }
 
 type ContextMocking struct {
-	ContextPropertyName string
 	Value               interface{}
+	ContextPropertyName string
 	Exists              bool
 }
 
@@ -77,8 +78,8 @@ func (m *MockConfigStoreGetter) GetConfig(key string) (config *prefabProto.Confi
 }
 
 type ConfigMockingArgs struct {
-	ConfigKey    string
 	Config       *prefabProto.Config
+	ConfigKey    string
 	ConfigExists bool
 }
 
@@ -91,18 +92,18 @@ func NewMockConfigStoreGetter(args []ConfigMockingArgs) *MockConfigStoreGetter {
 	return &mockConfigStoreGetter
 }
 
-type MockProjectEnvIdSupplier struct {
+type MockProjectEnvIDSupplier struct {
 	mock.Mock
 }
 
-func (m *MockProjectEnvIdSupplier) GetProjectEnvId() int64 {
+func (m *MockProjectEnvIDSupplier) GetProjectEnvID() int64 {
 	args := m.Called()
 	return args.Get(0).(int64)
 }
 
-func NewMockProjectEnvIdSupplier(envId int64) *MockProjectEnvIdSupplier {
-	mockInstance := MockProjectEnvIdSupplier{}
-	mockInstance.On("GetProjectEnvId").Return(envId)
+func NewMockProjectEnvIDSupplier(envID int64) *MockProjectEnvIDSupplier {
+	mockInstance := MockProjectEnvIDSupplier{}
+	mockInstance.On("GetProjectEnvID").Return(envID)
 
 	return &mockInstance
 }

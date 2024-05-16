@@ -4,10 +4,11 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/prefab-cloud/prefab-cloud-go/mocks"
-	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+
+	"github.com/prefab-cloud/prefab-cloud-go/mocks"
+	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
 )
 
 type mockDecrypter struct {
@@ -20,10 +21,10 @@ func (m *mockDecrypter) DecryptValue(secretKey string, value string) (decryptedV
 }
 
 type mockDecrypterArgs struct {
+	err            error
 	key            string
 	encryptedValue string
 	decryptedValue string
-	err            error
 }
 
 func newMockDecrypter(args []mockDecrypterArgs) *mockDecrypter {
@@ -46,8 +47,8 @@ func (m *mockWeightedValueResolver) Resolve(weightedValues *prefabProto.Weighted
 
 type mockWeightedValueResolverArgs struct {
 	weightedValues *prefabProto.WeightedValues
-	propertyName   string
 	returnValue    *prefabProto.ConfigValue
+	propertyName   string
 	index          int
 }
 
@@ -136,13 +137,13 @@ func TestConfigResolver_ResolveValue(t *testing.T) {
 	tests := []struct {
 		name                          string
 		configKey                     string
-		wantConfigMatch               ConfigMatch
-		expectError                   bool // TODO make more specific
 		mockDecrypterArgs             []mockDecrypterArgs
 		mockWeightedValueResolverArgs []mockWeightedValueResolverArgs
 		mockConfigEvaluatorArgs       []mockConfigEvaluatorArgs
 		mockConfigStoreArgs           []mocks.ConfigMockingArgs
 		envVarsToSet                  []keyValuePair
+		wantConfigMatch               ConfigMatch
+		expectError                   bool
 	}{
 		{
 			name:      "standard pass through",
@@ -415,39 +416,39 @@ func TestConfigResolver_ResolveValue(t *testing.T) {
 		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			mockDecrypter := newMockDecrypter(tt.mockDecrypterArgs)
+	for _, testCase := range tests {
+		t.Run(testCase.name, func(t *testing.T) {
+			mockDecrypter := newMockDecrypter(testCase.mockDecrypterArgs)
 			defer mockDecrypter.AssertExpectations(t)
 
-			mockWeightedValueResolver := newMockWeightedValueResolver(tt.mockWeightedValueResolverArgs)
+			mockWeightedValueResolver := newMockWeightedValueResolver(testCase.mockWeightedValueResolverArgs)
 			defer mockWeightedValueResolver.AssertExpectations(t)
 
-			mockConfigEvaluator := newMockConfigEvaluator(tt.mockConfigEvaluatorArgs)
+			mockConfigEvaluator := newMockConfigEvaluator(testCase.mockConfigEvaluatorArgs)
 			defer mockConfigEvaluator.AssertExpectations(t)
 
-			mockConfigStoreGetter := mocks.NewMockConfigStoreGetter(tt.mockConfigStoreArgs)
+			mockConfigStoreGetter := mocks.NewMockConfigStoreGetter(testCase.mockConfigStoreArgs)
 			defer mockConfigStoreGetter.AssertExpectations(t)
 
 			mockContextGetter := new(mocks.MockContextGetter)
 			defer mockContextGetter.AssertExpectations(t)
 
-			for _, pair := range tt.envVarsToSet {
+			for _, pair := range testCase.envVarsToSet {
 				t.Setenv(pair.name, pair.value)
 			}
 
-			c := &ConfigResolver{
+			resolver := &ConfigResolver{
 				configStore:           mockConfigStoreGetter,
 				ruleEvaluator:         mockConfigEvaluator,
 				weightedValueResolver: mockWeightedValueResolver,
 				decrypter:             mockDecrypter,
 			}
 
-			match, err := c.ResolveValue(tt.configKey, mockContextGetter)
-			if tt.expectError {
+			match, err := resolver.ResolveValue(testCase.configKey, mockContextGetter)
+			if testCase.expectError {
 				assert.Error(t, err)
 			} else {
-				assert.Equalf(t, tt.wantConfigMatch, match, "ResolveValue(%v, %v)", tt.configKey, mockContextGetter)
+				assert.Equalf(t, testCase.wantConfigMatch, match, "ResolveValue(%v, %v)", testCase.configKey, mockContextGetter)
 			}
 		})
 	}

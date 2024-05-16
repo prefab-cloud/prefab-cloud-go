@@ -10,21 +10,21 @@ import (
 )
 
 type LocalConfigStore struct {
-	source_directory string
-	configMap        map[string]*prefabProto.Config
-	initialized      bool
+	configMap       map[string]*prefabProto.Config
+	sourceDirectory string
+	initialized     bool
 }
 
-func NewLocalConfigStore(source_directory string, options *Options) *LocalConfigStore {
+func NewLocalConfigStore(sourceDirectory string, options *Options) *LocalConfigStore {
 	configMap := make(map[string]*prefabProto.Config)
 
-	env_names := append([]string{"default"}, options.EnvironmentNames...)
-	for _, env_name := range env_names {
-		file := filepath.Join(source_directory, ".prefab."+env_name+".config.yaml")
+	envNames := append([]string{"default"}, options.EnvironmentNames...)
+	for _, envName := range envNames {
+		file := filepath.Join(sourceDirectory, ".prefab."+envName+".config.yaml")
 		loadFileIntoMap(file, &configMap)
 	}
 
-	return &LocalConfigStore{source_directory: source_directory, configMap: configMap, initialized: true}
+	return &LocalConfigStore{sourceDirectory: sourceDirectory, configMap: configMap, initialized: true}
 }
 
 func loadFileIntoMap(filePath string, configmap *map[string]*prefabProto.Config) {

@@ -3,8 +3,9 @@ package prefab
 import (
 	"testing"
 
-	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
 	"github.com/stretchr/testify/suite"
+
+	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
 )
 
 type LocalConfigStoreSuite struct {
@@ -16,22 +17,22 @@ func TestLocalConfigStoreSuite(t *testing.T) {
 }
 
 type configExpectation struct {
-	key      string
 	expected *prefabProto.ConfigValue
+	key      string
 	// If expected is not specified, exists is assumed to be false
 	exists bool
 }
 
 func (suite *LocalConfigStoreSuite) TestNewLocalConfigStore() {
 	testCases := []struct {
-		name             string
-		source_directory string
-		options          *Options
-		expectedConfigs  []configExpectation
+		name            string
+		sourceDirectory string
+		options         *Options
+		expectedConfigs []configExpectation
 	}{
 		{
-			name:             "Default only",
-			source_directory: "testdata/local_configs",
+			name:            "Default only",
+			sourceDirectory: "testdata/local_configs",
 			options: &Options{
 				EnvironmentNames: []string{},
 			},
@@ -44,8 +45,8 @@ func (suite *LocalConfigStoreSuite) TestNewLocalConfigStore() {
 			},
 		},
 		{
-			name:             "Default and production",
-			source_directory: "testdata/local_configs",
+			name:            "Default and production",
+			sourceDirectory: "testdata/local_configs",
 			options: &Options{
 				EnvironmentNames: []string{"production"},
 			},
@@ -61,7 +62,7 @@ func (suite *LocalConfigStoreSuite) TestNewLocalConfigStore() {
 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			store := NewLocalConfigStore(tc.source_directory, tc.options)
+			store := NewLocalConfigStore(tc.sourceDirectory, tc.options)
 
 			// Assert the expected configurations
 			for _, expectation := range tc.expectedConfigs {

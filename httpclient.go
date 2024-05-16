@@ -7,36 +7,37 @@ import (
 	"net/http"
 	"strings"
 
-	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
 	"google.golang.org/protobuf/proto"
+
+	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
 )
 
-type HttpClient struct {
+type HTTPClient struct {
 	Options             *Options
-	apiUrl              string
-	cdnUrl              string
+	apiURL              string
+	cdnURL              string
 	prefabVersionHeader string // TODO calculate this from version
 }
 
-func BuildHttpClient(options Options) (*HttpClient, error) {
-	apiUrl, err := options.PrefabApiUrlEnvVarOrSetting()
+func BuildHTTPClient(options Options) (*HTTPClient, error) {
+	apiURL, err := options.PrefabAPIURLEnvVarOrSetting()
 	if err != nil {
 		return nil, err
 	}
 
-	cdnUrl := strings.Replace(apiUrl, "api", "cdn", 1)
-	client := HttpClient{Options: &options, apiUrl: apiUrl, cdnUrl: cdnUrl}
+	cdnURL := strings.Replace(apiURL, "api", "cdn", 1)
+	client := HTTPClient{Options: &options, apiURL: apiURL, cdnURL: cdnURL}
 
 	return &client, nil
 }
 
-func (c *HttpClient) Load(offset int32) (*prefabProto.Configs, error) {
+func (c *HTTPClient) Load(offset int32) (*prefabProto.Configs, error) {
 	apikey, err := c.Options.apiKeySettingOrEnvVar()
 	if err != nil {
 		return nil, err
 	}
 	// TODO target the cdn first
-	uri := fmt.Sprintf("%s/api/v1/configs/%d", c.apiUrl, offset)
+	uri := fmt.Sprintf("%s/api/v1/configs/%d", c.apiURL, offset)
 
 	slog.Info(fmt.Sprintf("Getting data from %s", uri))
 
@@ -54,9 +55,9 @@ func (c *HttpClient) Load(offset int32) (*prefabProto.Configs, error) {
 	}
 
 	defer func(Body io.ReadCloser) {
-		err := Body.Close()
+		err = Body.Close()
 		if err != nil {
-			// TODO something?
+			// TODO: something?
 		}
 	}(resp.Body)
 

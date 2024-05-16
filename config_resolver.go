@@ -11,14 +11,14 @@ import (
 )
 
 type ConfigMatch struct {
-	isMatch                  bool
 	originalMatch            *prefabProto.ConfigValue
-	originalKey              string
 	match                    *prefabProto.ConfigValue
+	weightedValueIndex       *int
+	selectedConditionalValue *prefabProto.ConditionalValue
+	originalKey              string
 	rowIndex                 int
 	conditionalValueIndex    int
-	weightedValueIndex       *int // pointer so we can check nil
-	selectedConditionalValue *prefabProto.ConditionalValue
+	isMatch                  bool
 }
 
 func NewConfigMatchFromConditionMatch(conditionMatch ConditionMatch) ConfigMatch {
@@ -53,7 +53,7 @@ type ConfigResolver struct {
 	contextGetter         ContextValueGetter
 }
 
-func NewConfigResolver(configStore ConfigStoreGetter, supplier ProjectEnvIdSupplier, apiContextGetter ContextValueGetter) *ConfigResolver {
+func NewConfigResolver(configStore ConfigStoreGetter, supplier ProjectEnvIDSupplier, apiContextGetter ContextValueGetter) *ConfigResolver {
 	return &ConfigResolver{
 		configStore:           configStore,
 		ruleEvaluator:         NewConfigRuleEvaluator(configStore, supplier),
