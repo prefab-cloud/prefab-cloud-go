@@ -33,7 +33,8 @@ func (s *LocalConfigYamlParserTestSuite) createConfig(key string, cv *prefabProt
 	}
 }
 
-func (s *LocalConfigYamlParserTestSuite) collectKeys(configs []*prefabProto.Config) (keys []string) {
+func (s *LocalConfigYamlParserTestSuite) collectKeys(configs []*prefabProto.Config) []string {
+	keys := make([]string, 0, len(configs))
 	for _, config := range configs {
 		keys = append(keys, config.Key)
 	}
@@ -108,8 +109,8 @@ log-level:
 				return
 			}
 
-			assert.ElementsMatch(s.T(), s.collectKeys(testCase.wantConfigs), s.collectKeys(gotConfigValues))
-			assert.ElementsMatchf(s.T(), testCase.wantConfigs, gotConfigValues, "parse(%v)", testCase.yamlInput)
+			s.ElementsMatch(s.collectKeys(testCase.wantConfigs), s.collectKeys(gotConfigValues))
+			s.ElementsMatchf(testCase.wantConfigs, gotConfigValues, "parse(%v)", testCase.yamlInput)
 		})
 	}
 }

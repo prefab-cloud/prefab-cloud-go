@@ -41,7 +41,7 @@ func (RealEnvLookup) LookupEnv(key string) (string, bool) {
 var (
 	ErrConfigDoesNotExist = errors.New("config does not exist")
 	ErrEnvVarNotExist     = errors.New("environment variable does not exist")
-	ErrTypeCoercionFailed = errors.New("type coercion failed on on value from environment variable")
+	ErrTypeCoercionFailed = errors.New("type coercion failed on value from environment variable")
 )
 
 type ConfigResolver struct {
@@ -64,7 +64,7 @@ func NewConfigResolver(configStore ConfigStoreGetter, supplier ProjectEnvIDSuppl
 	}
 }
 
-func (c ConfigResolver) ResolveValue(key string, contextSet ContextValueGetter) (configMatch ConfigMatch, err error) {
+func (c ConfigResolver) ResolveValue(key string, contextSet ContextValueGetter) (ConfigMatch, error) {
 	config, configExists := c.configStore.GetConfig(key)
 	if !configExists {
 		return ConfigMatch{isMatch: false, originalKey: key}, ErrConfigDoesNotExist
@@ -73,7 +73,7 @@ func (c ConfigResolver) ResolveValue(key string, contextSet ContextValueGetter) 
 	contextSet = makeMultiContextGetter(contextSet, c.contextGetter)
 
 	ruleMatchResults := c.ruleEvaluator.EvaluateConfig(config, contextSet)
-	configMatch = NewConfigMatchFromConditionMatch(ruleMatchResults)
+	configMatch := NewConfigMatchFromConditionMatch(ruleMatchResults)
 	configMatch.originalKey = key
 
 	switch v := ruleMatchResults.match.Type.(type) {
@@ -121,7 +121,7 @@ func boolPtr(val bool) *bool {
 	return &val
 }
 
-func (c ConfigResolver) handleProvided(provided *prefabProto.Provided) (value string, ok bool) {
+func (c ConfigResolver) handleProvided(provided *prefabProto.Provided) (string, bool) {
 	switch provided.GetSource() {
 	case prefabProto.ProvidedSource_ENV_VAR:
 		if provided.Lookup != nil {
@@ -182,7 +182,7 @@ func (c ConfigResolver) handleDecryption(configValue *prefabProto.ConfigValue, c
 	return "", errors.New("no config value exists") // todo
 }
 
-func (c ConfigResolver) handleWeightedValue(configKey string, values *prefabProto.WeightedValues, contextSet ContextValueGetter) (valueResult *prefabProto.ConfigValue, index int) {
+func (c ConfigResolver) handleWeightedValue(configKey string, values *prefabProto.WeightedValues, contextSet ContextValueGetter) (*prefabProto.ConfigValue, int) {
 	value, index := c.weightedValueResolver.Resolve(values, configKey, contextSet)
 	return value, index
 }

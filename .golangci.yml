@@ -35,6 +35,9 @@ issues:
     - path: encryption.go
       linters:
         - varnamelen
+    - path: integration_test.go
+      linters:
+        - tagliatelle
 
 linters-settings:
   mnd:

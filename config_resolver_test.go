@@ -15,7 +15,7 @@ type mockDecrypter struct {
 	mock.Mock
 }
 
-func (m *mockDecrypter) DecryptValue(secretKey string, value string) (decryptedValue string, err error) {
+func (m *mockDecrypter) DecryptValue(secretKey string, value string) (string, error) {
 	args := m.Called(secretKey, value)
 	return args.String(0), args.Error(1)
 }
@@ -40,7 +40,7 @@ type mockWeightedValueResolver struct {
 	mock.Mock
 }
 
-func (m *mockWeightedValueResolver) Resolve(weightedValues *prefabProto.WeightedValues, propertyName string, contextGetter ContextValueGetter) (valueResult *prefabProto.ConfigValue, index int) {
+func (m *mockWeightedValueResolver) Resolve(weightedValues *prefabProto.WeightedValues, propertyName string, contextGetter ContextValueGetter) (*prefabProto.ConfigValue, int) {
 	args := m.Called(weightedValues, propertyName, contextGetter)
 	return args.Get(0).(*prefabProto.ConfigValue), args.Int(1)
 }
@@ -52,7 +52,7 @@ type mockWeightedValueResolverArgs struct {
 	index          int
 }
 
-func newMockWeightedValueResolver(args []mockWeightedValueResolverArgs) (mockedWeightedValueResolver *mockWeightedValueResolver) {
+func newMockWeightedValueResolver(args []mockWeightedValueResolverArgs) *mockWeightedValueResolver {
 	mockResolver := &mockWeightedValueResolver{}
 	for _, currArg := range args {
 		mockResolver.On("Resolve", currArg.weightedValues, currArg.propertyName, mock.Anything).Return(currArg.returnValue, currArg.index)
@@ -65,7 +65,7 @@ type mockConfigEvaluator struct {
 	mock.Mock
 }
 
-func (m *mockConfigEvaluator) EvaluateConfig(config *prefabProto.Config, contextSet ContextValueGetter) (match ConditionMatch) {
+func (m *mockConfigEvaluator) EvaluateConfig(config *prefabProto.Config, contextSet ContextValueGetter) ConditionMatch {
 	args := m.Called(config, contextSet)
 	return args.Get(0).(ConditionMatch)
 }

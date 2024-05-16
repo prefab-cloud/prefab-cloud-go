@@ -22,7 +22,7 @@ func NewWeightedValueResolver(seed int64, hasher Hasher) *WeightedValueResolver 
 	}
 }
 
-func (wve *WeightedValueResolver) Resolve(weightedValues *prefabProto.WeightedValues, propertyName string, contextGetter ContextValueGetter) (valueResult *prefabProto.ConfigValue, index int) {
+func (wve *WeightedValueResolver) Resolve(weightedValues *prefabProto.WeightedValues, propertyName string, contextGetter ContextValueGetter) (*prefabProto.ConfigValue, int) {
 	fractionThroughDistribution := wve.getUserFraction(weightedValues, propertyName, contextGetter)
 
 	sum := int32(0)

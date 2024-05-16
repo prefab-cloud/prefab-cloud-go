@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"errors"
 	"fmt"
 	"log/slog"
 	"os"
@@ -70,7 +69,7 @@ func Create(value any) (*prefabProto.ConfigValue, bool) {
 
 // ExtractValue returns the value of the oneof field and a boolean indicating
 // if it's one of the simple types (fields 1-5, 10). returns nil, false if the configvalue is nil
-func ExtractValue(cv *prefabProto.ConfigValue) (value any, simpleTypeAvailable bool, err error) {
+func ExtractValue(cv *prefabProto.ConfigValue) (any, bool, error) {
 	if cv == nil {
 		return nil, false, nil
 	}
@@ -105,7 +104,7 @@ func ExtractValue(cv *prefabProto.ConfigValue) (value any, simpleTypeAvailable b
 	}
 }
 
-func handleProvided(provided *prefabProto.Provided) (value string, ok bool) {
+func handleProvided(provided *prefabProto.Provided) (string, bool) {
 	switch provided.GetSource() {
 	case prefabProto.ProvidedSource_ENV_VAR:
 		if provided.Lookup != nil {
@@ -214,15 +213,6 @@ func ExtractDurationValue(cv *prefabProto.ConfigValue) (time.Duration, bool) {
 	}
 }
 
-func parseBytesValue(cv *prefabProto.ConfigValue) (interface{}, error) {
-	switch v := cv.Type.(type) {
-	case *prefabProto.ConfigValue_Bytes:
-		return v.Bytes, nil
-	default:
-		return nil, errors.New("config did not produce the correct type for Bytes")
-	}
-}
-
 func durationToISO8601(d time.Duration) string {
 	var (
 		years   = int64(d / (365 * 24 * time.Hour))
@@ -233,51 +223,51 @@ func durationToISO8601(d time.Duration) string {
 		seconds = float64(d%time.Minute) / float64(time.Second)
 	)
 
-	var sb strings.Builder
+	var builder strings.Builder
 
-	sb.WriteString("P")
+	builder.WriteString("P")
 
 	if years > 0 {
-		sb.WriteString(strconv.FormatInt(years, 10))
-		sb.WriteString("Y")
+		builder.WriteString(strconv.FormatInt(years, 10))
+		builder.WriteString("Y")
 	}
 
 	if months > 0 {
-		sb.WriteString(strconv.FormatInt(months, 10))
-		sb.WriteString("M")
+		builder.WriteString(strconv.FormatInt(months, 10))
+		builder.WriteString("M")
 	}
 
 	if days > 0 {
-		sb.WriteString(strconv.FormatInt(days, 10))
-		sb.WriteString("D")
+		builder.WriteString(strconv.FormatInt(days, 10))
+		builder.WriteString("D")
 	}
 
 	hasTimePart := hours > 0 || minutes > 0 || seconds > 0
 	if hasTimePart {
-		sb.WriteString("T")
+		builder.WriteString("T")
 	}
 
 	if hours > 0 {
-		sb.WriteString(strconv.FormatInt(hours, 10))
-		sb.WriteString("H")
+		builder.WriteString(strconv.FormatInt(hours, 10))
+		builder.WriteString("H")
 	}
 
 	if minutes > 0 {
-		sb.WriteString(strconv.FormatInt(minutes, 10))
-		sb.WriteString("M")
+		builder.WriteString(strconv.FormatInt(minutes, 10))
+		builder.WriteString("M")
 	}
 
 	if seconds > 0 {
 		if hours == 0 && minutes == 0 {
-			sb.WriteString(fmt.Sprintf("%.9f", seconds))
-			sb.WriteString("S")
+			builder.WriteString(fmt.Sprintf("%.9f", seconds))
+			builder.WriteString("S")
 		} else {
-			sb.WriteString(fmt.Sprintf("%02.0f", seconds))
-			sb.WriteString("S")
+			builder.WriteString(fmt.Sprintf("%02.0f", seconds))
+			builder.WriteString("S")
 		}
 	} else if hasTimePart {
-		sb.WriteString("0S")
+		builder.WriteString("0S")
 	}
 
-	return sb.String()
+	return builder.String()
 }

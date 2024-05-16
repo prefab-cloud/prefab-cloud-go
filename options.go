@@ -107,6 +107,6 @@ func (o *Options) PrefabAPIURLEnvVarOrSetting() (string, error) {
 	return o.APIUrl, nil
 }
 
-func StringPtr(string string) *string {
-	return &string
+func StringPtr(str string) *string {
+	return &str
 }

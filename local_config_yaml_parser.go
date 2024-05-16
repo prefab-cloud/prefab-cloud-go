@@ -4,20 +4,20 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"reflect"
 	"strings"
+
+	"gopkg.in/yaml.v3"
 
 	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
 	"github.com/prefab-cloud/prefab-cloud-go/utils"
-	"gopkg.in/yaml.v3"
 )
 
 type LocalConfigYamlParser struct{}
 
-func (p *LocalConfigYamlParser) parse(yamlData []byte) (configValues []*prefabProto.Config, err error) {
+func (p *LocalConfigYamlParser) parse(yamlData []byte) ([]*prefabProto.Config, error) {
 	var data map[string]interface{}
 	// Unmarshal the YAML into the map
-	err = yaml.Unmarshal(yamlData, &data)
+	err := yaml.Unmarshal(yamlData, &data)
 	if err != nil {
 		return nil, err
 	}
@@ -36,7 +36,7 @@ func (p *LocalConfigYamlParser) parse(yamlData []byte) (configValues []*prefabPr
 	return outputValues, nil
 }
 
-func (p *LocalConfigYamlParser) handleMapKeyValue(keyPath []string, mapKey string, mapValue interface{}) (configValues []*prefabProto.Config, err error) {
+func (p *LocalConfigYamlParser) handleMapKeyValue(keyPath []string, mapKey string, mapValue interface{}) ([]*prefabProto.Config, error) {
 	configType := prefabProto.ConfigType_CONFIG
 
 	switch value := mapValue.(type) {
@@ -108,7 +108,7 @@ func (p *LocalConfigYamlParser) handleMapKeyValue(keyPath []string, mapKey strin
 	}
 }
 
-func (p *LocalConfigYamlParser) coerceToBool(maybeBool interface{}) (value bool, ok bool) {
+func (p *LocalConfigYamlParser) coerceToBool(maybeBool interface{}) (bool, bool) {
 	switch val := maybeBool.(type) {
 	case bool:
 		return val, true
@@ -143,7 +143,7 @@ func (p *LocalConfigYamlParser) createConfig(key string, value any, configType p
 
 		configValue, ok = utils.Create(value)
 		if !ok {
-			slog.Info(fmt.Sprintf("create value failed for key %s", key))
+			slog.Info("create value failed for key " + key)
 			return nil, false
 		}
 	}
@@ -155,16 +155,4 @@ func (p *LocalConfigYamlParser) createConfig(key string, value any, configType p
 	valueType := utils.GetValueType(configValue)
 
 	return &prefabProto.Config{Key: key, Rows: []*prefabProto.ConfigRow{row}, ValueType: valueType, ConfigType: configType}, true
-}
-
-func (p *LocalConfigYamlParser) isSingleNestedMap(m map[string]interface{}) bool {
-	return len(m) == 1 && reflect.TypeOf(m[p.getFirstKey(m)]).Kind() == reflect.Map
-}
-
-func (p *LocalConfigYamlParser) getFirstKey(m map[string]interface{}) string {
-	for k := range m {
-		return k
-	}
-
-	return ""
 }

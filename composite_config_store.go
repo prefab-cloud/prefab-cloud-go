@@ -17,9 +17,9 @@ func BuildCompositeConfigStore(stores ...ConfigStoreGetter) *CompositeConfigStor
 	}
 }
 
-func (s *CompositeConfigStore) GetConfig(key string) (config *prefabProto.Config, exists bool) {
+func (s *CompositeConfigStore) GetConfig(key string) (*prefabProto.Config, bool) {
 	for _, store := range s.stores {
-		config, exists = store.GetConfig(key)
+		config, exists := store.GetConfig(key)
 		if exists {
 			return config, true
 		}
