@@ -134,6 +134,11 @@ func (p *LocalConfigYamlParser) createConfig(key string, value any, configType p
 			}
 
 			configValue, ok = utils.Create(&prefabProto.ConfigValue_LogLevel{LogLevel: prefabProto.LogLevel(logLevel)})
+
+			if !ok {
+				slog.Info("create value failed for key " + key)
+				return nil, false
+			}
 		default:
 			slog.Info("key %s should have a string value type but it was %T", key, value)
 			return nil, false
