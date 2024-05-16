@@ -1,4 +1,4 @@
-package internal
+package internal_test
 
 import (
 	"testing"
@@ -6,6 +6,7 @@ import (
 	"github.com/stretchr/testify/mock"
 
 	"github.com/prefab-cloud/prefab-cloud-go/mocks"
+	"github.com/prefab-cloud/prefab-cloud-go/pkg/internal"
 	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
 
 	"github.com/stretchr/testify/suite"
@@ -32,7 +33,7 @@ func (m *MockContextGetter) GetContextValue(propertyName string) (interface{}, b
 
 type ConfigRuleTestSuite struct {
 	suite.Suite
-	evaluator                 *ConfigRuleEvaluator
+	evaluator                 *internal.ConfigRuleEvaluator
 	nonBoolReturnSimpleConfig *prefabProto.Config
 	mockConfigStoreGetter     mocks.MockConfigStoreGetter
 	mockProjectEnvIDSupplier  mocks.MockProjectEnvIDSupplier
@@ -43,7 +44,7 @@ func (suite *ConfigRuleTestSuite) SetupTest() {
 	suite.mockConfigStoreGetter = mocks.MockConfigStoreGetter{}
 	suite.projectEnvID = 101
 	suite.mockProjectEnvIDSupplier = *mocks.NewMockProjectEnvIDSupplier(suite.projectEnvID)
-	suite.evaluator = NewConfigRuleEvaluator(&suite.mockConfigStoreGetter, &suite.mockProjectEnvIDSupplier)
+	suite.evaluator = internal.NewConfigRuleEvaluator(&suite.mockConfigStoreGetter, &suite.mockProjectEnvIDSupplier)
 }
 
 func (suite *ConfigRuleTestSuite) TestFullRuleEvaluation() {
@@ -132,12 +133,12 @@ func (suite *ConfigRuleTestSuite) TestFullRuleEvaluation() {
 
 	for _, testCase := range tests {
 		suite.Run(testCase.name, func() {
-			suite.evaluator = NewConfigRuleEvaluator(&suite.mockConfigStoreGetter, mocks.NewMockProjectEnvIDSupplier(testCase.projectEnvID))
+			suite.evaluator = internal.NewConfigRuleEvaluator(&suite.mockConfigStoreGetter, mocks.NewMockProjectEnvIDSupplier(testCase.projectEnvID))
 			mockContext, _ := suite.setupMockContextWithMultipleValues(testCase.contextMockings)
 			conditionMatch := suite.evaluator.EvaluateConfig(config, mockContext)
-			suite.Equal(testCase.expectedValue, conditionMatch.match, "value should match")
-			suite.Equal(testCase.expectedRowIndex, conditionMatch.rowIndex, "rowIndex should match")
-			suite.Equal(testCase.expectedConditionalValueIndex, conditionMatch.conditionalValueIndex, "conditionalValueIndex should match")
+			suite.Equal(testCase.expectedValue, conditionMatch.Match, "value should match")
+			suite.Equal(testCase.expectedRowIndex, conditionMatch.RowIndex, "rowIndex should match")
+			suite.Equal(testCase.expectedConditionalValueIndex, conditionMatch.ConditionalValueIndex, "conditionalValueIndex should match")
 		})
 	}
 }
@@ -145,7 +146,7 @@ func (suite *ConfigRuleTestSuite) TestFullRuleEvaluation() {
 func (suite *ConfigRuleTestSuite) TestAlwaysTrueCriteria() {
 	suite.Run("returns true", func() {
 		criterion := &prefabProto.Criterion{Operator: prefabProto.Criterion_ALWAYS_TRUE}
-		isMatch := suite.evaluator.EvaluateCriterion(criterion, NewContextSet())
+		isMatch := suite.evaluator.EvaluateCriterion(criterion, internal.NewContextSet())
 		suite.True(isMatch)
 	})
 }
@@ -153,7 +154,7 @@ func (suite *ConfigRuleTestSuite) TestAlwaysTrueCriteria() {
 func (suite *ConfigRuleTestSuite) TestNotSetCriteria() {
 	suite.Run("returns false", func() {
 		criterion := &prefabProto.Criterion{Operator: prefabProto.Criterion_NOT_SET}
-		isMatch := suite.evaluator.EvaluateCriterion(criterion, NewContextSet())
+		isMatch := suite.evaluator.EvaluateCriterion(criterion, internal.NewContextSet())
 		suite.False(isMatch)
 	})
 }

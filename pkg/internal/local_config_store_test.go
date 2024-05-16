@@ -1,10 +1,11 @@
-package internal
+package internal_test
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
 
+	"github.com/prefab-cloud/prefab-cloud-go/pkg/internal"
 	"github.com/prefab-cloud/prefab-cloud-go/pkg/options"
 	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
 )
@@ -63,7 +64,7 @@ func (suite *LocalConfigStoreSuite) TestNewLocalConfigStore() {
 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			store := NewLocalConfigStore(tc.sourceDirectory, tc.options)
+			store := internal.NewLocalConfigStore(tc.sourceDirectory, tc.options)
 
 			// Assert the expected configurations
 			for _, expectation := range tc.expectedConfigs {
@@ -82,7 +83,7 @@ func (suite *LocalConfigStoreSuite) TestNewLocalConfigStore() {
 				}
 			}
 
-			suite.True(store.initialized, "Expected initialized to be true")
+			suite.True(store.Initialized, "Expected initialized to be true")
 		})
 	}
 }

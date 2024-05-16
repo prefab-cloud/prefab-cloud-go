@@ -1,4 +1,4 @@
-package internal
+package internal_test
 
 import (
 	"testing"
@@ -6,6 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/protobuf/proto"
 
+	"github.com/prefab-cloud/prefab-cloud-go/pkg/internal"
 	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
 )
 
@@ -85,10 +86,10 @@ func RunTests(t *testing.T) {
 	emptyConfigs := &prefabProto.Configs{}
 
 	t.Run("store initialized after set called and has two values", func(t *testing.T) {
-		store := BuildAPIConfigStore()
+		store := internal.BuildAPIConfigStore()
 		store.SetFromConfigsProto(configs)
 		assert.Equal(t, 2, store.Len())
-		assert.True(t, store.initialized)
+		assert.True(t, store.Initialized)
 
 		foo, fooExists := store.GetConfig("foo")
 
@@ -103,10 +104,10 @@ func RunTests(t *testing.T) {
 	})
 
 	t.Run("store initialized with empty configs still marked initialized", func(t *testing.T) {
-		store := BuildAPIConfigStore()
+		store := internal.BuildAPIConfigStore()
 		store.SetFromConfigsProto(emptyConfigs)
 		assert.Equal(t, 0, store.Len())
-		assert.True(t, store.initialized)
+		assert.True(t, store.Initialized)
 
 		foo, fooExists := store.GetConfig("foo")
 
@@ -115,10 +116,10 @@ func RunTests(t *testing.T) {
 	})
 
 	t.Run("updating with tombstoned config foo deletes", func(t *testing.T) {
-		store := BuildAPIConfigStore()
+		store := internal.BuildAPIConfigStore()
 		store.SetFromConfigsProto(configs)
 		assert.Equal(t, 2, store.Len())
-		assert.True(t, store.initialized)
+		assert.True(t, store.Initialized)
 		foo, fooExists := store.GetConfig("foo")
 
 		assert.True(t, fooExists)
@@ -135,10 +136,10 @@ func RunTests(t *testing.T) {
 	})
 
 	t.Run("updating with tombstoned config foo does nothing with smaller id", func(t *testing.T) {
-		store := BuildAPIConfigStore()
+		store := internal.BuildAPIConfigStore()
 		store.SetFromConfigsProto(configs)
 		assert.Equal(t, 2, store.Len())
-		assert.True(t, store.initialized)
+		assert.True(t, store.Initialized)
 
 		foo, fooExists := store.GetConfig("foo")
 		assert.True(t, fooExists)
@@ -157,10 +158,10 @@ func RunTests(t *testing.T) {
 	})
 
 	t.Run("updating with changed config foo does nothing with smaller id", func(t *testing.T) {
-		store := BuildAPIConfigStore()
+		store := internal.BuildAPIConfigStore()
 		store.SetFromConfigsProto(configs)
 		assert.Equal(t, 2, store.Len())
-		assert.True(t, store.initialized)
+		assert.True(t, store.Initialized)
 
 		foo, fooExists := store.GetConfig("foo")
 		assert.True(t, fooExists)
@@ -179,10 +180,10 @@ func RunTests(t *testing.T) {
 	})
 
 	t.Run("updating with changed config foo updates when id is larger", func(t *testing.T) {
-		store := BuildAPIConfigStore()
+		store := internal.BuildAPIConfigStore()
 		store.SetFromConfigsProto(configs)
 		assert.Equal(t, 2, store.Len())
-		assert.True(t, store.initialized)
+		assert.True(t, store.Initialized)
 
 		foo, fooExists := store.GetConfig("foo")
 		assert.True(t, fooExists)

@@ -1,4 +1,4 @@
-package internal
+package internal_test
 
 import (
 	"testing"
@@ -14,4 +14,8 @@ func createConfigValueAndAssertOk(value any, t *testing.T) *prefabProto.ConfigVa
 	}
 
 	return val
+}
+
+func boolPtr(val bool) *bool {
+	return &val
 }

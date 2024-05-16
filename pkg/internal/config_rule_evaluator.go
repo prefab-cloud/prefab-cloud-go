@@ -10,11 +10,11 @@ import (
 )
 
 type ConditionMatch struct {
-	match                    *prefabProto.ConfigValue
-	selectedConditionalValue *prefabProto.ConditionalValue
-	rowIndex                 int
-	conditionalValueIndex    int
-	isMatch                  bool
+	Match                    *prefabProto.ConfigValue
+	SelectedConditionalValue *prefabProto.ConditionalValue
+	RowIndex                 int
+	ConditionalValueIndex    int
+	IsMatch                  bool
 }
 
 type ConfigRuleEvaluator struct {
@@ -40,7 +40,7 @@ func (cve *ConfigRuleEvaluator) EvaluateConfig(config *prefabProto.Config, conte
 		noEnvRowIndex = 1
 
 		match := cve.EvaluateRow(envRow, contextSet, 0)
-		if match.isMatch {
+		if match.IsMatch {
 			return match
 		}
 	}
@@ -48,25 +48,25 @@ func (cve *ConfigRuleEvaluator) EvaluateConfig(config *prefabProto.Config, conte
 	noEnvRow, noEnvRowExists := rowWithoutEnvID(config)
 	if noEnvRowExists {
 		match := cve.EvaluateRow(noEnvRow, contextSet, noEnvRowIndex)
-		if match.isMatch {
+		if match.IsMatch {
 			return match
 		}
 	}
 
-	return ConditionMatch{isMatch: false}
+	return ConditionMatch{IsMatch: false}
 }
 
 func (cve *ConfigRuleEvaluator) EvaluateRow(row *prefabProto.ConfigRow, contextSet ContextValueGetter, rowIndex int) ConditionMatch {
 	conditionMatch := ConditionMatch{}
-	conditionMatch.isMatch = false
+	conditionMatch.IsMatch = false
 
 	for conditionalValueIndex, conditionalValue := range row.GetValues() {
 		matchedValue, matched := cve.EvaluateConditionalValue(conditionalValue, contextSet)
 		if matched {
-			conditionMatch.isMatch = true
-			conditionMatch.rowIndex = rowIndex
-			conditionMatch.conditionalValueIndex = conditionalValueIndex
-			conditionMatch.match = matchedValue
+			conditionMatch.IsMatch = true
+			conditionMatch.RowIndex = rowIndex
+			conditionMatch.ConditionalValueIndex = conditionalValueIndex
+			conditionMatch.Match = matchedValue
 
 			break
 		}
@@ -158,8 +158,8 @@ func (cve *ConfigRuleEvaluator) EvaluateCriterion(criterion *prefabProto.Criteri
 				}
 
 				match := cve.EvaluateConfig(targetConfig, contextSet)
-				if match.isMatch {
-					matchConfigValue := match.match
+				if match.IsMatch {
+					matchConfigValue := match.Match
 					if _, boolExists := matchConfigValue.GetType().(*prefabProto.ConfigValue_Bool); boolExists {
 						return matchConfigValue.GetBool() == (criterion.GetOperator() == prefabProto.Criterion_IN_SEG)
 					}

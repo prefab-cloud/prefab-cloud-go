@@ -13,7 +13,7 @@ import (
 type LocalConfigStore struct {
 	configMap       map[string]*prefabProto.Config
 	sourceDirectory string
-	initialized     bool
+	Initialized     bool
 }
 
 func NewLocalConfigStore(sourceDirectory string, options *options.Options) *LocalConfigStore {
@@ -25,7 +25,7 @@ func NewLocalConfigStore(sourceDirectory string, options *options.Options) *Loca
 		loadFileIntoMap(file, &configMap)
 	}
 
-	return &LocalConfigStore{sourceDirectory: sourceDirectory, configMap: configMap, initialized: true}
+	return &LocalConfigStore{sourceDirectory: sourceDirectory, configMap: configMap, Initialized: true}
 }
 
 func loadFileIntoMap(filePath string, configmap *map[string]*prefabProto.Config) {
@@ -40,7 +40,7 @@ func loadFileIntoMap(filePath string, configmap *map[string]*prefabProto.Config)
 		return
 	}
 
-	configs, err := parser.parse(data)
+	configs, err := parser.Parse(data)
 	if err != nil {
 		return
 	}
