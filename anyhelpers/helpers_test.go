@@ -1,8 +1,10 @@
-package anyhelpers
+package anyhelpers_test
 
 import (
 	"reflect"
 	"testing"
+
+	"github.com/prefab-cloud/prefab-cloud-go/anyhelpers"
 )
 
 func TestDetectAndReturnStringListIfPresent(t *testing.T) {
@@ -46,7 +48,7 @@ func TestDetectAndReturnStringListIfPresent(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			got, ok := DetectAndReturnStringListIfPresent(tc.input)
+			got, ok := anyhelpers.DetectAndReturnStringListIfPresent(tc.input)
 			if !reflect.DeepEqual(got, tc.expected) || ok != tc.wantOk {
 				t.Errorf("DetectAndReturnStringListIfPresent(%v) = %v, %v; want %v, %v", tc.input, got, ok, tc.expected, tc.wantOk)
 			}
@@ -101,7 +103,7 @@ func TestCanonicalizeSlice(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			got, ok := CanonicalizeSlice(tc.input)
+			got, ok := anyhelpers.CanonicalizeSlice(tc.input)
 			if ok != tc.wantOk || !reflect.DeepEqual(got, tc.expected) {
 				t.Errorf("canonicalize(%v) got %v, %v; want %v, %v", tc.input, got, ok, tc.expected, tc.wantOk)
 			}
