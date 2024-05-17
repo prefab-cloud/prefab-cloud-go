@@ -11,8 +11,8 @@ import (
 type Datasource int
 
 const (
-	ALL Datasource = iota
-	LOCAL_ONLY
+	ALL       Datasource = iota
+	LocalOnly            // TODO: this isn't respected anywhere AFAICT
 )
 
 type OnInitializationFailure int
@@ -23,7 +23,7 @@ const (
 )
 
 const (
-	// #nosec G101
+	// #nosec G101 -- This is just the env var name
 	APIKeyEnvVar = "PREFAB_API_KEY"
 	APIURLVar    = "PREFAB_API_URL"
 )
