@@ -19,6 +19,8 @@ type Option func(*options.Options) error
 
 type OnInitializationFailure = options.OnInitializationFailure
 
+type ContextSet = internal.ContextSet
+
 const (
 	RAISE  OnInitializationFailure = options.RAISE
 	UNLOCK OnInitializationFailure = options.UNLOCK
