@@ -90,12 +90,13 @@ func ExtractValue(cv *prefabProto.ConfigValue) (any, bool, error) {
 		// StringList is considered a simple type, returning the slice of strings directly.
 		return v.StringList.GetValues(), true, nil
 	case *prefabProto.ConfigValue_Duration:
-		duration, err := time.ParseDuration(v.Duration.GetDefinition())
-		if err != nil {
+		duration, ok := ExtractDurationValue(cv)
+
+		if ok {
 			return duration, true, nil
 		}
 
-		return nil, false, err
+		return nil, false, nil
 	case *prefabProto.ConfigValue_Provided:
 		val, ok := handleProvided(v.Provided)
 
