@@ -102,7 +102,7 @@ func (c ConfigResolver) ResolveValue(key string, contextSet ContextValueGetter) 
 			if err == nil {
 				value, _ := utils.Create(decryptedValue)
 				configMatch.Match = value
-				configMatch.Match.Confidential = boolPtr(true)
+				configMatch.Match.Confidential = BoolPtr(true)
 			} else {
 				return configMatch, err
 			}
@@ -111,14 +111,10 @@ func (c ConfigResolver) ResolveValue(key string, contextSet ContextValueGetter) 
 
 	originalMatchIsConfidential := configMatch.OriginalMatch.GetConfidential()
 	if configMatch.OriginalMatch != configMatch.Match && ruleMatchResults.Match.GetDecryptWith() == "" && originalMatchIsConfidential {
-		configMatch.Match.Confidential = boolPtr(configMatch.OriginalMatch.GetConfidential())
+		configMatch.Match.Confidential = BoolPtr(configMatch.OriginalMatch.GetConfidential())
 	}
 
 	return configMatch, nil
-}
-
-func boolPtr(val bool) *bool {
-	return &val
 }
 
 func (c ConfigResolver) handleProvided(provided *prefabProto.Provided) (string, bool) {

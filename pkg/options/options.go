@@ -6,6 +6,8 @@ import (
 	"os"
 	"os/user"
 	"strings"
+
+	"github.com/prefab-cloud/prefab-cloud-go/pkg/internal/contexts"
 )
 
 type Datasource int
@@ -31,6 +33,7 @@ const (
 type Options struct {
 	ConfigDirectory              *string
 	ConfigOverrideDirectory      *string
+	GlobalContext                *contexts.ContextSet
 	APIKey                       string
 	APIUrl                       string
 	EnvironmentNames             []string
@@ -50,6 +53,7 @@ var DefaultOptions = Options{
 	EnvironmentNames:             getDefaultEnvironmentNames(),
 	ConfigDirectory:              getHomeDir(),
 	ConfigOverrideDirectory:      StringPtr("."),
+	GlobalContext:                contexts.NewContextSet(),
 }
 
 func getHomeDir() *string {

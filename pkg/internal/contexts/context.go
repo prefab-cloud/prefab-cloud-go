@@ -1,4 +1,4 @@
-package internal
+package contexts
 
 import (
 	"strings"
@@ -89,24 +89,28 @@ func (c *ContextSet) WithNamedContextValues(name string, values map[string]inter
 	return c
 }
 
+func Merge(contextSets ...*ContextSet) *ContextSet {
+	newContextSet := NewContextSet()
+
+	for _, contextSet := range contextSets {
+		for name, namedContext := range contextSet.Data {
+			newContextSet.Data[name] = namedContext
+		}
+	}
+
+	return newContextSet
+}
+
 // splitAtFirstDot splits the input string at the first occurrence of "." and returns
 // two strings: the part before the dot and the part after the dot.
 // If the string starts with ".", the first return value is "" and the second is the rest of the string.
 // If there is no ".", it returns "", and the whole string as the second part.
 func splitAtFirstDot(input string) (string, string) {
-	// Special case for strings starting with "."
-	if strings.HasPrefix(input, ".") {
-		return "", input[1:]
+	parts := strings.SplitN(input, ".", 2)
+
+	if len(parts) == 1 {
+		return "", parts[0]
 	}
 
-	index := strings.Index(input, ".")
-	if index == -1 {
-		// No dot found, return an empty string and the whole string
-		return "", input
-	}
-	// Split the string into before and after the dot
-	beforeDot := input[:index]
-	afterDot := input[index+1:]
-
-	return beforeDot, afterDot
+	return parts[0], parts[1]
 }

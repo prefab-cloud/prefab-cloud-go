@@ -9,6 +9,7 @@ import (
 
 	"github.com/prefab-cloud/prefab-cloud-go/mocks"
 	"github.com/prefab-cloud/prefab-cloud-go/pkg/internal"
+	"github.com/prefab-cloud/prefab-cloud-go/pkg/internal/testutils"
 	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
 )
 
@@ -104,23 +105,23 @@ func TestConfigResolver_ResolveValue(t *testing.T) {
 	}
 	decryptWithConfigValue := &prefabProto.ConfigValue{
 		Type:         &prefabProto.ConfigValue_String_{String_: encryptedValue},
-		DecryptWith:  stringPtr(decryptWithConfigKey),
-		Confidential: boolPtr(true),
+		DecryptWith:  internal.StringPtr(decryptWithConfigKey),
+		Confidential: internal.BoolPtr(true),
 	}
 	decryptionKeyConfigValue := &prefabProto.ConfigValue{
 		Type: &prefabProto.ConfigValue_String_{String_: decryptWithSecretKey},
 	}
 	decryptedConfigValue := &prefabProto.ConfigValue{
 		Type:         &prefabProto.ConfigValue_String_{String_: decryptedValue},
-		Confidential: boolPtr(true),
+		Confidential: internal.BoolPtr(true),
 	}
 
 	weightedValueOne := &prefabProto.WeightedValue{
 		Weight: 100,
-		Value:  createConfigValueAndAssertOk(t, 1),
+		Value:  testutils.CreateConfigValueAndAssertOk(t, 1),
 	}
 	weightedValues := &prefabProto.WeightedValues{
-		HashByPropertyName: stringPtr("some.property"),
+		HashByPropertyName: internal.StringPtr("some.property"),
 		WeightedValues: []*prefabProto.WeightedValue{
 			weightedValueOne,
 		},
@@ -131,7 +132,7 @@ func TestConfigResolver_ResolveValue(t *testing.T) {
 			WeightedValues: weightedValues,
 		},
 	}
-	configValueOne := createConfigValueAndAssertOk(t, "one")
+	configValueOne := testutils.CreateConfigValueAndAssertOk(t, "one")
 
 	type keyValuePair struct {
 		name  string
@@ -200,7 +201,7 @@ func TestConfigResolver_ResolveValue(t *testing.T) {
 			name:      "config has provided set",
 			configKey: theKey,
 			wantConfigMatch: internal.ConfigMatch{
-				Match:                 createConfigValueAndAssertOk(t, providedEnvVarValue),
+				Match:                 testutils.CreateConfigValueAndAssertOk(t, providedEnvVarValue),
 				IsMatch:               true,
 				OriginalKey:           theKey,
 				OriginalMatch:         providedConfigValue,
@@ -232,7 +233,7 @@ func TestConfigResolver_ResolveValue(t *testing.T) {
 			configKey:   theKey,
 			expectError: true,
 			wantConfigMatch: internal.ConfigMatch{
-				Match:                 createConfigValueAndAssertOk(t, providedEnvVarValue),
+				Match:                 testutils.CreateConfigValueAndAssertOk(t, providedEnvVarValue),
 				IsMatch:               true,
 				OriginalKey:           theKey,
 				OriginalMatch:         providedConfigValue,
@@ -396,7 +397,7 @@ func TestConfigResolver_ResolveValue(t *testing.T) {
 				OriginalMatch:         weightedValuesConfigValue,
 				ConditionalValueIndex: 1,
 				RowIndex:              1,
-				WeightedValueIndex:    intPtr(2),
+				WeightedValueIndex:    internal.IntPtr(2),
 			},
 			mockConfigStoreArgs: []mocks.ConfigMockingArgs{
 				{

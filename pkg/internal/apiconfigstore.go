@@ -3,6 +3,7 @@ package internal
 import (
 	"sync"
 
+	"github.com/prefab-cloud/prefab-cloud-go/pkg/internal/contexts"
 	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
 )
 
@@ -11,7 +12,7 @@ import (
 
 type APIConfigStore struct {
 	configMap     map[string]*prefabProto.Config
-	contextSet    *ContextSet
+	contextSet    *contexts.ContextSet
 	highWatermark int64
 	projectEnvID  int64
 	sync.RWMutex
@@ -39,7 +40,7 @@ func (cs *APIConfigStore) SetConfigs(configs []*prefabProto.Config, envID int64)
 }
 
 func (cs *APIConfigStore) SetFromConfigsProto(configs *prefabProto.Configs) {
-	cs.contextSet = NewContextSetFromProto(configs.GetDefaultContext())
+	cs.contextSet = contexts.NewContextSetFromProto(configs.GetDefaultContext())
 	cs.SetConfigs(configs.GetConfigs(), configs.GetConfigServicePointer().GetProjectEnvId())
 }
 
