@@ -6,6 +6,7 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/prefab-cloud/prefab-cloud-go/pkg/internal"
+	"github.com/prefab-cloud/prefab-cloud-go/pkg/internal/testutils"
 	"github.com/prefab-cloud/prefab-cloud-go/pkg/options"
 	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
 )
@@ -39,11 +40,11 @@ func (suite *LocalConfigStoreSuite) TestNewLocalConfigStore() {
 				EnvironmentNames: []string{},
 			},
 			expectedConfigs: []configExpectation{
-				{key: "cool.bool.enabled", expected: createConfigValueAndAssertOk(suite.T(), true)},
+				{key: "cool.bool.enabled", expected: testutils.CreateConfigValueAndAssertOk(suite.T(), true)},
 				{key: "cool.bool", exists: false},
 				{key: "hot.int", exists: false},
-				{key: "sample_to_override", expected: createConfigValueAndAssertOk(suite.T(), "value from override in default")},
-				{key: "cool.count", expected: createConfigValueAndAssertOk(suite.T(), 100)},
+				{key: "sample_to_override", expected: testutils.CreateConfigValueAndAssertOk(suite.T(), "value from override in default")},
+				{key: "cool.count", expected: testutils.CreateConfigValueAndAssertOk(suite.T(), 100)},
 			},
 		},
 		{
@@ -53,11 +54,11 @@ func (suite *LocalConfigStoreSuite) TestNewLocalConfigStore() {
 				EnvironmentNames: []string{"production"},
 			},
 			expectedConfigs: []configExpectation{
-				{key: "cool.bool.enabled", expected: createConfigValueAndAssertOk(suite.T(), false)},
+				{key: "cool.bool.enabled", expected: testutils.CreateConfigValueAndAssertOk(suite.T(), false)},
 				{key: "cool.bool", exists: false},
-				{key: "hot.int", expected: createConfigValueAndAssertOk(suite.T(), 212)},
-				{key: "sample_to_override", expected: createConfigValueAndAssertOk(suite.T(), "value from override in production")},
-				{key: "cool.count", expected: createConfigValueAndAssertOk(suite.T(), 100)},
+				{key: "hot.int", expected: testutils.CreateConfigValueAndAssertOk(suite.T(), 212)},
+				{key: "sample_to_override", expected: testutils.CreateConfigValueAndAssertOk(suite.T(), "value from override in production")},
+				{key: "cool.count", expected: testutils.CreateConfigValueAndAssertOk(suite.T(), 100)},
 			},
 		},
 	}
