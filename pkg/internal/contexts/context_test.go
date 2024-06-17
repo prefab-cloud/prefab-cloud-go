@@ -1,4 +1,4 @@
-package internal_test
+package contexts_test
 
 import (
 	"testing"
@@ -8,27 +8,29 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/prefab-cloud/prefab-cloud-go/pkg/internal"
+	"github.com/prefab-cloud/prefab-cloud-go/pkg/internal/contexts"
+	"github.com/prefab-cloud/prefab-cloud-go/pkg/internal/testutils"
 	"github.com/prefab-cloud/prefab-cloud-go/proto"
 )
 
 type ContextTestSuite struct {
 	suite.Suite
-	contextSet *internal.ContextSet
+	contextSet *contexts.ContextSet
 }
 
 func (suite *ContextTestSuite) SetupSuite() {
-	suite.contextSet = internal.NewContextSet()
-	suite.contextSet.SetNamedContext(internal.NewNamedContextWithValues("user", map[string]interface{}{
+	suite.contextSet = contexts.NewContextSet()
+	suite.contextSet.SetNamedContext(contexts.NewNamedContextWithValues("user", map[string]interface{}{
 		"key":   "u123",
 		"email": "me@example.com",
 		"admin": true,
 		"age":   int64(42),
 	}))
-	suite.contextSet.SetNamedContext(internal.NewNamedContextWithValues("team", map[string]interface{}{
+	suite.contextSet.SetNamedContext(contexts.NewNamedContextWithValues("team", map[string]interface{}{
 		"key":  "t123",
 		"name": "dev ops",
 	}))
-	suite.contextSet.SetNamedContext(internal.NewNamedContextWithValues("", map[string]interface{}{
+	suite.contextSet.SetNamedContext(contexts.NewNamedContextWithValues("", map[string]interface{}{
 		"key": "?234",
 		"id":  int64(3456),
 	}))
@@ -73,31 +75,31 @@ func (suite *ContextTestSuite) TestContextConversionFromProto() {
 		pContextSet := &proto.ContextSet{
 			Contexts: []*proto.Context{
 				{
-					Type: stringPtr("user"),
+					Type: internal.StringPtr("user"),
 					Values: map[string]*proto.ConfigValue{
-						"key":   createConfigValueAndAssertOk(suite.T(), "u123"),
-						"email": createConfigValueAndAssertOk(suite.T(), "me@example.com"),
-						"admin": createConfigValueAndAssertOk(suite.T(), true),
-						"age":   createConfigValueAndAssertOk(suite.T(), 42),
+						"key":   testutils.CreateConfigValueAndAssertOk(suite.T(), "u123"),
+						"email": testutils.CreateConfigValueAndAssertOk(suite.T(), "me@example.com"),
+						"admin": testutils.CreateConfigValueAndAssertOk(suite.T(), true),
+						"age":   testutils.CreateConfigValueAndAssertOk(suite.T(), 42),
 					},
 				},
 				{
-					Type: stringPtr("team"),
+					Type: internal.StringPtr("team"),
 					Values: map[string]*proto.ConfigValue{
-						"key":  createConfigValueAndAssertOk(suite.T(), "t123"),
-						"name": createConfigValueAndAssertOk(suite.T(), "dev ops"),
+						"key":  testutils.CreateConfigValueAndAssertOk(suite.T(), "t123"),
+						"name": testutils.CreateConfigValueAndAssertOk(suite.T(), "dev ops"),
 					},
 				},
 				{
-					Type: stringPtr(""),
+					Type: internal.StringPtr(""),
 					Values: map[string]*proto.ConfigValue{
-						"key": createConfigValueAndAssertOk(suite.T(), "?234"),
-						"id":  createConfigValueAndAssertOk(suite.T(), 3456),
+						"key": testutils.CreateConfigValueAndAssertOk(suite.T(), "?234"),
+						"id":  testutils.CreateConfigValueAndAssertOk(suite.T(), 3456),
 					},
 				},
 			},
 		}
-		contextSet := internal.NewContextSetFromProto(pContextSet)
+		contextSet := contexts.NewContextSetFromProto(pContextSet)
 
 		val, valExists := contextSet.GetContextValue("user.key")
 		suite.True(valExists)
@@ -108,8 +110,8 @@ func (suite *ContextTestSuite) TestContextConversionFromProto() {
 
 func (suite *ContextTestSuite) TestModification() {
 	suite.Run("adding a new context replaces existing", func() {
-		contextSet := deepcopy.Copy(*suite.contextSet).(internal.ContextSet)
-		contextSet.SetNamedContext(internal.NewNamedContextWithValues("team", map[string]interface{}{
+		contextSet := deepcopy.Copy(*suite.contextSet).(contexts.ContextSet)
+		contextSet.SetNamedContext(contexts.NewNamedContextWithValues("team", map[string]interface{}{
 			"foo": "bar",
 		}))
 

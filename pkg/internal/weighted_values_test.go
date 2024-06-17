@@ -8,6 +8,7 @@ import (
 
 	"github.com/prefab-cloud/prefab-cloud-go/mocks"
 	"github.com/prefab-cloud/prefab-cloud-go/pkg/internal"
+	"github.com/prefab-cloud/prefab-cloud-go/pkg/internal/testutils"
 	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
 )
 
@@ -47,15 +48,15 @@ func (suite *WeightedValueResolverTestSuite) SetupTest() {
 func (suite *WeightedValueResolverTestSuite) TestValueSelectionInRandomCases() {
 	wv1 := &prefabProto.WeightedValue{
 		Weight: 100,
-		Value:  createConfigValueAndAssertOk(suite.T(), 1),
+		Value:  testutils.CreateConfigValueAndAssertOk(suite.T(), 1),
 	}
 	wv2 := &prefabProto.WeightedValue{
 		Weight: 50,
-		Value:  createConfigValueAndAssertOk(suite.T(), 2),
+		Value:  testutils.CreateConfigValueAndAssertOk(suite.T(), 2),
 	}
 	wv3 := &prefabProto.WeightedValue{
 		Weight: 50,
-		Value:  createConfigValueAndAssertOk(suite.T(), 3),
+		Value:  testutils.CreateConfigValueAndAssertOk(suite.T(), 3),
 	}
 	weightedValuesWithoutHashValue := &prefabProto.WeightedValues{
 		WeightedValues: []*prefabProto.WeightedValue{
@@ -63,7 +64,7 @@ func (suite *WeightedValueResolverTestSuite) TestValueSelectionInRandomCases() {
 		},
 	}
 	weightedValuesWithHashValue := &prefabProto.WeightedValues{
-		HashByPropertyName: stringPtr("some.property"),
+		HashByPropertyName: internal.StringPtr("some.property"),
 		WeightedValues: []*prefabProto.WeightedValue{
 			wv1, wv2, wv3,
 		},
@@ -133,15 +134,15 @@ func (suite *WeightedValueResolverTestSuite) TestValueSelectionInRandomCases() {
 func (suite *WeightedValueResolverTestSuite) TestValueSelectionInHashingCases() {
 	wv1 := &prefabProto.WeightedValue{
 		Weight: 100,
-		Value:  createConfigValueAndAssertOk(suite.T(), 1),
+		Value:  testutils.CreateConfigValueAndAssertOk(suite.T(), 1),
 	}
 	wv2 := &prefabProto.WeightedValue{
 		Weight: 50,
-		Value:  createConfigValueAndAssertOk(suite.T(), 2),
+		Value:  testutils.CreateConfigValueAndAssertOk(suite.T(), 2),
 	}
 	wv3 := &prefabProto.WeightedValue{
 		Weight: 50,
-		Value:  createConfigValueAndAssertOk(suite.T(), 3),
+		Value:  testutils.CreateConfigValueAndAssertOk(suite.T(), 3),
 	}
 	hashByPropertyName := "some.property"
 	weightedValuesWithHashValue := &prefabProto.WeightedValues{

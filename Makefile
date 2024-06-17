@@ -8,6 +8,12 @@ test:
 test-watch:
 	gotestsum --watch $(MAKEFLAGS)
 
+fast-test:
+	FAST=true make test
+
+fast-test-watch:
+	FAST=true make test-watch
+
 goimports:
 	goimports -w .
 

@@ -7,6 +7,7 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	"github.com/prefab-cloud/prefab-cloud-go/pkg/internal"
+	"github.com/prefab-cloud/prefab-cloud-go/pkg/internal/testutils"
 	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
 )
 
@@ -19,10 +20,10 @@ func TestApiConfigStore(t *testing.T) {
 		ValueType:  prefabProto.Config_STRING,
 		Rows: []*prefabProto.ConfigRow{
 			{
-				ProjectEnvId: int64Ptr(101),
+				ProjectEnvId: internal.Int64Ptr(101),
 				Values: []*prefabProto.ConditionalValue{
 					{
-						Value: createConfigValueAndAssertOk(t, "foo-value"),
+						Value: testutils.CreateConfigValueAndAssertOk(t, "foo-value"),
 					},
 				},
 			},
@@ -45,10 +46,10 @@ func TestApiConfigStore(t *testing.T) {
 		ValueType:  prefabProto.Config_STRING,
 		Rows: []*prefabProto.ConfigRow{
 			{
-				ProjectEnvId: int64Ptr(101),
+				ProjectEnvId: internal.Int64Ptr(101),
 				Values: []*prefabProto.ConditionalValue{
 					{
-						Value: createConfigValueAndAssertOk(t, "foo-value-two"),
+						Value: testutils.CreateConfigValueAndAssertOk(t, "foo-value-two"),
 					},
 				},
 			},
@@ -63,10 +64,10 @@ func TestApiConfigStore(t *testing.T) {
 		ValueType:  prefabProto.Config_STRING,
 		Rows: []*prefabProto.ConfigRow{
 			{
-				ProjectEnvId: int64Ptr(101),
+				ProjectEnvId: internal.Int64Ptr(101),
 				Values: []*prefabProto.ConditionalValue{
 					{
-						Value: createConfigValueAndAssertOk(t, 1234),
+						Value: testutils.CreateConfigValueAndAssertOk(t, 1234),
 					},
 				},
 			},
