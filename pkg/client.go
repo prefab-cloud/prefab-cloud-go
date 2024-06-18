@@ -7,6 +7,8 @@ import (
 	"sync"
 	"time"
 
+	sse "github.com/r3labs/sse/v2"
+
 	"github.com/prefab-cloud/prefab-cloud-go/pkg/internal"
 	"github.com/prefab-cloud/prefab-cloud-go/pkg/internal/contexts"
 	"github.com/prefab-cloud/prefab-cloud-go/pkg/options"
@@ -126,6 +128,7 @@ type Client struct {
 	boundClient                     *boundClient
 	options                         *options.Options
 	httpClient                      *internal.HTTPClient
+	sseClient                       *sse.Client
 	configStore                     internal.ConfigStoreGetter
 	apiConfigStore                  *internal.APIConfigStore // temporary until wrapped in a fetcher/auto updater
 	configResolver                  *internal.ConfigResolver
@@ -165,20 +168,44 @@ func NewClient(opts ...Option) (*Client, error) {
 
 	configResolver := internal.NewConfigResolver(configStore, apiConfigStore, apiConfigStore)
 
-	client := Client{options: &options, httpClient: httpClient, configStore: configStore, apiConfigStore: apiConfigStore, configResolver: configResolver, initializationComplete: make(chan struct{})}
+	sseClient, err := internal.BuildSSEClient(options)
+	if err != nil {
+		panic(err)
+	}
+
+	client := Client{options: &options, httpClient: httpClient, sseClient: sseClient, configStore: configStore, apiConfigStore: apiConfigStore, configResolver: configResolver, initializationComplete: make(chan struct{})}
 
 	client.boundClient = &boundClient{client: &client, context: options.GlobalContext}
 
-	go client.fetchFromServer(0)
+	go client.fetchFromServer(0, 0, func() {
+		go internal.StartSSEConnection(sseClient, apiConfigStore)
+	})
 
 	return &client, nil
 }
 
-// TODO: replace this with a fetcher type to manage first fetch and polling (plus SSE eventually)
-func (c *Client) fetchFromServer(offset int32) {
-	configs, err := c.httpClient.Load(offset) // retry me!
+const maxRetries = 10
+
+func (c *Client) fetchFromServer(offset int32, retriesAttempted int, then func()) {
+	configs, err := c.httpClient.Load(offset)
+
 	if err != nil {
-		slog.Error(fmt.Sprintf("unable to get data via http %v", err))
+		slog.Warn(fmt.Sprintf("unable to get data via http %v", err))
+
+		if retriesAttempted < maxRetries {
+			retryDelay := time.Duration(retriesAttempted) * time.Second
+
+			slog.Info(fmt.Sprintf("retrying in %d seconds, attempt %d/%d", int(retryDelay.Seconds()), retriesAttempted+1, maxRetries))
+
+			time.Sleep(retryDelay)
+
+			c.fetchFromServer(offset, retriesAttempted+1, then)
+		} else {
+			slog.Error("max retries reached, giving up")
+			then()
+		}
+
+		return
 	} else {
 		slog.Info("Loaded configuration data")
 
@@ -187,6 +214,8 @@ func (c *Client) fetchFromServer(offset int32) {
 			close(c.initializationComplete)
 		})
 		slog.Info("Initialization complete called")
+
+		then()
 	}
 }
 
@@ -417,7 +446,9 @@ func (c *boundClient) fetchAndProcessValue(key string, contextSet contexts.Conte
 }
 
 func (c *boundClient) WithContext(contextSet *ContextSet) *boundClient {
-	return &boundClient{context: contextSet, client: c.client}
+	mergedContext := contexts.Merge(c.context, contextSet)
+
+	return &boundClient{context: mergedContext, client: c.client}
 }
 
 func (c *Client) internalGetValue(key string, contextSet contexts.ContextSet) (resolutionResult, error) {

@@ -14,10 +14,9 @@ import (
 )
 
 type HTTPClient struct {
-	Options             *options.Options
-	apiURL              string
-	cdnURL              string
-	prefabVersionHeader string // TODO: calculate this from version
+	Options *options.Options
+	apiURL  string
+	cdnURL  string
 }
 
 func BuildHTTPClient(options options.Options) (*HTTPClient, error) {
@@ -49,6 +48,7 @@ func (c *HTTPClient) Load(offset int32) (*prefabProto.Configs, error) {
 	}
 
 	req.SetBasicAuth("1", apikey)
+	req.Header.Add("X-PrefabCloud-Client-Version", ClientVersionHeader)
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
