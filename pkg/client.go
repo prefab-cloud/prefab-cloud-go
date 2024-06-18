@@ -1,7 +1,6 @@
 package prefab
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -113,6 +112,7 @@ type ClientInterface interface {
 	GetFloatValueWithDefault(key string, contextSet ContextSet, defaultValue float64) (float64, bool)
 	GetStringSliceValueWithDefault(key string, contextSet ContextSet, defaultValue []string) ([]string, bool)
 	GetDurationWithDefault(key string, contextSet ContextSet, defaultValue time.Duration) (time.Duration, bool)
+	GetLogLevelStringValue(key string, contextSet ContextSet) (string, bool, error)
 	FeatureIsOn(key string, contextSet ContextSet) (bool, bool)
 	WithContext(contextSet *ContextSet) *boundClient
 }
@@ -242,11 +242,12 @@ func (c *Client) FeatureIsOn(key string, contextSet ContextSet) (bool, bool) {
 	return c.boundClient.FeatureIsOn(key, contextSet)
 }
 
+func (c *Client) GetLogLevelStringValue(key string, contextSet ContextSet) (string, bool, error) {
+	return c.boundClient.GetLogLevelStringValue(key, contextSet)
+}
+
 func (c *Client) WithContext(contextSet *ContextSet) *boundClient {
 	mergedContext := contexts.Merge(c.options.GlobalContext, contextSet)
-
-	json, err := json.Marshal(mergedContext)
-	fmt.Println("mergedContext", string(json), err)
 
 	return &boundClient{context: mergedContext, client: c}
 }
@@ -325,6 +326,16 @@ func (c *boundClient) FeatureIsOn(key string, contextSet contexts.ContextSet) (b
 	value, ok := c.GetBoolValueWithDefault(key, contextSet, false)
 
 	return value, ok
+}
+
+func (c *boundClient) GetLogLevelStringValue(key string, contextSet contexts.ContextSet) (string, bool, error) {
+	value, ok, err := clientInternalGetValueFunc(key, c.context, contextSet, utils.ExtractLogLevelValue)(c)
+
+	if err != nil || !ok {
+		return "", false, err
+	}
+
+	return value.String(), true, nil
 }
 
 func (c *boundClient) GetBoolValueWithDefault(key string, contextSet contexts.ContextSet, defaultValue bool) (bool, bool) {
@@ -406,7 +417,6 @@ func (c *boundClient) fetchAndProcessValue(key string, contextSet contexts.Conte
 }
 
 func (c *boundClient) WithContext(contextSet *ContextSet) *boundClient {
-	// TODO: merge in global context
 	return &boundClient{context: contextSet, client: c.client}
 }
 
