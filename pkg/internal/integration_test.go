@@ -1,7 +1,6 @@
 package internal_test
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -10,8 +9,6 @@ import (
 	"reflect"
 	"testing"
 	"time"
-
-	"github.com/google/go-cmp/cmp"
 
 	"github.com/prefab-cloud/prefab-cloud-go/anyhelpers"
 	prefab "github.com/prefab-cloud/prefab-cloud-go/pkg"
@@ -121,8 +118,6 @@ func (suite *GeneratedTestSuite) loadGetTestCasesFromYAML(filename string) []*ge
 				block:  testContextToContextSet(testCase.RawContexts["block"]),
 			}
 
-			fmt.Println(testCase.Contexts.global)
-
 			testCases = append(testCases, testCase)
 		}
 	}
@@ -190,44 +185,32 @@ type configLookupResult struct {
 	valueOk          bool
 }
 
-// TODO: this should read files from the directory rather than having them hardcoded
-
-func (suite *GeneratedTestSuite) TestGet() {
-	suite.executeGetOrEnabledTest("get.yaml")
+func runSuiteFromFile(suite *GeneratedTestSuite, filename string) func(string) {
+	switch filename {
+	case "get.yaml", "get_feature_flag.yaml", "get_weighted_values.yaml", "get_or_raise.yaml", "context_precedence.yaml", "enabled.yaml", "enabled_with_contexts.yaml":
+		return suite.executeGetOrEnabledTest
+	case "get_log_level.yaml":
+		return suite.executeLogLevelTest
+	case "post.yaml":
+		suite.T().Skip("Telemetry integration tests aren't implemented yet")
+		return nil
+	default:
+		suite.T().Fatal("Unsupported test file: ", filename)
+		return nil
+	}
 }
 
-func (suite *GeneratedTestSuite) TestGetFeatureFlag() {
-	suite.executeGetOrEnabledTest("get_feature_flag.yaml")
-}
+func (suite *GeneratedTestSuite) TestAll() {
+	files, err := os.ReadDir(suite.BaseDirectory)
+	suite.Require().NoError(err)
 
-func (suite *GeneratedTestSuite) TestGetWeightedValues() {
-	suite.executeGetOrEnabledTest("get_weighted_values.yaml")
-}
+	for _, file := range files {
+		testFunction := runSuiteFromFile(suite, file.Name())
 
-func (suite *GeneratedTestSuite) TestGetOrRaise() {
-	suite.executeGetOrEnabledTest("get_or_raise.yaml")
-}
-
-func (suite *GeneratedTestSuite) TestContextPrecedence() {
-	suite.executeGetOrEnabledTest("context_precedence.yaml")
-}
-
-func (suite *GeneratedTestSuite) TestEnabled() {
-	suite.executeGetOrEnabledTest("enabled.yaml")
-}
-
-func (suite *GeneratedTestSuite) TestEnabledWithContexts() {
-	suite.executeGetOrEnabledTest("enabled_with_contexts.yaml")
-}
-
-func (suite *GeneratedTestSuite) TestGetLogLevel() {
-	// get_log_level.yaml
-	suite.T().Skip("Log level integration tests aren't implemented yet")
-}
-
-func (suite *GeneratedTestSuite) TestTelemetry() {
-	// post.yaml
-	suite.T().Skip("Telemetry integration tests aren't implemented yet")
+		if testFunction != nil {
+			testFunction(file.Name())
+		}
+	}
 }
 
 func (suite *GeneratedTestSuite) makeGetCall(client prefab.ClientInterface, dataType *string, key string, contextSet *contexts.ContextSet, hasDefault bool, defaultValue any) configLookupResult {
@@ -286,9 +269,6 @@ func (suite *GeneratedTestSuite) makeGetCall(client prefab.ClientInterface, data
 }
 
 func buildClient(apiKey string, testCase *getTestCase) (prefab.ClientInterface, error) {
-	json, err := json.Marshal(testCase.Contexts.global)
-	fmt.Println("GLOBAL CONTEXT:", string(json))
-
 	options := []prefab.Option{
 		prefab.WithAPIURL("https://api.staging-prefab.cloud"),
 		prefab.WithAPIKey(apiKey),
@@ -346,6 +326,29 @@ func enabledTest(suite *GeneratedTestSuite, testCase *getTestCase, client prefab
 
 }
 
+func (suite *GeneratedTestSuite) executeLogLevelTest(filename string) {
+	testCases := suite.loadGetTestCasesFromYAML(filename)
+	for _, testCase := range testCases {
+		suite.Run(buildTestCaseName(testCase, filename), func() {
+			client, err := buildClient(suite.APIKey, testCase)
+			suite.Require().NoError(err, "client constructor failed")
+
+			expectedValue, foundExpectedValue := processExpectedResult(testCase)
+			suite.Require().True(foundExpectedValue, "no expected value for test case %s", testCase.CaseName)
+
+			configKey, configKeyErr := getConfigKeyToUse(testCase)
+			suite.Require().NoError(configKeyErr)
+
+			actualValue, found, err := client.GetLogLevelStringValue(configKey, *testCase.Contexts.local)
+
+			suite.Require().NoError(err)
+			suite.Assert().True(found, "expected log level to be found")
+
+			suite.Require().Equal(expectedValue.value, actualValue, "LogLevel should be %v", expectedValue.value)
+		})
+	}
+}
+
 func (suite *GeneratedTestSuite) executeGetOrEnabledTest(filename string) {
 	testCases := suite.loadGetTestCasesFromYAML(filename)
 	for _, testCase := range testCases {
@@ -367,15 +370,13 @@ func (suite *GeneratedTestSuite) executeGetOrEnabledTest(filename string) {
 
 			result := suite.makeGetCall(client, testCase.Type, configKey, testCase.Contexts.local, defaultValueExists, defaultValue)
 
-			fmt.Println("RESULT:", result)
-
 			suite.Require().True(foundExpectedValue, "should have found some expected value or error")
 
 			switch {
 			case expectedValue.value != nil:
 				suite.Require().True(result.valueOk, "GetConfigValue should work")
 				suite.Require().NoError(result.err, "error looking up key %s", testCase.Input.Key)
-				suite.True(cmp.Equal(result.value, expectedValue.value))
+				suite.Assert().Equal(result.value, expectedValue.value)
 			case expectedValue.err != nil:
 				suite.Require().Error(result.err, "there should be some kind of error")
 

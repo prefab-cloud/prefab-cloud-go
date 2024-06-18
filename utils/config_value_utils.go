@@ -170,6 +170,15 @@ func ExtractStringValue(cv *prefabProto.ConfigValue) (string, bool) {
 	}
 }
 
+func ExtractLogLevelValue(cv *prefabProto.ConfigValue) (prefabProto.LogLevel, bool) {
+	switch v := cv.GetType().(type) {
+	case *prefabProto.ConfigValue_LogLevel:
+		return v.LogLevel, true
+	default:
+		return prefabProto.LogLevel_NOT_SET_LOG_LEVEL, false
+	}
+}
+
 func ExtractFloatValue(cv *prefabProto.ConfigValue) (float64, bool) {
 	switch v := cv.GetType().(type) {
 	case *prefabProto.ConfigValue_Double:
