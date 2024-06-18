@@ -128,10 +128,8 @@ func (suite *GeneratedTestSuite) loadGetTestCasesFromYAML(filename string) []*ge
 func testContextToContextSet(rawContext TestContext) *contexts.ContextSet {
 	contextSet := contexts.NewContextSet()
 
-	if rawContext != nil {
-		for key, value := range rawContext {
-			contextSet.SetNamedContext(contexts.NewNamedContextWithValues(key, value))
-		}
+	for key, value := range rawContext {
+		contextSet.SetNamedContext(contexts.NewNamedContextWithValues(key, value))
 	}
 
 	return contextSet
@@ -193,9 +191,11 @@ func runSuiteFromFile(suite *GeneratedTestSuite, filename string) func(string) {
 		return suite.executeLogLevelTest
 	case "post.yaml":
 		suite.T().Skip("Telemetry integration tests aren't implemented yet")
+
 		return nil
 	default:
 		suite.T().Fatal("Unsupported test file: ", filename)
+
 		return nil
 	}
 }
@@ -323,7 +323,6 @@ func enabledTest(suite *GeneratedTestSuite, testCase *getTestCase, client prefab
 	suite.Require().NotNil(expected.value, "expected result's value field should not be nil")
 
 	suite.Require().Equal(expected.value, featureIsOn, "FeatureIsOn should be %v", expected.value)
-
 }
 
 func (suite *GeneratedTestSuite) executeLogLevelTest(filename string) {
@@ -342,7 +341,7 @@ func (suite *GeneratedTestSuite) executeLogLevelTest(filename string) {
 			actualValue, found, err := client.GetLogLevelStringValue(configKey, *testCase.Contexts.local)
 
 			suite.Require().NoError(err)
-			suite.Assert().True(found, "expected log level to be found")
+			suite.True(found, "expected log level to be found")
 
 			suite.Require().Equal(expectedValue.value, actualValue, "LogLevel should be %v", expectedValue.value)
 		})
@@ -365,6 +364,7 @@ func (suite *GeneratedTestSuite) executeGetOrEnabledTest(filename string) {
 
 			if testCase.Function == "enabled" {
 				enabledTest(suite, testCase, client)
+
 				return
 			}
 
@@ -376,7 +376,7 @@ func (suite *GeneratedTestSuite) executeGetOrEnabledTest(filename string) {
 			case expectedValue.value != nil:
 				suite.Require().True(result.valueOk, "GetConfigValue should work")
 				suite.Require().NoError(result.err, "error looking up key %s", testCase.Input.Key)
-				suite.Assert().Equal(result.value, expectedValue.value)
+				suite.Equal(expectedValue.value, result.value)
 			case expectedValue.err != nil:
 				suite.Require().Error(result.err, "there should be some kind of error")
 
