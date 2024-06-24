@@ -1,6 +1,7 @@
 package internal_test
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -43,14 +44,14 @@ type getTest struct {
 }
 
 type getTestCaseYaml struct {
-	Input           input                  `yaml:"input"`
 	Expected        expected               `yaml:"expected"`
+	Input           input                  `yaml:"input"`
 	Type            *string                `yaml:"type"`
 	ClientOverrides *clientOverridesYaml   `yaml:"client_overrides"`
+	RawContexts     map[string]TestContext `yaml:"contexts"`
 	CaseName        string                 `yaml:"name"`
 	Client          string                 `yaml:"client"`
 	Function        string                 `yaml:"function"`
-	RawContexts     map[string]TestContext `yaml:"contexts"`
 }
 
 type TestContext = map[string]map[string]interface{}
@@ -62,9 +63,9 @@ type TestCaseContexts struct {
 }
 
 type getTestCase struct {
+	Contexts TestCaseContexts
 	TestName *string
 	getTestCaseYaml
-	Contexts TestCaseContexts
 }
 
 type GeneratedTestSuite struct {
@@ -149,6 +150,8 @@ func functionFromTypeString(typeString string) (interface{}, bool) {
 		return prefab.ClientInterface.GetStringSliceValue, true
 	case "DURATION":
 		return prefab.ClientInterface.GetDurationValue, true
+	case "JSON":
+		return prefab.ClientInterface.GetJSONValue, true
 	}
 
 	slog.Error("unsupported type", "type", typeString)
@@ -376,7 +379,8 @@ func (suite *GeneratedTestSuite) executeGetOrEnabledTest(filename string) {
 			case expectedValue.value != nil:
 				suite.Require().True(result.valueOk, "GetConfigValue should work")
 				suite.Require().NoError(result.err, "error looking up key %s", testCase.Input.Key)
-				suite.Equal(expectedValue.value, result.value)
+
+				assertSameValues(suite, expectedValue, result)
 			case expectedValue.err != nil:
 				suite.Require().Error(result.err, "there should be some kind of error")
 
@@ -473,5 +477,24 @@ func mapStringToOnInitializationFailure(str string) (prefab.OnInitializationFail
 		return prefab.UNLOCK, nil
 	default:
 		return prefab.RAISE, fmt.Errorf("unknown OnInitializationFailure value %s", str)
+	}
+}
+
+func assertSameValues(suite *GeneratedTestSuite, expectedValue expectedResult, result configLookupResult) {
+	switch expectedValue.value.(type) {
+	case map[string]interface{}:
+		resultJSON, err := json.Marshal(result.value)
+		if err != nil {
+			suite.Failf("unable to marshal result to JSON", "error was %s", err)
+		}
+
+		expectedJSON, err := json.Marshal(expectedValue.value)
+		if err != nil {
+			suite.Failf("unable to marshal expected value to JSON", "error was %s", err)
+		}
+
+		suite.JSONEq(string(expectedJSON), string(resultJSON), "expected value should match")
+	default:
+		suite.Equal(expectedValue.value, result.value)
 	}
 }
