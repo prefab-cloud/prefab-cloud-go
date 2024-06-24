@@ -115,6 +115,8 @@ type ClientInterface interface {
 	GetStringSliceValueWithDefault(key string, contextSet ContextSet, defaultValue []string) ([]string, bool)
 	GetDurationWithDefault(key string, contextSet ContextSet, defaultValue time.Duration) (time.Duration, bool)
 	GetLogLevelStringValue(key string, contextSet ContextSet) (string, bool, error)
+	GetJSONValue(key string, contextSet ContextSet) (interface{}, bool, error)
+	GetJSONValueWithDefault(key string, contextSet ContextSet, defaultValue interface{}) (interface{}, bool)
 	FeatureIsOn(key string, contextSet ContextSet) (bool, bool)
 	WithContext(contextSet *ContextSet) *boundClient
 }
@@ -267,6 +269,14 @@ func (c *Client) GetDurationWithDefault(key string, contextSet ContextSet, defau
 	return c.boundClient.GetDurationWithDefault(key, contextSet, defaultValue)
 }
 
+func (c *Client) GetJSONValue(key string, contextSet ContextSet) (interface{}, bool, error) {
+	return c.boundClient.GetJSONValue(key, contextSet)
+}
+
+func (c *Client) GetJSONValueWithDefault(key string, contextSet ContextSet, defaultValue interface{}) (interface{}, bool) {
+	return c.boundClient.GetJSONValueWithDefault(key, contextSet, defaultValue)
+}
+
 func (c *Client) FeatureIsOn(key string, contextSet ContextSet) (bool, bool) {
 	return c.boundClient.FeatureIsOn(key, contextSet)
 }
@@ -343,6 +353,21 @@ func (c *boundClient) GetStringValue(key string, contextSet contexts.ContextSet)
 	value, ok, err := clientInternalGetValueFunc(key, c.context, contextSet, utils.ExtractStringValue)(c)
 
 	return value, ok, err
+}
+
+func (c *boundClient) GetJSONValue(key string, contextSet contexts.ContextSet) (interface{}, bool, error) {
+	value, ok, err := clientInternalGetValueFunc(key, c.context, contextSet, utils.ExtractJSONValue)(c)
+
+	return value, ok, err
+}
+
+func (c *boundClient) GetJSONValueWithDefault(key string, contextSet contexts.ContextSet, defaultValue interface{}) (interface{}, bool) {
+	value, ok, err := c.GetJSONValue(key, contextSet)
+	if err != nil || !ok {
+		return defaultValue, true
+	}
+
+	return value, ok
 }
 
 func (c *boundClient) FeatureIsOn(key string, contextSet contexts.ContextSet) (bool, bool) {
