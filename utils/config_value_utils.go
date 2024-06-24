@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"encoding/json"
 	"fmt"
 	"log/slog"
 	"os"
@@ -165,6 +166,26 @@ func ExtractStringValue(cv *prefabProto.ConfigValue) (string, bool) {
 	switch v := cv.GetType().(type) {
 	case *prefabProto.ConfigValue_String_:
 		return v.String_, true
+	default:
+		return "", false
+	}
+}
+
+func ExtractJSONValue(cv *prefabProto.ConfigValue) (interface{}, bool) {
+	switch v := cv.GetType().(type) {
+	case *prefabProto.ConfigValue_Json:
+		var jsonValue interface{}
+
+		jsonString := v.Json.Json
+
+		err := json.Unmarshal([]byte(jsonString), &jsonValue)
+		if err != nil {
+			slog.Error("Failed to parse JSON value: " + jsonString)
+
+			return "", false
+		}
+
+		return jsonValue, true
 	default:
 		return "", false
 	}

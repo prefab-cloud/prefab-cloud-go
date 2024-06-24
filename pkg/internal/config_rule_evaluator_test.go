@@ -14,6 +14,8 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
+const teamSize = "team.size"
+
 type MockContextGetter struct {
 	mock.Mock
 }
@@ -72,7 +74,7 @@ func (suite *ConfigRuleTestSuite) TestFullRuleEvaluation() {
 
 	securityClearance := &prefabProto.Criterion{
 		Operator:     prefabProto.Criterion_PROP_IS_ONE_OF,
-		ValueToMatch: testutils.CreateConfigValueAndAssertOk(suite.T(), []string{"top secret", "top top secret"}),
+		ValueToMatch: testutils.CreateConfigValueAndAssertOk(suite.T(), []string{"top secret", "super top secret"}),
 		PropertyName: "security.clearance",
 	}
 
@@ -316,7 +318,7 @@ func (suite *ConfigRuleTestSuite) TestHierarchicalMatch() {
 
 func (suite *ConfigRuleTestSuite) TestInIntRangeCriterion() {
 	operator := prefabProto.Criterion_IN_INT_RANGE
-	contextPropertyName := "team.size"
+	contextPropertyName := teamSize
 	defaultValueToMatch := &prefabProto.ConfigValue{Type: &prefabProto.ConfigValue_IntRange{IntRange: &prefabProto.IntRange{Start: internal.Int64Ptr(0), End: internal.Int64Ptr(100)}}}
 
 	tests := []struct {
@@ -354,7 +356,7 @@ func (suite *ConfigRuleTestSuite) TestInIntRangeCriterion() {
 
 func (suite *ConfigRuleTestSuite) TestInSegmentCriterion() {
 	// this test is based on in-int range as the target segment
-	contextPropertyName := "team.size"
+	contextPropertyName := teamSize
 	segmentTargetIntRangeConfig := suite.createInIntRangeSegmentTarget(prefabProto.Criterion_IN_INT_RANGE, contextPropertyName, internal.Int64Ptr(0), internal.Int64Ptr(100))
 	targetConfigKey := segmentTargetIntRangeConfig.GetKey()
 	defaultValueToMatch := testutils.CreateConfigValueAndAssertOk(suite.T(), targetConfigKey)
@@ -393,7 +395,7 @@ func (suite *ConfigRuleTestSuite) TestInSegmentCriterion() {
 
 func (suite *ConfigRuleTestSuite) TestNotInSegmentCriterion() {
 	// this test is based on in-int range as the target segment
-	contextPropertyName := "team.size"
+	contextPropertyName := teamSize
 	segmentTargetIntRangeConfig := suite.createInIntRangeSegmentTarget(prefabProto.Criterion_IN_INT_RANGE, contextPropertyName, internal.Int64Ptr(0), internal.Int64Ptr(100))
 	targetConfigKey := segmentTargetIntRangeConfig.GetKey()
 	defaultValueToMatch := testutils.CreateConfigValueAndAssertOk(suite.T(), targetConfigKey)
