@@ -64,7 +64,7 @@ func WithEnvironmentNames(environmentNames []string) Option {
 func WithAPIKey(apiKey string) Option {
 	return func(o *options.Options) error {
 		o.APIKey = apiKey
-		// TODO: validate API key
+
 		return nil
 	}
 }
@@ -314,12 +314,6 @@ func clientInternalGetValueFunc[T any](key string, parentContextSet *contexts.Co
 		return typedValue, true, nil
 	}
 }
-
-//TODO: clients should return the default value if there's an incorrect type too -- these don't do that
-// so if there's no value, return default (or nil)
-// if there is a value check the type and return default if present. if not present then error
-// should check the config value's type first before doing other go operations w/ interface{} and the like
-//
 
 func (c *boundClient) GetIntValueWithDefault(key string, contextSet contexts.ContextSet, defaultValue int64) (int64, bool) {
 	value, ok, err := c.GetIntValue(key, contextSet)

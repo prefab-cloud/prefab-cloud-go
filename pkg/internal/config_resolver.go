@@ -171,11 +171,11 @@ func (c ConfigResolver) handleDecryption(configValue *prefabProto.ConfigValue, c
 				return "", errors.New("secret key lookup failed")
 			}
 		} else {
-			return "", errors.New("no match in config value") // TODO
+			return "", errors.New("no match in config value")
 		}
 	}
 
-	return "", errors.New("no config value exists") // todo
+	return "", errors.New("no config value exists")
 }
 
 func (c ConfigResolver) handleWeightedValue(configKey string, values *prefabProto.WeightedValues, contextSet ContextValueGetter) (*prefabProto.ConfigValue, int) {

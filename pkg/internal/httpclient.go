@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -25,20 +26,36 @@ func BuildHTTPClient(options options.Options) (*HTTPClient, error) {
 		return nil, err
 	}
 
-	cdnURL := strings.Replace(apiURL, "api", "cdn", 1)
+	cdnURL := strings.ReplaceAll(apiURL, ".", "-") + ".global.ssl.fastly.net"
+
 	client := HTTPClient{Options: &options, apiURL: apiURL, cdnURL: cdnURL}
 
 	return &client, nil
 }
 
 func (c *HTTPClient) Load(offset int32) (*prefabProto.Configs, error) {
-	apikey, err := c.Options.APIKeySettingOrEnvVar()
+	apiKey, err := c.Options.APIKeySettingOrEnvVar()
 	if err != nil {
 		return nil, err
 	}
-	// TODO: target the cdn first
-	uri := fmt.Sprintf("%s/api/v1/configs/%d", c.apiURL, offset)
 
+	for _, url := range []string{c.cdnURL, c.apiURL} {
+		uri := fmt.Sprintf("%s/api/v1/configs/%d", url, offset)
+
+		configs, err := c.LoadFromURI(uri, apiKey, offset)
+		if err != nil {
+			slog.Error("Error loading from URI", "err", err)
+
+			continue
+		}
+
+		return configs, nil
+	}
+
+	return nil, errors.New("error loading configs from all URIs")
+}
+
+func (c *HTTPClient) LoadFromURI(uri string, apiKey string, offset int32) (*prefabProto.Configs, error) {
 	slog.Info("Getting data from " + uri)
 
 	// Perform the HTTP GET request
@@ -47,7 +64,7 @@ func (c *HTTPClient) Load(offset int32) (*prefabProto.Configs, error) {
 		return nil, err
 	}
 
-	req.SetBasicAuth("1", apikey)
+	req.SetBasicAuth("1", apiKey)
 	req.Header.Add("X-PrefabCloud-Client-Version", ClientVersionHeader)
 
 	resp, err := http.DefaultClient.Do(req)
@@ -58,7 +75,7 @@ func (c *HTTPClient) Load(offset int32) (*prefabProto.Configs, error) {
 	defer func(Body io.ReadCloser) {
 		err = Body.Close()
 		if err != nil {
-			// TODO: something?
+			slog.Error("Error closing response body", "err", err)
 		}
 	}(resp.Body)
 
