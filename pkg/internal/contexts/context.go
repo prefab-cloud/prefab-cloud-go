@@ -30,7 +30,7 @@ func NewNamedContextFromProto(ctx *prefabProto.Context) *NamedContext {
 	values := make(map[string]interface{})
 
 	for key, value := range ctx.GetValues() {
-		nativeValue, _, _ := utils.ExtractValue(value) // TODO: how to handle error here? accept nil?
+		nativeValue, _, _ := utils.ExtractValue(value)
 		if nativeValue != nil {
 			values[key] = nativeValue
 		}

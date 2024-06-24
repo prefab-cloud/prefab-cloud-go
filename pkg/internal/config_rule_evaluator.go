@@ -81,7 +81,7 @@ func (cve *ConfigRuleEvaluator) EvaluateConditionalValue(conditionalValue *prefa
 			return nil, false
 		}
 	}
-	// TODO: handle weighted value here? or handle when we check if this is encrypted, env-var?
+
 	return conditionalValue.GetValue(), true
 }
 
