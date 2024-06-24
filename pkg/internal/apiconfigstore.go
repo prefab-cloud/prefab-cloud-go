@@ -7,9 +7,6 @@ import (
 	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
 )
 
-// TODO: support the api-default-context once we've worked out how we want to store/merge contexts
-// may want to store it other than in original proto form?
-
 type APIConfigStore struct {
 	configMap     map[string]*prefabProto.Config
 	contextSet    *contexts.ContextSet
