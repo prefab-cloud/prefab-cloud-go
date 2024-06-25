@@ -11,9 +11,9 @@ import (
 
 	"github.com/prefab-cloud/prefab-cloud-go/pkg/internal"
 	"github.com/prefab-cloud/prefab-cloud-go/pkg/internal/contexts"
+	"github.com/prefab-cloud/prefab-cloud-go/pkg/internal/utils"
 	"github.com/prefab-cloud/prefab-cloud-go/pkg/options"
 	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
-	"github.com/prefab-cloud/prefab-cloud-go/utils"
 )
 
 type Options = options.Options
