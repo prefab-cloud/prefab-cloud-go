@@ -543,3 +543,7 @@ const (
 	SUCCESS awaitInitializationResult = iota
 	TIMEOUT
 )
+
+func ExtractValue(cv *prefabProto.ConfigValue) (any, bool, error) {
+	return utils.ExtractValue(cv)
+}
