@@ -147,7 +147,7 @@ func NewClient(opts ...Option) (*Client, error) {
 		}
 	}
 
-	slog.Info("Initializing client", "options", options)
+	slog.Debug("Initializing client", "options", options)
 
 	httpClient, err := internal.BuildHTTPClient(options)
 	if err != nil {
@@ -197,7 +197,7 @@ func (c *Client) fetchFromServer(offset int32, retriesAttempted int, then func()
 		if retriesAttempted < maxRetries {
 			retryDelay := time.Duration(retriesAttempted) * time.Second
 
-			slog.Info(fmt.Sprintf("retrying in %d seconds, attempt %d/%d", int(retryDelay.Seconds()), retriesAttempted+1, maxRetries))
+			slog.Debug(fmt.Sprintf("retrying in %d seconds, attempt %d/%d", int(retryDelay.Seconds()), retriesAttempted+1, maxRetries))
 
 			time.Sleep(retryDelay)
 
@@ -209,13 +209,13 @@ func (c *Client) fetchFromServer(offset int32, retriesAttempted int, then func()
 
 		return
 	} else {
-		slog.Info("Loaded configuration data")
+		slog.Debug("Loaded configuration data")
 
 		c.apiConfigStore.SetFromConfigsProto(configs)
 		c.closeInitializationCompleteOnce.Do(func() {
 			close(c.initializationComplete)
 		})
-		slog.Info("Initialization complete called")
+		slog.Debug("Initialization complete called")
 
 		then()
 	}
