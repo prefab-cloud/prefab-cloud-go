@@ -12,7 +12,7 @@ import (
 
 	durationParser "github.com/sosodev/duration"
 
-	"github.com/prefab-cloud/prefab-cloud-go/anyhelpers"
+	"github.com/prefab-cloud/prefab-cloud-go/pkg/internal/anyhelpers"
 
 	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
 )
