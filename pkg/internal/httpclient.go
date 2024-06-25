@@ -56,7 +56,7 @@ func (c *HTTPClient) Load(offset int32) (*prefabProto.Configs, error) {
 }
 
 func (c *HTTPClient) LoadFromURI(uri string, apiKey string, offset int32) (*prefabProto.Configs, error) {
-	slog.Info("Getting data from " + uri)
+	slog.Debug("Getting data from " + uri)
 
 	// Perform the HTTP GET request
 	req, err := http.NewRequest(http.MethodGet, uri, nil)
@@ -83,7 +83,7 @@ func (c *HTTPClient) LoadFromURI(uri string, apiKey string, offset int32) (*pref
 		return nil, fmt.Errorf("error loading configs. Response code %s", resp.Status)
 	}
 
-	slog.Info(fmt.Sprintf("Received data from %s. Loading", uri))
+	slog.Debug(fmt.Sprintf("Received data from %s. Loading", uri))
 
 	// Read the response body
 	bodyBytes, err := io.ReadAll(resp.Body)
