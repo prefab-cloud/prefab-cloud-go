@@ -13,8 +13,9 @@ import (
 type Datasource int
 
 const (
-	ALL       Datasource = iota
-	LocalOnly            // TODO: this isn't respected anywhere AFAICT
+	ALL Datasource = iota
+	// TODO: support LocalOnly
+	// LocalOnly
 )
 
 type OnInitializationFailure int
