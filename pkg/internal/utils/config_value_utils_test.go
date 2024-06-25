@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/prefab-cloud/prefab-cloud-go/utils"
+	"github.com/prefab-cloud/prefab-cloud-go/pkg/internal/utils"
 
 	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
 )

@@ -11,8 +11,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/prefab-cloud/prefab-cloud-go/anyhelpers"
 	prefab "github.com/prefab-cloud/prefab-cloud-go/pkg"
+	"github.com/prefab-cloud/prefab-cloud-go/pkg/internal/anyhelpers"
 	"github.com/prefab-cloud/prefab-cloud-go/pkg/internal/contexts"
 
 	"github.com/stretchr/testify/suite"

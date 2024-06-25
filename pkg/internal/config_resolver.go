@@ -6,8 +6,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/prefab-cloud/prefab-cloud-go/pkg/internal/utils"
 	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
-	"github.com/prefab-cloud/prefab-cloud-go/utils"
 )
 
 type ConfigMatch struct {

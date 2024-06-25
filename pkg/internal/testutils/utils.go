@@ -3,8 +3,8 @@ package testutils
 import (
 	"testing"
 
+	"github.com/prefab-cloud/prefab-cloud-go/pkg/internal/utils"
 	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
-	"github.com/prefab-cloud/prefab-cloud-go/utils"
 )
 
 func CreateConfigValueAndAssertOk(t *testing.T, value any) *prefabProto.ConfigValue {
