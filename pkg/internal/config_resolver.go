@@ -70,6 +70,10 @@ func (c ConfigResolver) ResolveValue(key string, contextSet ContextValueGetter) 
 		return ConfigMatch{IsMatch: false, OriginalKey: key}, ErrConfigDoesNotExist
 	}
 
+	return c.ResolveValueForConfig(config, contextSet, key)
+}
+
+func (c ConfigResolver) ResolveValueForConfig(config *prefabProto.Config, contextSet ContextValueGetter, key string) (ConfigMatch, error) {
 	contextSet = makeMultiContextGetter(contextSet, c.ContextGetter)
 
 	ruleMatchResults := c.RuleEvaluator.EvaluateConfig(config, contextSet)

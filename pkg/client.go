@@ -16,6 +16,8 @@ import (
 	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
 )
 
+type ConfigMatch = internal.ConfigMatch
+
 type Options = options.Options
 
 type Option func(*options.Options) error
@@ -23,6 +25,16 @@ type Option func(*options.Options) error
 type OnInitializationFailure = options.OnInitializationFailure
 
 type ContextSet = contexts.ContextSet
+
+type NamedContext = contexts.NamedContext
+
+func NewContextSet() *ContextSet {
+	return contexts.NewContextSet()
+}
+
+func NewContextSetFromProto(protoContextSet *prefabProto.ContextSet) *ContextSet {
+	return contexts.NewContextSetFromProto(protoContextSet)
+}
 
 const (
 	RAISE  OnInitializationFailure = options.RAISE
@@ -117,6 +129,9 @@ type ClientInterface interface {
 	GetLogLevelStringValue(key string, contextSet ContextSet) (string, bool, error)
 	GetJSONValue(key string, contextSet ContextSet) (interface{}, bool, error)
 	GetJSONValueWithDefault(key string, contextSet ContextSet, defaultValue interface{}) (interface{}, bool)
+	GetConfigMatch(key string, contextSet ContextSet) (*ConfigMatch, error)
+	GetConfigMatchFromConfig(config *prefabProto.Config, contextSet ContextSet) (ConfigMatch, error)
+	GetConfig(key string) (*prefabProto.Config, bool)
 	FeatureIsOn(key string, contextSet ContextSet) (bool, bool)
 	WithContext(contextSet *ContextSet) *boundClient
 }
@@ -291,6 +306,33 @@ func (c *Client) WithContext(contextSet *ContextSet) *boundClient {
 	return &boundClient{context: mergedContext, client: c}
 }
 
+func (c *Client) GetConfig(key string) (*prefabProto.Config, bool) {
+	return c.boundClient.GetConfig(key)
+}
+
+func (c *Client) GetConfigMatch(key string, contextSet ContextSet) (*ConfigMatch, error) {
+	return c.boundClient.GetConfigMatch(key, contextSet)
+}
+
+func (c *Client) GetConfigMatchFromConfig(config *prefabProto.Config, contextSet ContextSet) (ConfigMatch, error) {
+	return c.boundClient.GetConfigMatchFromConfig(config, contextSet)
+}
+
+func (c *Client) Keys() ([]string, error) {
+	if c.awaitInitialization() == TIMEOUT {
+		switch c.options.OnInitializationFailure {
+		case options.UNLOCK:
+			c.closeInitializationCompleteOnce.Do(func() {
+				close(c.initializationComplete)
+			})
+		case options.RAISE:
+			return []string{}, errors.New("initialization timeout")
+		}
+	}
+
+	return c.apiConfigStore.Keys(), nil
+}
+
 func clientInternalGetValueFunc[T any](key string, parentContextSet *contexts.ContextSet, contextSet contexts.ContextSet, parseFunc func(*prefabProto.ConfigValue) (T, bool)) func(c *boundClient) (T, bool, error) {
 	var zeroValue T
 
@@ -452,11 +494,11 @@ func (c *boundClient) fetchAndProcessValue(key string, contextSet contexts.Conte
 		return nil, false, err
 	}
 
-	if getResult.configValue == nil {
+	if getResult.match.Match == nil {
 		return nil, false, errors.New("config did not produce a result and no default is specified")
 	}
 
-	parsedValue, ok := parser(getResult.configValue)
+	parsedValue, ok := parser(getResult.match.Match)
 	if !ok {
 		return nil, false, nil
 	}
@@ -470,13 +512,35 @@ func (c *boundClient) WithContext(contextSet *ContextSet) *boundClient {
 	return &boundClient{context: mergedContext, client: c.client}
 }
 
+func raw(cv *prefabProto.ConfigValue) (*prefabProto.ConfigValue, bool) {
+	return cv, true
+}
+
+func (c *boundClient) GetConfig(key string) (*prefabProto.Config, bool) {
+	return c.client.apiConfigStore.GetConfig(key)
+}
+
+func (c *boundClient) GetConfigMatch(key string, contextSet ContextSet) (*ConfigMatch, error) {
+	getResult, err := c.client.internalGetValue(key, contextSet)
+	if err != nil {
+		return nil, err
+	}
+
+	return &getResult.match, nil
+}
+
+func (c *boundClient) GetConfigMatchFromConfig(config *prefabProto.Config, contextSet ContextSet) (ConfigMatch, error) {
+	return c.client.configResolver.ResolveValueForConfig(config, &contextSet, config.GetKey())
+}
+
 func (c *Client) internalGetValue(key string, contextSet contexts.ContextSet) (resolutionResult, error) {
 	if c.awaitInitialization() == TIMEOUT {
-		if c.options.OnInitializationFailure == options.UNLOCK {
+		switch c.options.OnInitializationFailure {
+		case options.UNLOCK:
 			c.closeInitializationCompleteOnce.Do(func() {
 				close(c.initializationComplete)
 			})
-		} else if c.options.OnInitializationFailure == options.RAISE {
+		case options.RAISE:
 			return resolutionResultError(), errors.New("initialization timeout")
 		}
 	}
@@ -486,7 +550,7 @@ func (c *Client) internalGetValue(key string, contextSet contexts.ContextSet) (r
 		return resolutionResultError(), err
 	}
 
-	return resolutionResultSuccess(match.Match), nil
+	return resolutionResultSuccess(match), nil
 }
 
 type resolutionResultType int
@@ -497,8 +561,8 @@ const (
 )
 
 type resolutionResult struct {
-	configValue *prefabProto.ConfigValue
-	resultType  resolutionResultType
+	match      ConfigMatch
+	resultType resolutionResultType
 }
 
 func resolutionResultError() resolutionResult {
@@ -507,10 +571,10 @@ func resolutionResultError() resolutionResult {
 	}
 }
 
-func resolutionResultSuccess(configValue *prefabProto.ConfigValue) resolutionResult {
+func resolutionResultSuccess(match ConfigMatch) resolutionResult {
 	return resolutionResult{
-		resultType:  ResolutionResultTypeSuccess,
-		configValue: configValue,
+		resultType: ResolutionResultTypeSuccess,
+		match:      match,
 	}
 }
 

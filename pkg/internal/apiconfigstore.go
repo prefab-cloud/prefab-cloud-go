@@ -51,6 +51,18 @@ func (cs *APIConfigStore) Len() int {
 	return len(cs.configMap)
 }
 
+func (cs *APIConfigStore) Keys() []string {
+	cs.RLock()
+	defer cs.RUnlock()
+
+	keys := make([]string, 0, len(cs.configMap))
+	for key := range cs.configMap {
+		keys = append(keys, key)
+	}
+
+	return keys
+}
+
 func (cs *APIConfigStore) setConfig(newConfig *prefabProto.Config) {
 	newConfigIsEmpty := len(newConfig.GetRows()) == 0
 	currentConfig, exists := cs.configMap[newConfig.GetKey()]
