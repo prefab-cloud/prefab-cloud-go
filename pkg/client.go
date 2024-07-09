@@ -315,6 +315,17 @@ func (c *Client) GetConfigMatch(key string, contextSet ContextSet) (*ConfigMatch
 }
 
 func (c *Client) GetConfigMatchFromConfig(config *prefabProto.Config, contextSet ContextSet, projectEnvID int64) (ConfigMatch, error) {
+	if c.awaitInitialization() == TIMEOUT {
+		switch c.options.OnInitializationFailure {
+		case options.UNLOCK:
+			c.closeInitializationCompleteOnce.Do(func() {
+				close(c.initializationComplete)
+			})
+		case options.RAISE:
+			return ConfigMatch{}, errors.New("initialization timeout")
+		}
+	}
+
 	return c.boundClient.GetConfigMatchFromConfig(config, contextSet, projectEnvID)
 }
 

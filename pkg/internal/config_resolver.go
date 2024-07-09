@@ -27,7 +27,7 @@ func NewConfigMatchFromConditionMatch(conditionMatch ConditionMatch) ConfigMatch
 		OriginalMatch:            conditionMatch.Match,
 		Match:                    conditionMatch.Match,
 		RowIndex:                 conditionMatch.RowIndex,
-		ConditionalValueIndex:    conditionMatch.RowIndex,
+		ConditionalValueIndex:    conditionMatch.ConditionalValueIndex,
 		SelectedConditionalValue: conditionMatch.SelectedConditionalValue,
 	}
 }
