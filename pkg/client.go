@@ -130,7 +130,7 @@ type ClientInterface interface {
 	GetJSONValue(key string, contextSet ContextSet) (interface{}, bool, error)
 	GetJSONValueWithDefault(key string, contextSet ContextSet, defaultValue interface{}) (interface{}, bool)
 	GetConfigMatch(key string, contextSet ContextSet) (*ConfigMatch, error)
-	GetConfigMatchFromConfig(config *prefabProto.Config, contextSet ContextSet) (ConfigMatch, error)
+	GetConfigMatchFromConfig(config *prefabProto.Config, contextSet ContextSet, projectEnvID int64) (ConfigMatch, error)
 	GetConfig(key string) (*prefabProto.Config, bool)
 	FeatureIsOn(key string, contextSet ContextSet) (bool, bool)
 	WithContext(contextSet *ContextSet) *boundClient
@@ -183,7 +183,7 @@ func NewClient(opts ...Option) (*Client, error) {
 
 	configStore := internal.BuildCompositeConfigStore(configStores...)
 
-	configResolver := internal.NewConfigResolver(configStore, apiConfigStore, apiConfigStore)
+	configResolver := internal.NewConfigResolver(configStore, apiConfigStore)
 
 	sseClient, err := internal.BuildSSEClient(options)
 	if err != nil {
@@ -314,8 +314,8 @@ func (c *Client) GetConfigMatch(key string, contextSet ContextSet) (*ConfigMatch
 	return c.boundClient.GetConfigMatch(key, contextSet)
 }
 
-func (c *Client) GetConfigMatchFromConfig(config *prefabProto.Config, contextSet ContextSet) (ConfigMatch, error) {
-	return c.boundClient.GetConfigMatchFromConfig(config, contextSet)
+func (c *Client) GetConfigMatchFromConfig(config *prefabProto.Config, contextSet ContextSet, projectEnvID int64) (ConfigMatch, error) {
+	return c.boundClient.GetConfigMatchFromConfig(config, contextSet, projectEnvID)
 }
 
 func (c *Client) Keys() ([]string, error) {
@@ -529,8 +529,8 @@ func (c *boundClient) GetConfigMatch(key string, contextSet ContextSet) (*Config
 	return &getResult.match, nil
 }
 
-func (c *boundClient) GetConfigMatchFromConfig(config *prefabProto.Config, contextSet ContextSet) (ConfigMatch, error) {
-	return c.client.configResolver.ResolveValueForConfig(config, &contextSet, config.GetKey())
+func (c *boundClient) GetConfigMatchFromConfig(config *prefabProto.Config, contextSet ContextSet, projectEnvID int64) (ConfigMatch, error) {
+	return c.client.configResolver.ResolveValueForConfig(config, &contextSet, config.GetKey(), projectEnvID)
 }
 
 func (c *Client) internalGetValue(key string, contextSet contexts.ContextSet) (resolutionResult, error) {
@@ -545,7 +545,7 @@ func (c *Client) internalGetValue(key string, contextSet contexts.ContextSet) (r
 		}
 	}
 
-	match, err := c.configResolver.ResolveValue(key, &contextSet)
+	match, err := c.configResolver.ResolveValue(key, &contextSet, c.apiConfigStore.GetProjectEnvID())
 	if err != nil {
 		return resolutionResultError(), err
 	}

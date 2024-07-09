@@ -53,10 +53,10 @@ type ConfigResolver struct {
 	ContextGetter         ContextValueGetter
 }
 
-func NewConfigResolver(configStore ConfigStoreGetter, supplier ProjectEnvIDSupplier, apiContextGetter ContextValueGetter) *ConfigResolver {
+func NewConfigResolver(configStore ConfigStoreGetter, apiContextGetter ContextValueGetter) *ConfigResolver {
 	return &ConfigResolver{
 		ConfigStore:           configStore,
-		RuleEvaluator:         NewConfigRuleEvaluator(configStore, supplier),
+		RuleEvaluator:         NewConfigRuleEvaluator(configStore),
 		WeightedValueResolver: NewWeightedValueResolver(time.Now().UnixNano(), &Hashing{}),
 		Decrypter:             &Encryption{},
 		EnvLookup:             &RealEnvLookup{},
@@ -64,19 +64,19 @@ func NewConfigResolver(configStore ConfigStoreGetter, supplier ProjectEnvIDSuppl
 	}
 }
 
-func (c ConfigResolver) ResolveValue(key string, contextSet ContextValueGetter) (ConfigMatch, error) {
+func (c ConfigResolver) ResolveValue(key string, contextSet ContextValueGetter, projectEnvID int64) (ConfigMatch, error) {
 	config, configExists := c.ConfigStore.GetConfig(key)
 	if !configExists {
 		return ConfigMatch{IsMatch: false, OriginalKey: key}, ErrConfigDoesNotExist
 	}
 
-	return c.ResolveValueForConfig(config, contextSet, key)
+	return c.ResolveValueForConfig(config, contextSet, key, projectEnvID)
 }
 
-func (c ConfigResolver) ResolveValueForConfig(config *prefabProto.Config, contextSet ContextValueGetter, key string) (ConfigMatch, error) {
+func (c ConfigResolver) ResolveValueForConfig(config *prefabProto.Config, contextSet ContextValueGetter, key string, projectEnvID int64) (ConfigMatch, error) {
 	contextSet = makeMultiContextGetter(contextSet, c.ContextGetter)
 
-	ruleMatchResults := c.RuleEvaluator.EvaluateConfig(config, contextSet)
+	ruleMatchResults := c.RuleEvaluator.EvaluateConfig(config, contextSet, projectEnvID)
 	configMatch := NewConfigMatchFromConditionMatch(ruleMatchResults)
 	configMatch.OriginalKey = key
 
@@ -102,7 +102,7 @@ func (c ConfigResolver) ResolveValueForConfig(config *prefabProto.Config, contex
 		}
 	case *prefabProto.ConfigValue_String_:
 		if ruleMatchResults.Match.GetDecryptWith() != "" {
-			decryptedValue, err := c.handleDecryption(ruleMatchResults.Match, contextSet)
+			decryptedValue, err := c.handleDecryption(ruleMatchResults.Match, contextSet, projectEnvID)
 			if err == nil {
 				value, _ := utils.Create(decryptedValue)
 				configMatch.Match = value
@@ -156,10 +156,10 @@ func coerceValue(value string, valueType prefabProto.Config_ValueType) (any, boo
 	return nil, false
 }
 
-func (c ConfigResolver) handleDecryption(configValue *prefabProto.ConfigValue, contextSet ContextValueGetter) (string, error) {
+func (c ConfigResolver) handleDecryption(configValue *prefabProto.ConfigValue, contextSet ContextValueGetter, projectEnvID int64) (string, error) {
 	config, configExists := c.ConfigStore.GetConfig(configValue.GetDecryptWith())
 	if configExists {
-		match := c.RuleEvaluator.EvaluateConfig(config, contextSet)
+		match := c.RuleEvaluator.EvaluateConfig(config, contextSet, projectEnvID)
 		if match.IsMatch {
 			key, keyOk, _ := utils.ExtractValue(match.Match)
 			if keyOk {

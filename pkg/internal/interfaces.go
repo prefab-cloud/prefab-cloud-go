@@ -10,12 +10,8 @@ type ConfigStoreGetter interface {
 	GetConfig(key string) (config *prefabProto.Config, exists bool)
 }
 
-type ProjectEnvIDSupplier interface {
-	GetProjectEnvID() int64
-}
-
 type ConfigEvaluator interface {
-	EvaluateConfig(config *prefabProto.Config, contextSet ContextValueGetter) (match ConditionMatch)
+	EvaluateConfig(config *prefabProto.Config, contextSet ContextValueGetter, projectEnvID int64) (match ConditionMatch)
 }
 
 type Decrypter interface {

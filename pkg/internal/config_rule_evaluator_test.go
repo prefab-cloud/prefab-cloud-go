@@ -40,15 +40,13 @@ type ConfigRuleTestSuite struct {
 	evaluator                 *internal.ConfigRuleEvaluator
 	nonBoolReturnSimpleConfig *prefabProto.Config
 	mockConfigStoreGetter     mocks.MockConfigStoreGetter
-	mockProjectEnvIDSupplier  mocks.MockProjectEnvIDSupplier
 	projectEnvID              int64
 }
 
 func (suite *ConfigRuleTestSuite) SetupTest() {
 	suite.mockConfigStoreGetter = mocks.MockConfigStoreGetter{}
 	suite.projectEnvID = 101
-	suite.mockProjectEnvIDSupplier = *mocks.NewMockProjectEnvIDSupplier(suite.projectEnvID)
-	suite.evaluator = internal.NewConfigRuleEvaluator(&suite.mockConfigStoreGetter, &suite.mockProjectEnvIDSupplier)
+	suite.evaluator = internal.NewConfigRuleEvaluator(&suite.mockConfigStoreGetter)
 }
 
 func (suite *ConfigRuleTestSuite) TestFullRuleEvaluation() {
@@ -137,9 +135,9 @@ func (suite *ConfigRuleTestSuite) TestFullRuleEvaluation() {
 
 	for _, testCase := range tests {
 		suite.Run(testCase.name, func() {
-			suite.evaluator = internal.NewConfigRuleEvaluator(&suite.mockConfigStoreGetter, mocks.NewMockProjectEnvIDSupplier(testCase.projectEnvID))
+			suite.evaluator = internal.NewConfigRuleEvaluator(&suite.mockConfigStoreGetter)
 			mockContext, _ := suite.setupMockContextWithMultipleValues(testCase.contextMockings)
-			conditionMatch := suite.evaluator.EvaluateConfig(config, mockContext)
+			conditionMatch := suite.evaluator.EvaluateConfig(config, mockContext, testCase.projectEnvID)
 			suite.Equal(testCase.expectedValue, conditionMatch.Match, "value should match")
 			suite.Equal(testCase.expectedRowIndex, conditionMatch.RowIndex, "rowIndex should match")
 			suite.Equal(testCase.expectedConditionalValueIndex, conditionMatch.ConditionalValueIndex, "conditionalValueIndex should match")
@@ -150,7 +148,7 @@ func (suite *ConfigRuleTestSuite) TestFullRuleEvaluation() {
 func (suite *ConfigRuleTestSuite) TestAlwaysTrueCriteria() {
 	suite.Run("returns true", func() {
 		criterion := &prefabProto.Criterion{Operator: prefabProto.Criterion_ALWAYS_TRUE}
-		isMatch := suite.evaluator.EvaluateCriterion(criterion, contexts.NewContextSet())
+		isMatch := suite.evaluator.EvaluateCriterion(criterion, contexts.NewContextSet(), suite.projectEnvID)
 		suite.True(isMatch)
 	})
 }
@@ -158,7 +156,7 @@ func (suite *ConfigRuleTestSuite) TestAlwaysTrueCriteria() {
 func (suite *ConfigRuleTestSuite) TestNotSetCriteria() {
 	suite.Run("returns false", func() {
 		criterion := &prefabProto.Criterion{Operator: prefabProto.Criterion_NOT_SET}
-		isMatch := suite.evaluator.EvaluateCriterion(criterion, contexts.NewContextSet())
+		isMatch := suite.evaluator.EvaluateCriterion(criterion, contexts.NewContextSet(), suite.projectEnvID)
 		suite.False(isMatch)
 	})
 }
@@ -187,7 +185,7 @@ func (suite *ConfigRuleTestSuite) TestPropEndsWithCriteriaEvaluation() {
 			defer assertMockCalled()
 
 			criterion := &prefabProto.Criterion{Operator: operator, ValueToMatch: testCase.valueToMatch, PropertyName: contextPropertyName}
-			isMatch := suite.evaluator.EvaluateCriterion(criterion, mockContext)
+			isMatch := suite.evaluator.EvaluateCriterion(criterion, mockContext, suite.projectEnvID)
 			suite.Equal(testCase.expected, isMatch)
 		})
 	}
@@ -217,7 +215,7 @@ func (suite *ConfigRuleTestSuite) TestPropNotEndsWithCriteriaEvaluation() {
 			defer assertMockCalled()
 
 			criterion := &prefabProto.Criterion{Operator: operator, ValueToMatch: testCase.valueToMatch, PropertyName: contextPropertyName}
-			isMatch := suite.evaluator.EvaluateCriterion(criterion, mockContext)
+			isMatch := suite.evaluator.EvaluateCriterion(criterion, mockContext, suite.projectEnvID)
 			suite.Equal(testCase.expected, isMatch)
 		})
 	}
@@ -251,7 +249,7 @@ func (suite *ConfigRuleTestSuite) TestPropIsOneOf() {
 			defer assertMockCalled()
 
 			criterion := &prefabProto.Criterion{Operator: operator, ValueToMatch: testCase.valueToMatch, PropertyName: contextPropertyName}
-			isMatch := suite.evaluator.EvaluateCriterion(criterion, mockContext)
+			isMatch := suite.evaluator.EvaluateCriterion(criterion, mockContext, suite.projectEnvID)
 			suite.Equal(testCase.expected, isMatch)
 		})
 	}
@@ -285,7 +283,7 @@ func (suite *ConfigRuleTestSuite) TestPropIsNotOneOf() {
 			defer assertMockCalled()
 
 			criterion := &prefabProto.Criterion{Operator: operator, ValueToMatch: testCase.valueToMatch, PropertyName: contextPropertyName}
-			isMatch := suite.evaluator.EvaluateCriterion(criterion, mockContext)
+			isMatch := suite.evaluator.EvaluateCriterion(criterion, mockContext, suite.projectEnvID)
 			suite.Equal(testCase.expected, isMatch)
 		})
 	}
@@ -316,7 +314,7 @@ func (suite *ConfigRuleTestSuite) TestHierarchicalMatch() {
 			defer assertMockCalled()
 
 			criterion := &prefabProto.Criterion{Operator: operator, ValueToMatch: testCase.valueToMatch, PropertyName: contextPropertyName}
-			isMatch := suite.evaluator.EvaluateCriterion(criterion, mockContext)
+			isMatch := suite.evaluator.EvaluateCriterion(criterion, mockContext, suite.projectEnvID)
 			suite.Equal(testCase.expected, isMatch)
 		})
 	}
@@ -354,7 +352,7 @@ func (suite *ConfigRuleTestSuite) TestInIntRangeCriterion() {
 			defer assertMockCalled()
 
 			criterion := &prefabProto.Criterion{Operator: operator, ValueToMatch: testCase.valueToMatch, PropertyName: contextPropertyName}
-			isMatch := suite.evaluator.EvaluateCriterion(criterion, mockContext)
+			isMatch := suite.evaluator.EvaluateCriterion(criterion, mockContext, suite.projectEnvID)
 			suite.Equal(testCase.expected, isMatch)
 		})
 	}
@@ -393,7 +391,7 @@ func (suite *ConfigRuleTestSuite) TestInSegmentCriterion() {
 			defer assertMockConfigStoreGetterCalled()
 
 			criterion := &prefabProto.Criterion{Operator: prefabProto.Criterion_IN_SEG, ValueToMatch: testCase.valueToMatch}
-			isMatch := suite.evaluator.EvaluateCriterion(criterion, mockContext)
+			isMatch := suite.evaluator.EvaluateCriterion(criterion, mockContext, suite.projectEnvID)
 			suite.Equal(testCase.expected, isMatch)
 		})
 	}
@@ -432,7 +430,7 @@ func (suite *ConfigRuleTestSuite) TestNotInSegmentCriterion() {
 			defer assertMockConfigStoreGetterCalled()
 
 			criterion := &prefabProto.Criterion{Operator: prefabProto.Criterion_NOT_IN_SEG, ValueToMatch: testCase.valueToMatch}
-			isMatch := suite.evaluator.EvaluateCriterion(criterion, mockContext)
+			isMatch := suite.evaluator.EvaluateCriterion(criterion, mockContext, suite.projectEnvID)
 			suite.Equal(testCase.expected, isMatch)
 		})
 	}
