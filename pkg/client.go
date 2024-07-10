@@ -138,7 +138,6 @@ type ClientInterface interface {
 	GetJSONValue(key string, contextSet ContextSet) (interface{}, bool, error)
 	GetJSONValueWithDefault(key string, contextSet ContextSet, defaultValue interface{}) (interface{}, bool)
 	GetConfigMatch(key string, contextSet ContextSet) (*ConfigMatch, error)
-	GetConfigMatchFromConfig(config *prefabProto.Config, dependencyConfigs *[]prefabProto.Config, contextSet ContextSet, projectEnvID int64) (ConfigMatch, error)
 	GetConfig(key string) (*prefabProto.Config, bool)
 	FeatureIsOn(key string, contextSet ContextSet) (bool, bool)
 	WithContext(contextSet *ContextSet) *boundClient
@@ -334,21 +333,6 @@ func (c *Client) GetConfig(key string) (*prefabProto.Config, bool) {
 
 func (c *Client) GetConfigMatch(key string, contextSet ContextSet) (*ConfigMatch, error) {
 	return c.boundClient.GetConfigMatch(key, contextSet)
-}
-
-func (c *Client) GetConfigMatchFromConfig(config *prefabProto.Config, dependencyConfigs *[]prefabProto.Config, contextSet ContextSet, projectEnvID int64) (ConfigMatch, error) {
-	if c.awaitInitialization() == TIMEOUT {
-		switch c.options.OnInitializationFailure {
-		case options.UNLOCK:
-			c.closeInitializationCompleteOnce.Do(func() {
-				close(c.initializationComplete)
-			})
-		case options.RAISE:
-			return ConfigMatch{}, errors.New("initialization timeout")
-		}
-	}
-
-	return c.boundClient.GetConfigMatchFromConfig(config, dependencyConfigs, contextSet, projectEnvID)
 }
 
 func (c *Client) Keys() ([]string, error) {
@@ -560,11 +544,6 @@ func (c *boundClient) GetConfigMatch(key string, contextSet ContextSet) (*Config
 	}
 
 	return &getResult.match, nil
-}
-
-func (c *boundClient) GetConfigMatchFromConfig(config *prefabProto.Config, dependencyConfigs *[]prefabProto.Config, contextSet ContextSet, projectEnvID int64) (ConfigMatch, error) {
-
-	return c.client.configResolver.ResolveValueForConfig(config, &contextSet, config.GetKey())
 }
 
 func (c *Client) internalGetValue(key string, contextSet contexts.ContextSet) (resolutionResult, error) {
