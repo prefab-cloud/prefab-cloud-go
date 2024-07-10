@@ -8,6 +8,7 @@ type ContextValueGetter interface {
 
 type ConfigStoreGetter interface {
 	GetConfig(key string) (config *prefabProto.Config, exists bool)
+	Keys() []string
 }
 
 type ProjectEnvIDSupplier interface {

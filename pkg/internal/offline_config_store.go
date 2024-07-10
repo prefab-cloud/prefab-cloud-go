@@ -37,3 +37,12 @@ func (cs *OfflineConfigStore) GetContextValue(propertyName string) (interface{},
 func (cs *OfflineConfigStore) GetProjectEnvID() int64 {
 	return cs.ProjectEnvID
 }
+
+func (cs *OfflineConfigStore) Keys() []string {
+	keys := make([]string, 0, len(cs.configMap))
+	for key := range cs.configMap {
+		keys = append(keys, key)
+	}
+
+	return keys
+}

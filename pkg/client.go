@@ -156,7 +156,7 @@ type Client struct {
 	httpClient                      *internal.HTTPClient
 	sseClient                       *sse.Client
 	configStore                     internal.ConfigStoreGetter
-	apiConfigStore                  *internal.APIConfigStore // temporary until wrapped in a fetcher/auto updater
+	apiConfigStore                  *internal.APIConfigStore
 	configResolver                  *internal.ConfigResolver
 	initializationComplete          chan struct{}
 	closeInitializationCompleteOnce sync.Once
@@ -353,7 +353,7 @@ func (c *Client) Keys() ([]string, error) {
 		}
 	}
 
-	return c.apiConfigStore.Keys(), nil
+	return c.configResolver.Keys(), nil
 }
 
 func clientInternalGetValueFunc[T any](key string, parentContextSet *contexts.ContextSet, contextSet contexts.ContextSet, parseFunc func(*prefabProto.ConfigValue) (T, bool)) func(c *boundClient) (T, bool, error) {

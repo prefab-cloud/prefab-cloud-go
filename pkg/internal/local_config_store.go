@@ -55,3 +55,12 @@ func (s *LocalConfigStore) GetConfig(key string) (*prefabProto.Config, bool) {
 
 	return config, exists
 }
+
+func (cs *LocalConfigStore) Keys() []string {
+	keys := make([]string, 0, len(cs.configMap))
+	for key := range cs.configMap {
+		keys = append(keys, key)
+	}
+
+	return keys
+}

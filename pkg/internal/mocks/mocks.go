@@ -66,6 +66,12 @@ type MockConfigStoreGetter struct {
 	mock.Mock
 }
 
+func (m *MockConfigStoreGetter) Keys() []string {
+	args := m.Called()
+
+	return args.Get(0).([]string)
+}
+
 func (m *MockConfigStoreGetter) GetConfig(key string) (*prefabProto.Config, bool) {
 	var config *prefabProto.Config
 

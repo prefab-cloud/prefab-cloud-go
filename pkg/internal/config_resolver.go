@@ -64,6 +64,10 @@ func NewConfigResolver(configStore ConfigStoreGetter, supplier ProjectEnvIDSuppl
 	}
 }
 
+func (c ConfigResolver) Keys() []string {
+	return c.ConfigStore.Keys()
+}
+
 func (c ConfigResolver) ResolveValue(key string, contextSet ContextValueGetter) (ConfigMatch, error) {
 	config, configExists := c.ConfigStore.GetConfig(key)
 	if !configExists {

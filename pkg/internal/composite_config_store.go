@@ -1,6 +1,8 @@
 package internal
 
-import prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
+import (
+	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
+)
 
 // CompositeConfigStore is a config store that composes multiple config stores.
 // It attempts to find a config by key in each store in the order they were provided.
@@ -26,4 +28,21 @@ func (s *CompositeConfigStore) GetConfig(key string) (*prefabProto.Config, bool)
 	}
 
 	return nil, false
+}
+
+func (s *CompositeConfigStore) Keys() []string {
+	uniqueKeys := make(map[string]struct{})
+
+	for _, store := range s.stores {
+		for _, key := range store.Keys() {
+			uniqueKeys[key] = struct{}{}
+		}
+	}
+
+	keys := make([]string, 0, len(uniqueKeys))
+	for key := range uniqueKeys {
+		keys = append(keys, key)
+	}
+
+	return keys
 }
