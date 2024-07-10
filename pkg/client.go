@@ -41,6 +41,14 @@ const (
 	UNLOCK OnInitializationFailure = options.UNLOCK
 )
 
+func WithOfflineConfig(offlineConfig options.OfflineConfig) Option {
+	return func(o *options.Options) error {
+		o.OfflineConfig = &offlineConfig
+
+		return nil
+	}
+}
+
 func WithConfigDirectory(configDirectory string) Option {
 	return func(o *options.Options) error {
 		o.ConfigDirectory = &configDirectory
@@ -130,7 +138,7 @@ type ClientInterface interface {
 	GetJSONValue(key string, contextSet ContextSet) (interface{}, bool, error)
 	GetJSONValueWithDefault(key string, contextSet ContextSet, defaultValue interface{}) (interface{}, bool)
 	GetConfigMatch(key string, contextSet ContextSet) (*ConfigMatch, error)
-	GetConfigMatchFromConfig(config *prefabProto.Config, contextSet ContextSet, projectEnvID int64) (ConfigMatch, error)
+	GetConfigMatchFromConfig(config *prefabProto.Config, dependencyConfigs *[]prefabProto.Config, contextSet ContextSet, projectEnvID int64) (ConfigMatch, error)
 	GetConfig(key string) (*prefabProto.Config, bool)
 	FeatureIsOn(key string, contextSet ContextSet) (bool, bool)
 	WithContext(contextSet *ContextSet) *boundClient
@@ -156,6 +164,8 @@ type Client struct {
 func NewClient(opts ...Option) (*Client, error) {
 	options := options.DefaultOptions
 
+	var client Client
+
 	for _, opt := range opts {
 		if err := opt(&options); err != nil {
 			return nil, err
@@ -169,34 +179,46 @@ func NewClient(opts ...Option) (*Client, error) {
 		panic(err)
 	}
 
-	apiConfigStore := internal.BuildAPIConfigStore()
-
 	var configStores []internal.ConfigStoreGetter
-	if options.ConfigOverrideDirectory != nil {
-		configStores = append(configStores, internal.NewLocalConfigStore(*options.ConfigOverrideDirectory, &options))
+
+	// TODO: move towards the list of sources(/stores) approach
+	if options.OfflineConfig != nil {
+		offlineConfigStore := internal.NewOfflineConfigStore(*options.OfflineConfig)
+		configStores = append(configStores, offlineConfigStore)
+		configStore := internal.BuildCompositeConfigStore(configStores...)
+
+		configResolver := internal.NewConfigResolver(configStore, offlineConfigStore, offlineConfigStore)
+
+		client = Client{options: &options, httpClient: httpClient, sseClient: nil, configStore: configStore, apiConfigStore: nil, configResolver: configResolver, initializationComplete: make(chan struct{})}
+	} else {
+		apiConfigStore := internal.BuildAPIConfigStore()
+
+		if options.ConfigOverrideDirectory != nil {
+			configStores = append(configStores, internal.NewLocalConfigStore(*options.ConfigOverrideDirectory, &options))
+		}
+
+		configStores = append(configStores, apiConfigStore)
+		if options.ConfigDirectory != nil {
+			configStores = append(configStores, internal.NewLocalConfigStore(*options.ConfigDirectory, &options))
+		}
+
+		configStore := internal.BuildCompositeConfigStore(configStores...)
+
+		configResolver := internal.NewConfigResolver(configStore, apiConfigStore, apiConfigStore)
+
+		sseClient, err := internal.BuildSSEClient(options)
+		if err != nil {
+			panic(err)
+		}
+
+		client = Client{options: &options, httpClient: httpClient, sseClient: sseClient, configStore: configStore, apiConfigStore: apiConfigStore, configResolver: configResolver, initializationComplete: make(chan struct{})}
+
+		client.boundClient = &boundClient{client: &client, context: options.GlobalContext}
+
+		go client.fetchFromServer(0, 0, func() {
+			go internal.StartSSEConnection(sseClient, apiConfigStore)
+		})
 	}
-
-	configStores = append(configStores, apiConfigStore)
-	if options.ConfigDirectory != nil {
-		configStores = append(configStores, internal.NewLocalConfigStore(*options.ConfigDirectory, &options))
-	}
-
-	configStore := internal.BuildCompositeConfigStore(configStores...)
-
-	configResolver := internal.NewConfigResolver(configStore, apiConfigStore)
-
-	sseClient, err := internal.BuildSSEClient(options)
-	if err != nil {
-		panic(err)
-	}
-
-	client := Client{options: &options, httpClient: httpClient, sseClient: sseClient, configStore: configStore, apiConfigStore: apiConfigStore, configResolver: configResolver, initializationComplete: make(chan struct{})}
-
-	client.boundClient = &boundClient{client: &client, context: options.GlobalContext}
-
-	go client.fetchFromServer(0, 0, func() {
-		go internal.StartSSEConnection(sseClient, apiConfigStore)
-	})
 
 	return &client, nil
 }
@@ -314,7 +336,7 @@ func (c *Client) GetConfigMatch(key string, contextSet ContextSet) (*ConfigMatch
 	return c.boundClient.GetConfigMatch(key, contextSet)
 }
 
-func (c *Client) GetConfigMatchFromConfig(config *prefabProto.Config, contextSet ContextSet, projectEnvID int64) (ConfigMatch, error) {
+func (c *Client) GetConfigMatchFromConfig(config *prefabProto.Config, dependencyConfigs *[]prefabProto.Config, contextSet ContextSet, projectEnvID int64) (ConfigMatch, error) {
 	if c.awaitInitialization() == TIMEOUT {
 		switch c.options.OnInitializationFailure {
 		case options.UNLOCK:
@@ -326,7 +348,7 @@ func (c *Client) GetConfigMatchFromConfig(config *prefabProto.Config, contextSet
 		}
 	}
 
-	return c.boundClient.GetConfigMatchFromConfig(config, contextSet, projectEnvID)
+	return c.boundClient.GetConfigMatchFromConfig(config, dependencyConfigs, contextSet, projectEnvID)
 }
 
 func (c *Client) Keys() ([]string, error) {
@@ -409,7 +431,7 @@ func (c *boundClient) GetStringValue(key string, contextSet contexts.ContextSet)
 }
 
 func (c *boundClient) GetJSONValue(key string, contextSet contexts.ContextSet) (interface{}, bool, error) {
-	value, ok, err := clientInternalGetValueFunc(key, c.context, contextSet, utils.ExtractJSONValue)(c)
+	value, ok, err := clientInternalGetValueFunc(key, c.context, contextSet, utils.ExtractJSONValueWithoutError)(c)
 
 	return value, ok, err
 }
@@ -540,8 +562,9 @@ func (c *boundClient) GetConfigMatch(key string, contextSet ContextSet) (*Config
 	return &getResult.match, nil
 }
 
-func (c *boundClient) GetConfigMatchFromConfig(config *prefabProto.Config, contextSet ContextSet, projectEnvID int64) (ConfigMatch, error) {
-	return c.client.configResolver.ResolveValueForConfig(config, &contextSet, config.GetKey(), projectEnvID)
+func (c *boundClient) GetConfigMatchFromConfig(config *prefabProto.Config, dependencyConfigs *[]prefabProto.Config, contextSet ContextSet, projectEnvID int64) (ConfigMatch, error) {
+
+	return c.client.configResolver.ResolveValueForConfig(config, &contextSet, config.GetKey())
 }
 
 func (c *Client) internalGetValue(key string, contextSet contexts.ContextSet) (resolutionResult, error) {
@@ -556,7 +579,7 @@ func (c *Client) internalGetValue(key string, contextSet contexts.ContextSet) (r
 		}
 	}
 
-	match, err := c.configResolver.ResolveValue(key, &contextSet, c.apiConfigStore.GetProjectEnvID())
+	match, err := c.configResolver.ResolveValue(key, &contextSet)
 	if err != nil {
 		return resolutionResultError(), err
 	}

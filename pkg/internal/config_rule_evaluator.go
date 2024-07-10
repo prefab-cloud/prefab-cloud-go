@@ -19,26 +19,28 @@ type ConditionMatch struct {
 }
 
 type ConfigRuleEvaluator struct {
-	configStore ConfigStoreGetter
+	configStore          ConfigStoreGetter
+	projectEnvIDSupplier ProjectEnvIDSupplier
 }
 
-func NewConfigRuleEvaluator(configStore ConfigStoreGetter) *ConfigRuleEvaluator {
+func NewConfigRuleEvaluator(configStore ConfigStoreGetter, projectEnvIDSupplier ProjectEnvIDSupplier) *ConfigRuleEvaluator {
 	return &ConfigRuleEvaluator{
-		configStore: configStore,
+		configStore:          configStore,
+		projectEnvIDSupplier: projectEnvIDSupplier,
 	}
 }
 
-func (cve *ConfigRuleEvaluator) EvaluateConfig(config *prefabProto.Config, contextSet ContextValueGetter, projectEnvID int64) ConditionMatch {
+func (cve *ConfigRuleEvaluator) EvaluateConfig(config *prefabProto.Config, contextSet ContextValueGetter) ConditionMatch {
 	// find the right row for the env id, then the no-env id row
 	// iterate over conditional values in rows
 	// evaluate criterion
 	noEnvRowIndex := 0
-	envRow, envRowExists := rowWithMatchingEnvID(config, projectEnvID)
+	envRow, envRowExists := rowWithMatchingEnvID(config, cve.projectEnvIDSupplier.GetProjectEnvID())
 
 	if envRowExists {
 		noEnvRowIndex = 1
 
-		match := cve.EvaluateRow(envRow, contextSet, 0, projectEnvID)
+		match := cve.EvaluateRow(envRow, contextSet, 0)
 		if match.IsMatch {
 			return match
 		}
@@ -46,7 +48,7 @@ func (cve *ConfigRuleEvaluator) EvaluateConfig(config *prefabProto.Config, conte
 
 	noEnvRow, noEnvRowExists := rowWithoutEnvID(config)
 	if noEnvRowExists {
-		match := cve.EvaluateRow(noEnvRow, contextSet, noEnvRowIndex, projectEnvID)
+		match := cve.EvaluateRow(noEnvRow, contextSet, noEnvRowIndex)
 		if match.IsMatch {
 			return match
 		}
@@ -55,12 +57,12 @@ func (cve *ConfigRuleEvaluator) EvaluateConfig(config *prefabProto.Config, conte
 	return ConditionMatch{IsMatch: false}
 }
 
-func (cve *ConfigRuleEvaluator) EvaluateRow(row *prefabProto.ConfigRow, contextSet ContextValueGetter, rowIndex int, projectEnvID int64) ConditionMatch {
+func (cve *ConfigRuleEvaluator) EvaluateRow(row *prefabProto.ConfigRow, contextSet ContextValueGetter, rowIndex int) ConditionMatch {
 	conditionMatch := ConditionMatch{}
 	conditionMatch.IsMatch = false
 
 	for conditionalValueIndex, conditionalValue := range row.GetValues() {
-		matchedValue, matched := cve.EvaluateConditionalValue(conditionalValue, contextSet, projectEnvID)
+		matchedValue, matched := cve.EvaluateConditionalValue(conditionalValue, contextSet)
 		if matched {
 			conditionMatch.IsMatch = true
 			conditionMatch.RowIndex = rowIndex
@@ -74,9 +76,9 @@ func (cve *ConfigRuleEvaluator) EvaluateRow(row *prefabProto.ConfigRow, contextS
 	return conditionMatch
 }
 
-func (cve *ConfigRuleEvaluator) EvaluateConditionalValue(conditionalValue *prefabProto.ConditionalValue, contextSet ContextValueGetter, projectEnvID int64) (*prefabProto.ConfigValue, bool) {
+func (cve *ConfigRuleEvaluator) EvaluateConditionalValue(conditionalValue *prefabProto.ConditionalValue, contextSet ContextValueGetter) (*prefabProto.ConfigValue, bool) {
 	for _, criterion := range conditionalValue.GetCriteria() {
-		if !cve.EvaluateCriterion(criterion, contextSet, projectEnvID) {
+		if !cve.EvaluateCriterion(criterion, contextSet) {
 			return nil, false
 		}
 	}
@@ -92,7 +94,7 @@ func contextValueToString(contextValue interface{}) string {
 	return fmt.Sprintf("%v", contextValue)
 }
 
-func (cve *ConfigRuleEvaluator) EvaluateCriterion(criterion *prefabProto.Criterion, contextSet ContextValueGetter, projectEnvID int64) bool {
+func (cve *ConfigRuleEvaluator) EvaluateCriterion(criterion *prefabProto.Criterion, contextSet ContextValueGetter) bool {
 	// get the value from context
 	contextValue, contextValueExists := contextSet.GetContextValue(criterion.GetPropertyName())
 	matchValue, _, err := utils.ExtractValue(criterion.GetValueToMatch())
@@ -166,7 +168,7 @@ func (cve *ConfigRuleEvaluator) EvaluateCriterion(criterion *prefabProto.Criteri
 					return criterion.GetOperator() == prefabProto.Criterion_NOT_IN_SEG
 				}
 
-				match := cve.EvaluateConfig(targetConfig, contextSet, projectEnvID)
+				match := cve.EvaluateConfig(targetConfig, contextSet)
 				if match.IsMatch {
 					matchConfigValue := match.Match
 					if _, boolExists := matchConfigValue.GetType().(*prefabProto.ConfigValue_Bool); boolExists {

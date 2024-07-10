@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/prefab-cloud/prefab-cloud-go/pkg/internal/contexts"
+	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
 )
 
 type Datasource int
@@ -31,10 +32,16 @@ const (
 	APIURLVar    = "PREFAB_API_URL"
 )
 
+type OfflineConfig struct {
+	Configs      []*prefabProto.Config
+	ProjectEnvID int64
+}
+
 type Options struct {
 	ConfigDirectory              *string
 	ConfigOverrideDirectory      *string
 	GlobalContext                *contexts.ContextSet
+	OfflineConfig                *OfflineConfig
 	APIKey                       string
 	APIUrl                       string
 	EnvironmentNames             []string

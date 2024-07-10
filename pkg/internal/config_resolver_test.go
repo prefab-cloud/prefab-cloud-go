@@ -69,8 +69,8 @@ type mockConfigEvaluator struct {
 	mock.Mock
 }
 
-func (m *mockConfigEvaluator) EvaluateConfig(config *prefabProto.Config, contextSet internal.ContextValueGetter, projectEnvID int64) internal.ConditionMatch {
-	args := m.Called(config, contextSet, projectEnvID)
+func (m *mockConfigEvaluator) EvaluateConfig(config *prefabProto.Config, contextSet internal.ContextValueGetter) internal.ConditionMatch {
+	args := m.Called(config, contextSet)
 
 	return args.Get(0).(internal.ConditionMatch)
 }
@@ -83,7 +83,7 @@ type mockConfigEvaluatorArgs struct {
 func newMockConfigEvaluator(args []mockConfigEvaluatorArgs) *mockConfigEvaluator {
 	mockInstance := &mockConfigEvaluator{}
 	for _, currArg := range args {
-		mockInstance.On("EvaluateConfig", currArg.config, mock.Anything, mock.Anything).Return(currArg.match)
+		mockInstance.On("EvaluateConfig", currArg.config, mock.Anything).Return(currArg.match)
 	}
 
 	return mockInstance
@@ -449,7 +449,7 @@ func TestConfigResolver_ResolveValue(t *testing.T) {
 				Decrypter:             mockDecrypter,
 			}
 
-			match, err := resolver.ResolveValue(testCase.configKey, mockContextGetter, 1)
+			match, err := resolver.ResolveValue(testCase.configKey, mockContextGetter)
 			if testCase.expectError {
 				assert.Error(t, err)
 			} else {
