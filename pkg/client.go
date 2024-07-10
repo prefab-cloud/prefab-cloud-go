@@ -24,6 +24,8 @@ type Option func(*options.Options) error
 
 type OnInitializationFailure = options.OnInitializationFailure
 
+type OfflineConfig = options.OfflineConfig
+
 type ContextSet = contexts.ContextSet
 
 type NamedContext = contexts.NamedContext
@@ -189,6 +191,10 @@ func NewClient(opts ...Option) (*Client, error) {
 		configResolver := internal.NewConfigResolver(configStore, offlineConfigStore, offlineConfigStore)
 
 		client = Client{options: &options, httpClient: httpClient, sseClient: nil, configStore: configStore, apiConfigStore: nil, configResolver: configResolver, initializationComplete: make(chan struct{})}
+
+		client.closeInitializationCompleteOnce.Do(func() {
+			close(client.initializationComplete)
+		})
 	} else {
 		apiConfigStore := internal.BuildAPIConfigStore()
 
@@ -212,12 +218,12 @@ func NewClient(opts ...Option) (*Client, error) {
 
 		client = Client{options: &options, httpClient: httpClient, sseClient: sseClient, configStore: configStore, apiConfigStore: apiConfigStore, configResolver: configResolver, initializationComplete: make(chan struct{})}
 
-		client.boundClient = &boundClient{client: &client, context: options.GlobalContext}
-
 		go client.fetchFromServer(0, 0, func() {
 			go internal.StartSSEConnection(sseClient, apiConfigStore)
 		})
 	}
+
+	client.boundClient = &boundClient{client: &client, context: options.GlobalContext}
 
 	return &client, nil
 }

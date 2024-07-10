@@ -177,7 +177,6 @@ func ExtractStringValue(cv *prefabProto.ConfigValue) (string, bool) {
 
 func ExtractJSONValueWithoutError(cv *prefabProto.ConfigValue) (interface{}, bool) {
 	jsonValue, ok, err := ExtractJSONValue(cv)
-
 	if err != nil {
 		return "", false
 	}
