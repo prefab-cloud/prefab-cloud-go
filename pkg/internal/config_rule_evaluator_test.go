@@ -227,6 +227,7 @@ func (suite *ConfigRuleTestSuite) TestPropIsOneOf() {
 	operator := prefabProto.Criterion_PROP_IS_ONE_OF
 	contextPropertyName := "user.email.domain"
 	defaultValueToMatch := testutils.CreateConfigValueAndAssertOk(suite.T(), []string{"yahoo.com", "example.com"})
+	alternateValueToMatch := testutils.CreateConfigValueAndAssertOk(suite.T(), []string{"1", "2", "3"})
 
 	tests := []struct {
 		name               string
@@ -240,6 +241,8 @@ func (suite *ConfigRuleTestSuite) TestPropIsOneOf() {
 		{"returns false when context value is not a string", defaultValueToMatch, 1, true, false},
 		{"returns false when context value does not exist", defaultValueToMatch, nil, false, false},
 		{"returns false when valueToMatch is not a string slice", testutils.CreateConfigValueAndAssertOk(suite.T(), "example.com"), "doesn't matter", true, false},
+		{"returns true when the string matches the slice", alternateValueToMatch, "2", true, true},
+		{"returns true when the non-string matches the slice (it is coerced)", alternateValueToMatch, 2, true, true},
 	}
 
 	for _, testCase := range tests {
@@ -258,6 +261,7 @@ func (suite *ConfigRuleTestSuite) TestPropIsNotOneOf() {
 	operator := prefabProto.Criterion_PROP_IS_NOT_ONE_OF
 	contextPropertyName := "user.email.domain"
 	defaultValueToMatch := testutils.CreateConfigValueAndAssertOk(suite.T(), []string{"yahoo.com", "example.com"})
+	alternateValueToMatch := testutils.CreateConfigValueAndAssertOk(suite.T(), []string{"1", "2", "3"})
 
 	tests := []struct {
 		name               string
@@ -271,6 +275,8 @@ func (suite *ConfigRuleTestSuite) TestPropIsNotOneOf() {
 		{"returns true when context value is not a string", defaultValueToMatch, 1, true, true},
 		{"returns true when context value does not exist", defaultValueToMatch, nil, false, true},
 		{"returns true when valueToMatch is not a string slice", testutils.CreateConfigValueAndAssertOk(suite.T(), "example.com"), "doesn't matter", true, true},
+		{"returns false when the string matches the slice", alternateValueToMatch, "2", true, false},
+		{"returns false when the non-string matches the slice (it is coerced)", alternateValueToMatch, 2, true, false},
 	}
 
 	for _, testCase := range tests {

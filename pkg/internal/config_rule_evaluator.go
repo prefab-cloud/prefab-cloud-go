@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"fmt"
 	"math"
 	"reflect"
 	"strings"
@@ -85,6 +86,14 @@ func (cve *ConfigRuleEvaluator) EvaluateConditionalValue(conditionalValue *prefa
 	return conditionalValue.GetValue(), true
 }
 
+func contextValueToString(contextValue interface{}) string {
+	if contextValue == nil {
+		return ""
+	}
+
+	return fmt.Sprintf("%v", contextValue)
+}
+
 func (cve *ConfigRuleEvaluator) EvaluateCriterion(criterion *prefabProto.Criterion, contextSet ContextValueGetter) bool {
 	// get the value from context
 	contextValue, contextValueExists := contextSet.GetContextValue(criterion.GetPropertyName())
@@ -97,36 +106,36 @@ func (cve *ConfigRuleEvaluator) EvaluateCriterion(criterion *prefabProto.Criteri
 		return true
 	case prefabProto.Criterion_PROP_ENDS_WITH_ONE_OF, prefabProto.Criterion_PROP_DOES_NOT_END_WITH_ONE_OF:
 		if err == nil && contextValueExists {
-			if stringContextValue, contextValueIsString := contextValue.(string); contextValueIsString {
-				if stringListMatchValue, ok := matchValue.([]string); ok {
-					// Check if the property value ends with any of the specified suffixes.
-					matchFound := endsWithAny(stringListMatchValue, stringContextValue)
-					// For ENDS_WITH_ONE_OF, return the result of endsWithAny directly.
-					// For DOES_NOT_END_WITH_ONE_OF, return the negation.
-					return matchFound == (criterion.GetOperator() == prefabProto.Criterion_PROP_ENDS_WITH_ONE_OF)
-				}
+			stringContextValue := contextValueToString(contextValue)
+
+			if stringListMatchValue, ok := matchValue.([]string); ok {
+				// Check if the property value ends with any of the specified suffixes.
+				matchFound := endsWithAny(stringListMatchValue, stringContextValue)
+				// For ENDS_WITH_ONE_OF, return the result of endsWithAny directly.
+				// For DOES_NOT_END_WITH_ONE_OF, return the negation.
+				return matchFound == (criterion.GetOperator() == prefabProto.Criterion_PROP_ENDS_WITH_ONE_OF)
 			}
 		}
 
 		return criterion.GetOperator() == prefabProto.Criterion_PROP_DOES_NOT_END_WITH_ONE_OF
 	case prefabProto.Criterion_PROP_IS_ONE_OF, prefabProto.Criterion_PROP_IS_NOT_ONE_OF:
 		if err == nil && contextValueExists {
-			if stringContextValue, contextValueIsString := contextValue.(string); contextValueIsString {
-				// Type assertion for matchValue as []string
-				if stringSliceMatchValue, matchValueIsStringSlice := matchValue.([]string); matchValueIsStringSlice {
-					// Check if stringContextValue is contained within stringSliceMatchValue
-					return stringInSlice(stringContextValue, stringSliceMatchValue) == (criterion.GetOperator() == prefabProto.Criterion_PROP_IS_ONE_OF)
-				}
+			stringContextValue := contextValueToString(contextValue)
+
+			// Type assertion for matchValue as []string
+			if stringSliceMatchValue, matchValueIsStringSlice := matchValue.([]string); matchValueIsStringSlice {
+				// Check if stringContextValue is contained within stringSliceMatchValue
+				return stringInSlice(stringContextValue, stringSliceMatchValue) == (criterion.GetOperator() == prefabProto.Criterion_PROP_IS_ONE_OF)
 			}
 		}
 
 		return criterion.GetOperator() == prefabProto.Criterion_PROP_IS_NOT_ONE_OF
 	case prefabProto.Criterion_HIERARCHICAL_MATCH:
 		if err == nil && contextValueExists {
-			if stringContextValue, contextValueIsString := contextValue.(string); contextValueIsString {
-				if stringMatchValue, matchValueIsString := matchValue.(string); matchValueIsString {
-					return strings.HasPrefix(stringContextValue, stringMatchValue)
-				}
+			stringContextValue := contextValueToString(contextValue)
+
+			if stringMatchValue, matchValueIsString := matchValue.(string); matchValueIsString {
+				return strings.HasPrefix(stringContextValue, stringMatchValue)
 			}
 		}
 
