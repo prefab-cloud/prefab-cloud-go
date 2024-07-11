@@ -6,16 +6,19 @@ import (
 	opts "github.com/prefab-cloud/prefab-cloud-go/pkg/options"
 )
 
-func BuildConfigStore(options opts.Options, source opts.ConfigSource, apiSourceFinishedLoading func()) (ConfigStoreGetter, error) {
+func BuildConfigStore(options opts.Options, source opts.ConfigSource, apiSourceFinishedLoading func()) (ConfigStoreGetter, bool, error) {
 	switch source.Store {
 	case opts.APIStore:
-		return NewAPIConfigStore(options, apiSourceFinishedLoading)
+		store, err := NewAPIConfigStore(options, apiSourceFinishedLoading)
+		return store, true, err
 	case opts.DataFile:
 		// TODO: handle JSON here too (based on file extension)
-		return NewLocalConfigStore(source.Path)
+		store, err := NewLocalConfigStore(source.Path)
+		return store, false, err
 	case opts.ConfigDump:
-		return NewConfigDumpConfigStore(source.Path)
+		store, err := NewConfigDumpConfigStore(source.Path)
+		return store, false, err
 	default:
-		return nil, fmt.Errorf("unknown store type %v", source.Store)
+		return nil, false, fmt.Errorf("unknown store type %v", source.Store)
 	}
 }

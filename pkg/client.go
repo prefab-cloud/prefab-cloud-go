@@ -95,11 +95,17 @@ func NewClient(opts ...Option) (*Client, error) {
 		})
 	}
 
+	anyAsync := false
+
 	for _, source := range options.Sources {
-		configStore, err := internal.BuildConfigStore(options, source, apiSourceFinishedLoading)
+		configStore, asyncInit, err := internal.BuildConfigStore(options, source, apiSourceFinishedLoading)
 
 		if err != nil {
 			return nil, err
+		}
+
+		if asyncInit {
+			anyAsync = true
 		}
 
 		configStores = append(configStores, configStore)
@@ -110,6 +116,12 @@ func NewClient(opts ...Option) (*Client, error) {
 	configResolver := internal.NewConfigResolver(configStore)
 
 	client = Client{options: &options, configStore: configStore, configResolver: configResolver, initializationComplete: make(chan struct{})}
+
+	if !anyAsync {
+		client.closeInitializationCompleteOnce.Do(func() {
+			close(client.initializationComplete)
+		})
+	}
 
 	client.boundClient = &boundClient{client: &client, context: options.GlobalContext}
 
