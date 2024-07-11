@@ -1,11 +1,17 @@
 package internal
 
 import (
+	"fmt"
+	"log/slog"
 	"sync"
+	"time"
 
 	"github.com/prefab-cloud/prefab-cloud-go/pkg/internal/contexts"
+	opts "github.com/prefab-cloud/prefab-cloud-go/pkg/options"
 	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
 )
+
+const maxRetries = 10
 
 type APIConfigStore struct {
 	configMap     map[string]*prefabProto.Config
@@ -13,16 +19,36 @@ type APIConfigStore struct {
 	highWatermark int64
 	projectEnvID  int64
 	sync.RWMutex
-	Initialized bool
+	Initialized     bool
+	httpClient      *HTTPClient
+	finishedLoading func()
 }
 
-func BuildAPIConfigStore() *APIConfigStore {
-	return &APIConfigStore{
-		configMap:     make(map[string]*prefabProto.Config),
-		Initialized:   false,
-		highWatermark: 0,
-		projectEnvID:  0,
+func NewAPIConfigStore(options opts.Options, finishedLoading func()) (*APIConfigStore, error) {
+	httpClient, err := BuildHTTPClient(options)
+	if err != nil {
+		panic(err)
 	}
+
+	sseClient, err := BuildSSEClient(options)
+	if err != nil {
+		panic(err)
+	}
+
+	store := &APIConfigStore{
+		configMap:       make(map[string]*prefabProto.Config),
+		Initialized:     false,
+		highWatermark:   0,
+		projectEnvID:    0,
+		httpClient:      httpClient,
+		finishedLoading: finishedLoading,
+	}
+
+	go store.fetchFromServer(0, func() {
+		go StartSSEConnection(sseClient, store)
+	})
+
+	return store, nil
 }
 
 func (cs *APIConfigStore) SetConfigs(configs []*prefabProto.Config, envID int64) {
@@ -96,4 +122,37 @@ func (cs *APIConfigStore) GetProjectEnvID() int64 {
 	defer cs.RUnlock()
 
 	return cs.projectEnvID
+}
+
+func (cs *APIConfigStore) fetchFromServer(retriesAttempted int, then func()) error {
+	configs, err := cs.httpClient.Load(cs.highWatermark)
+
+	if err != nil {
+		slog.Warn(fmt.Sprintf("unable to get data via http %v", err))
+
+		if retriesAttempted < maxRetries {
+			retryDelay := time.Duration(retriesAttempted) * time.Second
+
+			slog.Debug(fmt.Sprintf("retrying in %d seconds, attempt %d/%d", int(retryDelay.Seconds()), retriesAttempted+1, maxRetries))
+
+			time.Sleep(retryDelay)
+
+			cs.fetchFromServer(retriesAttempted+1, then)
+		} else {
+			slog.Error("max retries reached, giving up")
+			then()
+			return err
+		}
+
+		return nil
+	} else {
+		slog.Debug("Loaded configuration data")
+		cs.SetFromConfigsProto(configs)
+
+		cs.finishedLoading()
+
+		then()
+	}
+
+	return nil
 }

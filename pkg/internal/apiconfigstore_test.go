@@ -79,7 +79,7 @@ func TestApiConfigStore(t *testing.T) {
 	emptyConfigs := &prefabProto.Configs{}
 
 	t.Run("store initialized after set called and has two values", func(t *testing.T) {
-		store := internal.BuildAPIConfigStore()
+		store := internal.NewAPIConfigStore()
 		store.SetFromConfigsProto(configs)
 		assert.Equal(t, 2, store.Len())
 		assert.True(t, store.Initialized)
@@ -97,7 +97,7 @@ func TestApiConfigStore(t *testing.T) {
 	})
 
 	t.Run("store initialized with empty configs still marked initialized", func(t *testing.T) {
-		store := internal.BuildAPIConfigStore()
+		store := internal.NewAPIConfigStore()
 		store.SetFromConfigsProto(emptyConfigs)
 		assert.Equal(t, 0, store.Len())
 		assert.True(t, store.Initialized)
@@ -109,7 +109,7 @@ func TestApiConfigStore(t *testing.T) {
 	})
 
 	t.Run("updating with tombstoned config foo deletes", func(t *testing.T) {
-		store := internal.BuildAPIConfigStore()
+		store := internal.NewAPIConfigStore()
 		store.SetFromConfigsProto(configs)
 		assert.Equal(t, 2, store.Len())
 		assert.True(t, store.Initialized)
@@ -129,7 +129,7 @@ func TestApiConfigStore(t *testing.T) {
 	})
 
 	t.Run("updating with tombstoned config foo does nothing with smaller id", func(t *testing.T) {
-		store := internal.BuildAPIConfigStore()
+		store := internal.NewAPIConfigStore()
 		store.SetFromConfigsProto(configs)
 		assert.Equal(t, 2, store.Len())
 		assert.True(t, store.Initialized)
@@ -151,7 +151,7 @@ func TestApiConfigStore(t *testing.T) {
 	})
 
 	t.Run("updating with changed config foo does nothing with smaller id", func(t *testing.T) {
-		store := internal.BuildAPIConfigStore()
+		store := internal.NewAPIConfigStore()
 		store.SetFromConfigsProto(configs)
 		assert.Equal(t, 2, store.Len())
 		assert.True(t, store.Initialized)
@@ -173,7 +173,7 @@ func TestApiConfigStore(t *testing.T) {
 	})
 
 	t.Run("updating with changed config foo updates when id is larger", func(t *testing.T) {
-		store := internal.BuildAPIConfigStore()
+		store := internal.NewAPIConfigStore()
 		store.SetFromConfigsProto(configs)
 		assert.Equal(t, 2, store.Len())
 		assert.True(t, store.Initialized)

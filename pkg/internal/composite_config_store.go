@@ -30,6 +30,18 @@ func (s *CompositeConfigStore) GetConfig(key string) (*prefabProto.Config, bool)
 	return nil, false
 }
 
+func (cs *CompositeConfigStore) GetContextValue(propertyName string) (interface{}, bool) {
+	for _, store := range cs.stores {
+		value, valueExists := store.GetContextValue(propertyName)
+
+		if valueExists {
+			return value, valueExists
+		}
+	}
+
+	return nil, false
+}
+
 func (s *CompositeConfigStore) Keys() []string {
 	uniqueKeys := make(map[string]struct{})
 
@@ -45,4 +57,16 @@ func (s *CompositeConfigStore) Keys() []string {
 	}
 
 	return keys
+}
+
+func (cs *CompositeConfigStore) GetProjectEnvID() int64 {
+	for _, store := range cs.stores {
+		projectEnvID := store.GetProjectEnvID()
+
+		if projectEnvID != 0 {
+			return projectEnvID
+		}
+	}
+
+	return 0
 }

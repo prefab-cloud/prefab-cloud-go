@@ -33,7 +33,7 @@ func BuildHTTPClient(options options.Options) (*HTTPClient, error) {
 	return &client, nil
 }
 
-func (c *HTTPClient) Load(offset int32) (*prefabProto.Configs, error) {
+func (c *HTTPClient) Load(offset int64) (*prefabProto.Configs, error) {
 	apiKey, err := c.Options.APIKeySettingOrEnvVar()
 	if err != nil {
 		return nil, err
@@ -55,7 +55,7 @@ func (c *HTTPClient) Load(offset int32) (*prefabProto.Configs, error) {
 	return nil, errors.New("error loading configs from all URIs")
 }
 
-func (c *HTTPClient) LoadFromURI(uri string, apiKey string, offset int32) (*prefabProto.Configs, error) {
+func (c *HTTPClient) LoadFromURI(uri string, apiKey string, offset int64) (*prefabProto.Configs, error) {
 	slog.Debug("Getting data from " + uri)
 
 	// Perform the HTTP GET request

@@ -4,8 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"os/user"
-	"strings"
 
 	"github.com/prefab-cloud/prefab-cloud-go/pkg/internal/contexts"
 )
@@ -36,38 +34,12 @@ type Options struct {
 const timeoutDefault = 10.0
 
 var DefaultOptions = Options{
-	APIKey: "",
-	// TODO: deprecate this
+	APIKey:                       "",
 	APIUrl:                       "https://api.prefab.cloud",
 	InitializationTimeoutSeconds: timeoutDefault,
 	OnInitializationFailure:      RAISE,
-	EnvironmentNames:             getDefaultEnvironmentNames(),
 	GlobalContext:                contexts.NewContextSet(),
-}
-
-func getHomeDir() *string {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		usr, err := user.Current()
-		if err != nil {
-			fmt.Println(err)
-
-			return nil
-		}
-
-		homeDir = usr.HomeDir
-	}
-
-	return StringPtr(homeDir)
-}
-
-func getDefaultEnvironmentNames() []string {
-	envVar := os.Getenv("PREFAB_ENVS")
-	if envVar == "" {
-		return []string{}
-	}
-
-	return strings.Split(envVar, ",")
+	Sources:                      DefaultConfigSources,
 }
 
 func NewOptions(modifyFn func(*Options)) Options {

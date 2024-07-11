@@ -67,10 +67,8 @@ type boundClient struct {
 type Client struct {
 	boundClient                     *boundClient
 	options                         *options.Options
-	httpClient                      *internal.HTTPClient
 	sseClient                       *sse.Client
 	configStore                     internal.ConfigStoreGetter
-	apiConfigStore                  *internal.APIConfigStore
 	configResolver                  *internal.ConfigResolver
 	initializationComplete          chan struct{}
 	closeInitializationCompleteOnce sync.Once
@@ -89,92 +87,33 @@ func NewClient(opts ...Option) (*Client, error) {
 
 	slog.Debug("Initializing client", "options", options)
 
-	httpClient, err := internal.BuildHTTPClient(options)
-	if err != nil {
-		panic(err)
-	}
-
 	var configStores []internal.ConfigStoreGetter
 
-	// TODO: move towards the list of sources(/stores) approach
-	if options.OfflineConfig != nil {
-		offlineConfigStore := internal.NewOfflineConfigStore(*options.OfflineConfig)
-		configStores = append(configStores, offlineConfigStore)
-		configStore := internal.BuildCompositeConfigStore(configStores...)
-
-		configResolver := internal.NewConfigResolver(configStore, offlineConfigStore, offlineConfigStore)
-
-		client = Client{options: &options, httpClient: httpClient, sseClient: nil, configStore: configStore, apiConfigStore: nil, configResolver: configResolver, initializationComplete: make(chan struct{})}
-
+	apiSourceFinishedLoading := func() {
 		client.closeInitializationCompleteOnce.Do(func() {
 			close(client.initializationComplete)
 		})
-	} else {
-		apiConfigStore := internal.BuildAPIConfigStore()
-
-		if options.ConfigOverrideDirectory != nil {
-			configStores = append(configStores, internal.NewLocalConfigStore(*options.ConfigOverrideDirectory, &options))
-		}
-
-		configStores = append(configStores, apiConfigStore)
-		if options.ConfigDirectory != nil {
-			configStores = append(configStores, internal.NewLocalConfigStore(*options.ConfigDirectory, &options))
-		}
-
-		configStore := internal.BuildCompositeConfigStore(configStores...)
-
-		configResolver := internal.NewConfigResolver(configStore, apiConfigStore, apiConfigStore)
-
-		sseClient, err := internal.BuildSSEClient(options)
-		if err != nil {
-			panic(err)
-		}
-
-		client = Client{options: &options, httpClient: httpClient, sseClient: sseClient, configStore: configStore, apiConfigStore: apiConfigStore, configResolver: configResolver, initializationComplete: make(chan struct{})}
-
-		go client.fetchFromServer(0, 0, func() {
-			go internal.StartSSEConnection(sseClient, apiConfigStore)
-		})
 	}
+
+	for _, source := range options.Sources {
+		configStore, err := internal.BuildConfigStore(options, source, apiSourceFinishedLoading)
+
+		if err != nil {
+			return nil, err
+		}
+
+		configStores = append(configStores, configStore)
+	}
+
+	configStore := internal.BuildCompositeConfigStore(configStores...)
+
+	configResolver := internal.NewConfigResolver(configStore)
+
+	client = Client{options: &options, configStore: configStore, configResolver: configResolver, initializationComplete: make(chan struct{})}
 
 	client.boundClient = &boundClient{client: &client, context: options.GlobalContext}
 
 	return &client, nil
-}
-
-const maxRetries = 10
-
-func (c *Client) fetchFromServer(offset int32, retriesAttempted int, then func()) {
-	configs, err := c.httpClient.Load(offset)
-
-	if err != nil {
-		slog.Warn(fmt.Sprintf("unable to get data via http %v", err))
-
-		if retriesAttempted < maxRetries {
-			retryDelay := time.Duration(retriesAttempted) * time.Second
-
-			slog.Debug(fmt.Sprintf("retrying in %d seconds, attempt %d/%d", int(retryDelay.Seconds()), retriesAttempted+1, maxRetries))
-
-			time.Sleep(retryDelay)
-
-			c.fetchFromServer(offset, retriesAttempted+1, then)
-		} else {
-			slog.Error("max retries reached, giving up")
-			then()
-		}
-
-		return
-	} else {
-		slog.Debug("Loaded configuration data")
-
-		c.apiConfigStore.SetFromConfigsProto(configs)
-		c.closeInitializationCompleteOnce.Do(func() {
-			close(c.initializationComplete)
-		})
-		slog.Debug("Initialization complete called")
-
-		then()
-	}
 }
 
 func (c *Client) GetIntValue(key string, contextSet ContextSet) (int64, bool, error) {
@@ -454,7 +393,7 @@ func raw(cv *prefabProto.ConfigValue) (*prefabProto.ConfigValue, bool) {
 }
 
 func (c *boundClient) GetConfig(key string) (*prefabProto.Config, bool) {
-	return c.client.apiConfigStore.GetConfig(key)
+	return c.client.GetConfig(key)
 }
 
 func (c *boundClient) GetConfigMatch(key string, contextSet ContextSet) (*ConfigMatch, error) {

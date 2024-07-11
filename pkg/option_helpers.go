@@ -1,26 +1,26 @@
 package prefab
 
-import "github.com/prefab-cloud/prefab-cloud-go/pkg/options"
+import (
+	prefabInternalProto "github.com/prefab-cloud/prefab-cloud-go/internal-proto"
+	"github.com/prefab-cloud/prefab-cloud-go/pkg/options"
+)
 
 type Options = options.Options
 
 type Option func(*options.Options) error
 
-func withOfflineSources(sources []string) Option {
-	// TODO: ensure sources aren't already configured as withSources and this are mutually exclusive
-	return withSources(sources, true)
+type ConfigDump = prefabInternalProto.ConfigDump
+
+func WithOfflineSources(sources []string) Option {
+	return WithSources(sources, true)
 }
 
-func withSources(sources []string, excludeDefault bool) Option {
-	// TODO: ensure sources aren't already configured as withOfflineSources and this are mutually exclusive
-
+func WithSources(sources []string, excludeDefault bool) Option {
 	// some of these are their own datastore, some map to the same datastore (e.g. poll and sse)
 
 	// e.g.
 	// "datafile://secret-submodule/secrets.json",
 	// "datafile://this-project/project-config.json",
-	// "poll:cdn.prefab.cloud",
-	// "poll:api.prefab.cloud",
 	// "sse:sse.prefab.cloud"
 
 	return func(o *options.Options) error {

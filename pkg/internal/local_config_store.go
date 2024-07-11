@@ -4,31 +4,28 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
-	"path/filepath"
 
-	"github.com/prefab-cloud/prefab-cloud-go/pkg/options"
 	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
 )
 
 type LocalConfigStore struct {
-	configMap       map[string]*prefabProto.Config
-	sourceDirectory string
-	Initialized     bool
+	configMap   map[string]*prefabProto.Config
+	Initialized bool
 }
 
-func NewLocalConfigStore(sourceDirectory string, options *options.Options) *LocalConfigStore {
+func NewLocalConfigStore(path string) (*LocalConfigStore, error) {
 	configMap := make(map[string]*prefabProto.Config)
 
-	envNames := append([]string{"default"}, options.EnvironmentNames...)
-	for _, envName := range envNames {
-		file := filepath.Join(sourceDirectory, ".prefab."+envName+".config.yaml")
-		loadFileIntoMap(file, &configMap)
+	err := loadFileIntoMap(path, &configMap)
+
+	if err != nil {
+		return nil, err
 	}
 
-	return &LocalConfigStore{sourceDirectory: sourceDirectory, configMap: configMap, Initialized: true}
+	return &LocalConfigStore{configMap: configMap, Initialized: true}, nil
 }
 
-func loadFileIntoMap(filePath string, configmap *map[string]*prefabProto.Config) {
+func loadFileIntoMap(filePath string, configmap *map[string]*prefabProto.Config) error {
 	parser := &LocalConfigYamlParser{}
 
 	data, err := os.ReadFile(filePath)
@@ -37,17 +34,19 @@ func loadFileIntoMap(filePath string, configmap *map[string]*prefabProto.Config)
 			slog.Debug(fmt.Sprintf("File %s does not exist\n", filePath))
 		}
 
-		return
+		return err
 	}
 
 	configs, err := parser.Parse(data)
 	if err != nil {
-		return
+		return err
 	}
 
 	for _, config := range configs {
 		(*configmap)[config.GetKey()] = config
 	}
+
+	return nil
 }
 
 func (s *LocalConfigStore) GetConfig(key string) (*prefabProto.Config, bool) {
@@ -63,4 +62,12 @@ func (cs *LocalConfigStore) Keys() []string {
 	}
 
 	return keys
+}
+
+func (cs *LocalConfigStore) GetProjectEnvID() int64 {
+	return 0
+}
+
+func (cs *LocalConfigStore) GetContextValue(propertyName string) (value interface{}, valueExists bool) {
+	return nil, false
 }

@@ -1,28 +1,48 @@
 package options
 
+import (
+	"fmt"
+	"strings"
+)
+
 type ConfigSource struct {
-	// TODO: we can do better here
-	Store   interface{}
+	Store   StoreType
 	Raw     string
+	Path    string
 	Default bool
 }
 
 type StoreType string
 
 const (
-	APIStore StoreType = "API"
-	DataFile StoreType = "DataFile"
-	Poll     StoreType = "Poll"
-	// TODO: more? maybe something for the Proto/ConfigWrapper store?
+	APIStore   StoreType = "API"
+	DataFile   StoreType = "DataFile"
+	ConfigDump StoreType = "ConfigDump"
+	// TODO:
+	// Poll       StoreType = "Poll"
 )
 
 var DefaultConfigSources = []ConfigSource{
 	{Raw: "sse:prefab", Store: APIStore, Default: true},
-	{Raw: "https://api.prefab.cloud", Store: APIStore, Default: true},
+	{Raw: "api:prefab", Store: APIStore, Default: true},
 }
 
 func ParseConfigSource(rawSource string) (ConfigSource, error) {
-	// TODO: validate this and figure out the store
-	// We should probably check that a file exists for datafile, that the URL is valid for poll, etc.
-	return ConfigSource{Raw: rawSource, Default: false}, nil
+	parts := strings.Split(rawSource, ":")
+
+	if len(parts) < 2 {
+		return ConfigSource{}, fmt.Errorf("invalid source %s", rawSource)
+	}
+
+	protocol := parts[0]
+	path := parts[1]
+
+	switch protocol {
+	case "datafile":
+		return ConfigSource{Raw: rawSource, Store: DataFile, Default: false, Path: path}, nil
+	case "dump":
+		return ConfigSource{Raw: rawSource, Store: ConfigDump, Default: false, Path: path}, nil
+	}
+
+	return ConfigSource{}, fmt.Errorf("unknown protocol %s", protocol)
 }

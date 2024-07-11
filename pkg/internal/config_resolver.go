@@ -53,14 +53,14 @@ type ConfigResolver struct {
 	ContextGetter         ContextValueGetter
 }
 
-func NewConfigResolver(configStore ConfigStoreGetter, supplier ProjectEnvIDSupplier, apiContextGetter ContextValueGetter) *ConfigResolver {
+func NewConfigResolver(configStore ConfigStoreGetter) *ConfigResolver {
 	return &ConfigResolver{
 		ConfigStore:           configStore,
-		RuleEvaluator:         NewConfigRuleEvaluator(configStore, supplier),
+		RuleEvaluator:         NewConfigRuleEvaluator(configStore, configStore),
 		WeightedValueResolver: NewWeightedValueResolver(time.Now().UnixNano(), &Hashing{}),
 		Decrypter:             &Encryption{},
 		EnvLookup:             &RealEnvLookup{},
-		ContextGetter:         apiContextGetter,
+		ContextGetter:         configStore,
 	}
 }
 

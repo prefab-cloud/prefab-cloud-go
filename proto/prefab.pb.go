@@ -7,11 +7,10 @@
 package proto
 
 import (
-	reflect "reflect"
-	sync "sync"
-
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	reflect "reflect"
+	sync "sync"
 )
 
 const (
@@ -43,7 +42,6 @@ var (
 func (x ProvidedSource) Enum() *ProvidedSource {
 	p := new(ProvidedSource)
 	*p = x
-
 	return p
 }
 
@@ -105,7 +103,6 @@ var (
 func (x ConfigType) Enum() *ConfigType {
 	p := new(ConfigType)
 	*p = x
-
 	return p
 }
 
@@ -170,7 +167,6 @@ var (
 func (x LogLevel) Enum() *LogLevel {
 	p := new(LogLevel)
 	*p = x
-
 	return p
 }
 
@@ -223,7 +219,6 @@ var (
 func (x OnFailure) Enum() *OnFailure {
 	p := new(OnFailure)
 	*p = x
-
 	return p
 }
 
@@ -300,7 +295,6 @@ var (
 func (x Config_ValueType) Enum() *Config_ValueType {
 	p := new(Config_ValueType)
 	*p = x
-
 	return p
 }
 
@@ -377,7 +371,6 @@ var (
 func (x Criterion_CriterionOperator) Enum() *Criterion_CriterionOperator {
 	p := new(Criterion_CriterionOperator)
 	*p = x
-
 	return p
 }
 
@@ -442,7 +435,6 @@ var (
 func (x LimitResponse_LimitPolicyNames) Enum() *LimitResponse_LimitPolicyNames {
 	p := new(LimitResponse_LimitPolicyNames)
 	*p = x
-
 	return p
 }
 
@@ -492,7 +484,6 @@ var (
 func (x LimitRequest_LimitCombiner) Enum() *LimitRequest_LimitCombiner {
 	p := new(LimitRequest_LimitCombiner)
 	*p = x
-
 	return p
 }
 
@@ -542,7 +533,6 @@ var (
 func (x LimitDefinition_SafetyLevel) Enum() *LimitDefinition_SafetyLevel {
 	p := new(LimitDefinition_SafetyLevel)
 	*p = x
-
 	return p
 }
 
@@ -586,7 +576,6 @@ var (
 func (x ConfigEvaluationCounter_Reason) Enum() *ConfigEvaluationCounter_Reason {
 	p := new(ConfigEvaluationCounter_Reason)
 	*p = x
-
 	return p
 }
 
@@ -623,7 +612,6 @@ type ConfigServicePointer struct {
 
 func (x *ConfigServicePointer) Reset() {
 	*x = ConfigServicePointer{}
-
 	if protoimpl.UnsafeEnabled {
 		mi := &file_prefab_proto_msgTypes[0]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -639,16 +627,13 @@ func (*ConfigServicePointer) ProtoMessage() {}
 
 func (x *ConfigServicePointer) ProtoReflect() protoreflect.Message {
 	mi := &file_prefab_proto_msgTypes[0]
-
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
 			ms.StoreMessageInfo(mi)
 		}
-
 		return ms
 	}
-
 	return mi.MessageOf(x)
 }
 
@@ -661,7 +646,6 @@ func (x *ConfigServicePointer) GetProjectId() int64 {
 	if x != nil {
 		return x.ProjectId
 	}
-
 	return 0
 }
 
@@ -669,7 +653,6 @@ func (x *ConfigServicePointer) GetStartAtId() int64 {
 	if x != nil {
 		return x.StartAtId
 	}
-
 	return 0
 }
 
@@ -677,7 +660,6 @@ func (x *ConfigServicePointer) GetProjectEnvId() int64 {
 	if x != nil {
 		return x.ProjectEnvId
 	}
-
 	return 0
 }
 
@@ -708,7 +690,6 @@ type ConfigValue struct {
 
 func (x *ConfigValue) Reset() {
 	*x = ConfigValue{}
-
 	if protoimpl.UnsafeEnabled {
 		mi := &file_prefab_proto_msgTypes[1]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -724,16 +705,13 @@ func (*ConfigValue) ProtoMessage() {}
 
 func (x *ConfigValue) ProtoReflect() protoreflect.Message {
 	mi := &file_prefab_proto_msgTypes[1]
-
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
 			ms.StoreMessageInfo(mi)
 		}
-
 		return ms
 	}
-
 	return mi.MessageOf(x)
 }
 
@@ -746,7 +724,6 @@ func (m *ConfigValue) GetType() isConfigValue_Type {
 	if m != nil {
 		return m.Type
 	}
-
 	return nil
 }
 
@@ -754,7 +731,6 @@ func (x *ConfigValue) GetInt() int64 {
 	if x, ok := x.GetType().(*ConfigValue_Int); ok {
 		return x.Int
 	}
-
 	return 0
 }
 
@@ -762,7 +738,6 @@ func (x *ConfigValue) GetString_() string {
 	if x, ok := x.GetType().(*ConfigValue_String_); ok {
 		return x.String_
 	}
-
 	return ""
 }
 
@@ -770,7 +745,6 @@ func (x *ConfigValue) GetBytes() []byte {
 	if x, ok := x.GetType().(*ConfigValue_Bytes); ok {
 		return x.Bytes
 	}
-
 	return nil
 }
 
@@ -778,7 +752,6 @@ func (x *ConfigValue) GetDouble() float64 {
 	if x, ok := x.GetType().(*ConfigValue_Double); ok {
 		return x.Double
 	}
-
 	return 0
 }
 
@@ -786,7 +759,6 @@ func (x *ConfigValue) GetBool() bool {
 	if x, ok := x.GetType().(*ConfigValue_Bool); ok {
 		return x.Bool
 	}
-
 	return false
 }
 
@@ -794,7 +766,6 @@ func (x *ConfigValue) GetWeightedValues() *WeightedValues {
 	if x, ok := x.GetType().(*ConfigValue_WeightedValues); ok {
 		return x.WeightedValues
 	}
-
 	return nil
 }
 
@@ -802,7 +773,6 @@ func (x *ConfigValue) GetLimitDefinition() *LimitDefinition {
 	if x, ok := x.GetType().(*ConfigValue_LimitDefinition); ok {
 		return x.LimitDefinition
 	}
-
 	return nil
 }
 
@@ -810,7 +780,6 @@ func (x *ConfigValue) GetLogLevel() LogLevel {
 	if x, ok := x.GetType().(*ConfigValue_LogLevel); ok {
 		return x.LogLevel
 	}
-
 	return LogLevel_NOT_SET_LOG_LEVEL
 }
 
@@ -818,7 +787,6 @@ func (x *ConfigValue) GetStringList() *StringList {
 	if x, ok := x.GetType().(*ConfigValue_StringList); ok {
 		return x.StringList
 	}
-
 	return nil
 }
 
@@ -826,7 +794,6 @@ func (x *ConfigValue) GetIntRange() *IntRange {
 	if x, ok := x.GetType().(*ConfigValue_IntRange); ok {
 		return x.IntRange
 	}
-
 	return nil
 }
 
@@ -834,7 +801,6 @@ func (x *ConfigValue) GetProvided() *Provided {
 	if x, ok := x.GetType().(*ConfigValue_Provided); ok {
 		return x.Provided
 	}
-
 	return nil
 }
 
@@ -842,7 +808,6 @@ func (x *ConfigValue) GetDuration() *IsoDuration {
 	if x, ok := x.GetType().(*ConfigValue_Duration); ok {
 		return x.Duration
 	}
-
 	return nil
 }
 
@@ -850,7 +815,6 @@ func (x *ConfigValue) GetJson() *Json {
 	if x, ok := x.GetType().(*ConfigValue_Json); ok {
 		return x.Json
 	}
-
 	return nil
 }
 
@@ -858,7 +822,6 @@ func (x *ConfigValue) GetConfidential() bool {
 	if x != nil && x.Confidential != nil {
 		return *x.Confidential
 	}
-
 	return false
 }
 
@@ -866,7 +829,6 @@ func (x *ConfigValue) GetDecryptWith() string {
 	if x != nil && x.DecryptWith != nil {
 		return *x.DecryptWith
 	}
-
 	return ""
 }
 
@@ -962,7 +924,6 @@ type Json struct {
 
 func (x *Json) Reset() {
 	*x = Json{}
-
 	if protoimpl.UnsafeEnabled {
 		mi := &file_prefab_proto_msgTypes[2]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -978,16 +939,13 @@ func (*Json) ProtoMessage() {}
 
 func (x *Json) ProtoReflect() protoreflect.Message {
 	mi := &file_prefab_proto_msgTypes[2]
-
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
 			ms.StoreMessageInfo(mi)
 		}
-
 		return ms
 	}
-
 	return mi.MessageOf(x)
 }
 
@@ -1000,7 +958,6 @@ func (x *Json) GetJson() string {
 	if x != nil {
 		return x.Json
 	}
-
 	return ""
 }
 
@@ -1014,7 +971,6 @@ type IsoDuration struct {
 
 func (x *IsoDuration) Reset() {
 	*x = IsoDuration{}
-
 	if protoimpl.UnsafeEnabled {
 		mi := &file_prefab_proto_msgTypes[3]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1030,16 +986,13 @@ func (*IsoDuration) ProtoMessage() {}
 
 func (x *IsoDuration) ProtoReflect() protoreflect.Message {
 	mi := &file_prefab_proto_msgTypes[3]
-
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
 			ms.StoreMessageInfo(mi)
 		}
-
 		return ms
 	}
-
 	return mi.MessageOf(x)
 }
 
@@ -1052,7 +1005,6 @@ func (x *IsoDuration) GetDefinition() string {
 	if x != nil {
 		return x.Definition
 	}
-
 	return ""
 }
 
@@ -1067,7 +1019,6 @@ type Provided struct {
 
 func (x *Provided) Reset() {
 	*x = Provided{}
-
 	if protoimpl.UnsafeEnabled {
 		mi := &file_prefab_proto_msgTypes[4]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1083,16 +1034,13 @@ func (*Provided) ProtoMessage() {}
 
 func (x *Provided) ProtoReflect() protoreflect.Message {
 	mi := &file_prefab_proto_msgTypes[4]
-
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
 			ms.StoreMessageInfo(mi)
 		}
-
 		return ms
 	}
-
 	return mi.MessageOf(x)
 }
 
@@ -1105,7 +1053,6 @@ func (x *Provided) GetSource() ProvidedSource {
 	if x != nil && x.Source != nil {
 		return *x.Source
 	}
-
 	return ProvidedSource_PROVIDED_SOURCE_NOT_SET
 }
 
@@ -1113,7 +1060,6 @@ func (x *Provided) GetLookup() string {
 	if x != nil && x.Lookup != nil {
 		return *x.Lookup
 	}
-
 	return ""
 }
 
@@ -1128,7 +1074,6 @@ type IntRange struct {
 
 func (x *IntRange) Reset() {
 	*x = IntRange{}
-
 	if protoimpl.UnsafeEnabled {
 		mi := &file_prefab_proto_msgTypes[5]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1144,16 +1089,13 @@ func (*IntRange) ProtoMessage() {}
 
 func (x *IntRange) ProtoReflect() protoreflect.Message {
 	mi := &file_prefab_proto_msgTypes[5]
-
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
 			ms.StoreMessageInfo(mi)
 		}
-
 		return ms
 	}
-
 	return mi.MessageOf(x)
 }
 
@@ -1166,7 +1108,6 @@ func (x *IntRange) GetStart() int64 {
 	if x != nil && x.Start != nil {
 		return *x.Start
 	}
-
 	return 0
 }
 
@@ -1174,7 +1115,6 @@ func (x *IntRange) GetEnd() int64 {
 	if x != nil && x.End != nil {
 		return *x.End
 	}
-
 	return 0
 }
 
@@ -1188,7 +1128,6 @@ type StringList struct {
 
 func (x *StringList) Reset() {
 	*x = StringList{}
-
 	if protoimpl.UnsafeEnabled {
 		mi := &file_prefab_proto_msgTypes[6]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1204,16 +1143,13 @@ func (*StringList) ProtoMessage() {}
 
 func (x *StringList) ProtoReflect() protoreflect.Message {
 	mi := &file_prefab_proto_msgTypes[6]
-
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
 			ms.StoreMessageInfo(mi)
 		}
-
 		return ms
 	}
-
 	return mi.MessageOf(x)
 }
 
@@ -1226,7 +1162,6 @@ func (x *StringList) GetValues() []string {
 	if x != nil {
 		return x.Values
 	}
-
 	return nil
 }
 
@@ -1241,7 +1176,6 @@ type WeightedValue struct {
 
 func (x *WeightedValue) Reset() {
 	*x = WeightedValue{}
-
 	if protoimpl.UnsafeEnabled {
 		mi := &file_prefab_proto_msgTypes[7]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1257,16 +1191,13 @@ func (*WeightedValue) ProtoMessage() {}
 
 func (x *WeightedValue) ProtoReflect() protoreflect.Message {
 	mi := &file_prefab_proto_msgTypes[7]
-
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
 			ms.StoreMessageInfo(mi)
 		}
-
 		return ms
 	}
-
 	return mi.MessageOf(x)
 }
 
@@ -1279,7 +1210,6 @@ func (x *WeightedValue) GetWeight() int32 {
 	if x != nil {
 		return x.Weight
 	}
-
 	return 0
 }
 
@@ -1287,7 +1217,6 @@ func (x *WeightedValue) GetValue() *ConfigValue {
 	if x != nil {
 		return x.Value
 	}
-
 	return nil
 }
 
@@ -1302,7 +1231,6 @@ type WeightedValues struct {
 
 func (x *WeightedValues) Reset() {
 	*x = WeightedValues{}
-
 	if protoimpl.UnsafeEnabled {
 		mi := &file_prefab_proto_msgTypes[8]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1318,16 +1246,13 @@ func (*WeightedValues) ProtoMessage() {}
 
 func (x *WeightedValues) ProtoReflect() protoreflect.Message {
 	mi := &file_prefab_proto_msgTypes[8]
-
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
 			ms.StoreMessageInfo(mi)
 		}
-
 		return ms
 	}
-
 	return mi.MessageOf(x)
 }
 
@@ -1340,7 +1265,6 @@ func (x *WeightedValues) GetWeightedValues() []*WeightedValue {
 	if x != nil {
 		return x.WeightedValues
 	}
-
 	return nil
 }
 
@@ -1348,7 +1272,6 @@ func (x *WeightedValues) GetHashByPropertyName() string {
 	if x != nil && x.HashByPropertyName != nil {
 		return *x.HashByPropertyName
 	}
-
 	return ""
 }
 
@@ -1363,7 +1286,6 @@ type ApiKeyMetadata struct {
 
 func (x *ApiKeyMetadata) Reset() {
 	*x = ApiKeyMetadata{}
-
 	if protoimpl.UnsafeEnabled {
 		mi := &file_prefab_proto_msgTypes[9]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1379,16 +1301,13 @@ func (*ApiKeyMetadata) ProtoMessage() {}
 
 func (x *ApiKeyMetadata) ProtoReflect() protoreflect.Message {
 	mi := &file_prefab_proto_msgTypes[9]
-
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
 			ms.StoreMessageInfo(mi)
 		}
-
 		return ms
 	}
-
 	return mi.MessageOf(x)
 }
 
@@ -1401,7 +1320,6 @@ func (x *ApiKeyMetadata) GetKeyId() string {
 	if x != nil && x.KeyId != nil {
 		return *x.KeyId
 	}
-
 	return ""
 }
 
@@ -1409,7 +1327,6 @@ func (x *ApiKeyMetadata) GetUserId() string {
 	if x != nil && x.UserId != nil {
 		return *x.UserId
 	}
-
 	return ""
 }
 
@@ -1427,7 +1344,6 @@ type Configs struct {
 
 func (x *Configs) Reset() {
 	*x = Configs{}
-
 	if protoimpl.UnsafeEnabled {
 		mi := &file_prefab_proto_msgTypes[10]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1443,16 +1359,13 @@ func (*Configs) ProtoMessage() {}
 
 func (x *Configs) ProtoReflect() protoreflect.Message {
 	mi := &file_prefab_proto_msgTypes[10]
-
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
 			ms.StoreMessageInfo(mi)
 		}
-
 		return ms
 	}
-
 	return mi.MessageOf(x)
 }
 
@@ -1465,7 +1378,6 @@ func (x *Configs) GetConfigs() []*Config {
 	if x != nil {
 		return x.Configs
 	}
-
 	return nil
 }
 
@@ -1473,7 +1385,6 @@ func (x *Configs) GetConfigServicePointer() *ConfigServicePointer {
 	if x != nil {
 		return x.ConfigServicePointer
 	}
-
 	return nil
 }
 
@@ -1481,7 +1392,6 @@ func (x *Configs) GetApikeyMetadata() *ApiKeyMetadata {
 	if x != nil {
 		return x.ApikeyMetadata
 	}
-
 	return nil
 }
 
@@ -1489,7 +1399,6 @@ func (x *Configs) GetDefaultContext() *ContextSet {
 	if x != nil {
 		return x.DefaultContext
 	}
-
 	return nil
 }
 
@@ -1497,7 +1406,6 @@ func (x *Configs) GetKeepAlive() bool {
 	if x != nil && x.KeepAlive != nil {
 		return *x.KeepAlive
 	}
-
 	return false
 }
 
@@ -1520,7 +1428,6 @@ type Config struct {
 
 func (x *Config) Reset() {
 	*x = Config{}
-
 	if protoimpl.UnsafeEnabled {
 		mi := &file_prefab_proto_msgTypes[11]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1536,16 +1443,13 @@ func (*Config) ProtoMessage() {}
 
 func (x *Config) ProtoReflect() protoreflect.Message {
 	mi := &file_prefab_proto_msgTypes[11]
-
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
 			ms.StoreMessageInfo(mi)
 		}
-
 		return ms
 	}
-
 	return mi.MessageOf(x)
 }
 
@@ -1558,7 +1462,6 @@ func (x *Config) GetId() int64 {
 	if x != nil {
 		return x.Id
 	}
-
 	return 0
 }
 
@@ -1566,7 +1469,6 @@ func (x *Config) GetProjectId() int64 {
 	if x != nil {
 		return x.ProjectId
 	}
-
 	return 0
 }
 
@@ -1574,7 +1476,6 @@ func (x *Config) GetKey() string {
 	if x != nil {
 		return x.Key
 	}
-
 	return ""
 }
 
@@ -1582,7 +1483,6 @@ func (x *Config) GetChangedBy() *ChangedBy {
 	if x != nil {
 		return x.ChangedBy
 	}
-
 	return nil
 }
 
@@ -1590,7 +1490,6 @@ func (x *Config) GetRows() []*ConfigRow {
 	if x != nil {
 		return x.Rows
 	}
-
 	return nil
 }
 
@@ -1598,7 +1497,6 @@ func (x *Config) GetAllowableValues() []*ConfigValue {
 	if x != nil {
 		return x.AllowableValues
 	}
-
 	return nil
 }
 
@@ -1606,7 +1504,6 @@ func (x *Config) GetConfigType() ConfigType {
 	if x != nil {
 		return x.ConfigType
 	}
-
 	return ConfigType_NOT_SET_CONFIG_TYPE
 }
 
@@ -1614,7 +1511,6 @@ func (x *Config) GetDraftId() int64 {
 	if x != nil && x.DraftId != nil {
 		return *x.DraftId
 	}
-
 	return 0
 }
 
@@ -1622,7 +1518,6 @@ func (x *Config) GetValueType() Config_ValueType {
 	if x != nil {
 		return x.ValueType
 	}
-
 	return Config_NOT_SET_VALUE_TYPE
 }
 
@@ -1630,7 +1525,6 @@ func (x *Config) GetSendToClientSdk() bool {
 	if x != nil {
 		return x.SendToClientSdk
 	}
-
 	return false
 }
 
@@ -1646,7 +1540,6 @@ type ChangedBy struct {
 
 func (x *ChangedBy) Reset() {
 	*x = ChangedBy{}
-
 	if protoimpl.UnsafeEnabled {
 		mi := &file_prefab_proto_msgTypes[12]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1662,16 +1555,13 @@ func (*ChangedBy) ProtoMessage() {}
 
 func (x *ChangedBy) ProtoReflect() protoreflect.Message {
 	mi := &file_prefab_proto_msgTypes[12]
-
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
 			ms.StoreMessageInfo(mi)
 		}
-
 		return ms
 	}
-
 	return mi.MessageOf(x)
 }
 
@@ -1684,7 +1574,6 @@ func (x *ChangedBy) GetUserId() int64 {
 	if x != nil {
 		return x.UserId
 	}
-
 	return 0
 }
 
@@ -1692,7 +1581,6 @@ func (x *ChangedBy) GetEmail() string {
 	if x != nil {
 		return x.Email
 	}
-
 	return ""
 }
 
@@ -1700,7 +1588,6 @@ func (x *ChangedBy) GetApiKeyId() string {
 	if x != nil {
 		return x.ApiKeyId
 	}
-
 	return ""
 }
 
@@ -1716,7 +1603,6 @@ type ConfigRow struct {
 
 func (x *ConfigRow) Reset() {
 	*x = ConfigRow{}
-
 	if protoimpl.UnsafeEnabled {
 		mi := &file_prefab_proto_msgTypes[13]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1732,16 +1618,13 @@ func (*ConfigRow) ProtoMessage() {}
 
 func (x *ConfigRow) ProtoReflect() protoreflect.Message {
 	mi := &file_prefab_proto_msgTypes[13]
-
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
 			ms.StoreMessageInfo(mi)
 		}
-
 		return ms
 	}
-
 	return mi.MessageOf(x)
 }
 
@@ -1754,7 +1637,6 @@ func (x *ConfigRow) GetProjectEnvId() int64 {
 	if x != nil && x.ProjectEnvId != nil {
 		return *x.ProjectEnvId
 	}
-
 	return 0
 }
 
@@ -1762,7 +1644,6 @@ func (x *ConfigRow) GetValues() []*ConditionalValue {
 	if x != nil {
 		return x.Values
 	}
-
 	return nil
 }
 
@@ -1770,7 +1651,6 @@ func (x *ConfigRow) GetProperties() map[string]*ConfigValue {
 	if x != nil {
 		return x.Properties
 	}
-
 	return nil
 }
 
@@ -1785,7 +1665,6 @@ type ConditionalValue struct {
 
 func (x *ConditionalValue) Reset() {
 	*x = ConditionalValue{}
-
 	if protoimpl.UnsafeEnabled {
 		mi := &file_prefab_proto_msgTypes[14]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1801,16 +1680,13 @@ func (*ConditionalValue) ProtoMessage() {}
 
 func (x *ConditionalValue) ProtoReflect() protoreflect.Message {
 	mi := &file_prefab_proto_msgTypes[14]
-
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
 			ms.StoreMessageInfo(mi)
 		}
-
 		return ms
 	}
-
 	return mi.MessageOf(x)
 }
 
@@ -1823,7 +1699,6 @@ func (x *ConditionalValue) GetCriteria() []*Criterion {
 	if x != nil {
 		return x.Criteria
 	}
-
 	return nil
 }
 
@@ -1831,7 +1706,6 @@ func (x *ConditionalValue) GetValue() *ConfigValue {
 	if x != nil {
 		return x.Value
 	}
-
 	return nil
 }
 
@@ -1847,7 +1721,6 @@ type Criterion struct {
 
 func (x *Criterion) Reset() {
 	*x = Criterion{}
-
 	if protoimpl.UnsafeEnabled {
 		mi := &file_prefab_proto_msgTypes[15]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1863,16 +1736,13 @@ func (*Criterion) ProtoMessage() {}
 
 func (x *Criterion) ProtoReflect() protoreflect.Message {
 	mi := &file_prefab_proto_msgTypes[15]
-
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
 			ms.StoreMessageInfo(mi)
 		}
-
 		return ms
 	}
-
 	return mi.MessageOf(x)
 }
 
@@ -1885,7 +1755,6 @@ func (x *Criterion) GetPropertyName() string {
 	if x != nil {
 		return x.PropertyName
 	}
-
 	return ""
 }
 
@@ -1893,7 +1762,6 @@ func (x *Criterion) GetOperator() Criterion_CriterionOperator {
 	if x != nil {
 		return x.Operator
 	}
-
 	return Criterion_NOT_SET
 }
 
@@ -1901,7 +1769,6 @@ func (x *Criterion) GetValueToMatch() *ConfigValue {
 	if x != nil {
 		return x.ValueToMatch
 	}
-
 	return nil
 }
 
@@ -1919,7 +1786,6 @@ type Loggers struct {
 
 func (x *Loggers) Reset() {
 	*x = Loggers{}
-
 	if protoimpl.UnsafeEnabled {
 		mi := &file_prefab_proto_msgTypes[16]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1935,16 +1801,13 @@ func (*Loggers) ProtoMessage() {}
 
 func (x *Loggers) ProtoReflect() protoreflect.Message {
 	mi := &file_prefab_proto_msgTypes[16]
-
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
 			ms.StoreMessageInfo(mi)
 		}
-
 		return ms
 	}
-
 	return mi.MessageOf(x)
 }
 
@@ -1957,7 +1820,6 @@ func (x *Loggers) GetLoggers() []*Logger {
 	if x != nil {
 		return x.Loggers
 	}
-
 	return nil
 }
 
@@ -1965,7 +1827,6 @@ func (x *Loggers) GetStartAt() int64 {
 	if x != nil {
 		return x.StartAt
 	}
-
 	return 0
 }
 
@@ -1973,7 +1834,6 @@ func (x *Loggers) GetEndAt() int64 {
 	if x != nil {
 		return x.EndAt
 	}
-
 	return 0
 }
 
@@ -1981,7 +1841,6 @@ func (x *Loggers) GetInstanceHash() string {
 	if x != nil {
 		return x.InstanceHash
 	}
-
 	return ""
 }
 
@@ -1989,7 +1848,6 @@ func (x *Loggers) GetNamespace() string {
 	if x != nil && x.Namespace != nil {
 		return *x.Namespace
 	}
-
 	return ""
 }
 
@@ -2009,7 +1867,6 @@ type Logger struct {
 
 func (x *Logger) Reset() {
 	*x = Logger{}
-
 	if protoimpl.UnsafeEnabled {
 		mi := &file_prefab_proto_msgTypes[17]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -2025,16 +1882,13 @@ func (*Logger) ProtoMessage() {}
 
 func (x *Logger) ProtoReflect() protoreflect.Message {
 	mi := &file_prefab_proto_msgTypes[17]
-
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
 			ms.StoreMessageInfo(mi)
 		}
-
 		return ms
 	}
-
 	return mi.MessageOf(x)
 }
 
@@ -2047,7 +1901,6 @@ func (x *Logger) GetLoggerName() string {
 	if x != nil {
 		return x.LoggerName
 	}
-
 	return ""
 }
 
@@ -2055,7 +1908,6 @@ func (x *Logger) GetTraces() int64 {
 	if x != nil && x.Traces != nil {
 		return *x.Traces
 	}
-
 	return 0
 }
 
@@ -2063,7 +1915,6 @@ func (x *Logger) GetDebugs() int64 {
 	if x != nil && x.Debugs != nil {
 		return *x.Debugs
 	}
-
 	return 0
 }
 
@@ -2071,7 +1922,6 @@ func (x *Logger) GetInfos() int64 {
 	if x != nil && x.Infos != nil {
 		return *x.Infos
 	}
-
 	return 0
 }
 
@@ -2079,7 +1929,6 @@ func (x *Logger) GetWarns() int64 {
 	if x != nil && x.Warns != nil {
 		return *x.Warns
 	}
-
 	return 0
 }
 
@@ -2087,7 +1936,6 @@ func (x *Logger) GetErrors() int64 {
 	if x != nil && x.Errors != nil {
 		return *x.Errors
 	}
-
 	return 0
 }
 
@@ -2095,7 +1943,6 @@ func (x *Logger) GetFatals() int64 {
 	if x != nil && x.Fatals != nil {
 		return *x.Fatals
 	}
-
 	return 0
 }
 
@@ -2107,7 +1954,6 @@ type LoggerReportResponse struct {
 
 func (x *LoggerReportResponse) Reset() {
 	*x = LoggerReportResponse{}
-
 	if protoimpl.UnsafeEnabled {
 		mi := &file_prefab_proto_msgTypes[18]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -2123,16 +1969,13 @@ func (*LoggerReportResponse) ProtoMessage() {}
 
 func (x *LoggerReportResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_prefab_proto_msgTypes[18]
-
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
 			ms.StoreMessageInfo(mi)
 		}
-
 		return ms
 	}
-
 	return mi.MessageOf(x)
 }
 
@@ -2160,7 +2003,6 @@ type LimitResponse struct {
 
 func (x *LimitResponse) Reset() {
 	*x = LimitResponse{}
-
 	if protoimpl.UnsafeEnabled {
 		mi := &file_prefab_proto_msgTypes[19]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -2176,16 +2018,13 @@ func (*LimitResponse) ProtoMessage() {}
 
 func (x *LimitResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_prefab_proto_msgTypes[19]
-
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
 			ms.StoreMessageInfo(mi)
 		}
-
 		return ms
 	}
-
 	return mi.MessageOf(x)
 }
 
@@ -2198,7 +2037,6 @@ func (x *LimitResponse) GetPassed() bool {
 	if x != nil {
 		return x.Passed
 	}
-
 	return false
 }
 
@@ -2206,7 +2044,6 @@ func (x *LimitResponse) GetExpiresAt() int64 {
 	if x != nil {
 		return x.ExpiresAt
 	}
-
 	return 0
 }
 
@@ -2214,7 +2051,6 @@ func (x *LimitResponse) GetEnforcedGroup() string {
 	if x != nil {
 		return x.EnforcedGroup
 	}
-
 	return ""
 }
 
@@ -2222,7 +2058,6 @@ func (x *LimitResponse) GetCurrentBucket() int64 {
 	if x != nil {
 		return x.CurrentBucket
 	}
-
 	return 0
 }
 
@@ -2230,7 +2065,6 @@ func (x *LimitResponse) GetPolicyGroup() string {
 	if x != nil {
 		return x.PolicyGroup
 	}
-
 	return ""
 }
 
@@ -2238,7 +2072,6 @@ func (x *LimitResponse) GetPolicyName() LimitResponse_LimitPolicyNames {
 	if x != nil {
 		return x.PolicyName
 	}
-
 	return LimitResponse_NOT_SET
 }
 
@@ -2246,7 +2079,6 @@ func (x *LimitResponse) GetPolicyLimit() int32 {
 	if x != nil {
 		return x.PolicyLimit
 	}
-
 	return 0
 }
 
@@ -2254,7 +2086,6 @@ func (x *LimitResponse) GetAmount() int64 {
 	if x != nil {
 		return x.Amount
 	}
-
 	return 0
 }
 
@@ -2262,7 +2093,6 @@ func (x *LimitResponse) GetLimitResetAt() int64 {
 	if x != nil {
 		return x.LimitResetAt
 	}
-
 	return 0
 }
 
@@ -2270,7 +2100,6 @@ func (x *LimitResponse) GetSafetyLevel() LimitDefinition_SafetyLevel {
 	if x != nil {
 		return x.SafetyLevel
 	}
-
 	return LimitDefinition_NOT_SET
 }
 
@@ -2289,7 +2118,6 @@ type LimitRequest struct {
 
 func (x *LimitRequest) Reset() {
 	*x = LimitRequest{}
-
 	if protoimpl.UnsafeEnabled {
 		mi := &file_prefab_proto_msgTypes[20]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -2305,16 +2133,13 @@ func (*LimitRequest) ProtoMessage() {}
 
 func (x *LimitRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_prefab_proto_msgTypes[20]
-
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
 			ms.StoreMessageInfo(mi)
 		}
-
 		return ms
 	}
-
 	return mi.MessageOf(x)
 }
 
@@ -2327,7 +2152,6 @@ func (x *LimitRequest) GetAccountId() int64 {
 	if x != nil {
 		return x.AccountId
 	}
-
 	return 0
 }
 
@@ -2335,7 +2159,6 @@ func (x *LimitRequest) GetAcquireAmount() int32 {
 	if x != nil {
 		return x.AcquireAmount
 	}
-
 	return 0
 }
 
@@ -2343,7 +2166,6 @@ func (x *LimitRequest) GetGroups() []string {
 	if x != nil {
 		return x.Groups
 	}
-
 	return nil
 }
 
@@ -2351,7 +2173,6 @@ func (x *LimitRequest) GetLimitCombiner() LimitRequest_LimitCombiner {
 	if x != nil {
 		return x.LimitCombiner
 	}
-
 	return LimitRequest_NOT_SET
 }
 
@@ -2359,7 +2180,6 @@ func (x *LimitRequest) GetAllowPartialResponse() bool {
 	if x != nil {
 		return x.AllowPartialResponse
 	}
-
 	return false
 }
 
@@ -2367,7 +2187,6 @@ func (x *LimitRequest) GetSafetyLevel() LimitDefinition_SafetyLevel {
 	if x != nil {
 		return x.SafetyLevel
 	}
-
 	return LimitDefinition_NOT_SET
 }
 
@@ -2382,7 +2201,6 @@ type ContextSet struct {
 
 func (x *ContextSet) Reset() {
 	*x = ContextSet{}
-
 	if protoimpl.UnsafeEnabled {
 		mi := &file_prefab_proto_msgTypes[21]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -2398,16 +2216,13 @@ func (*ContextSet) ProtoMessage() {}
 
 func (x *ContextSet) ProtoReflect() protoreflect.Message {
 	mi := &file_prefab_proto_msgTypes[21]
-
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
 			ms.StoreMessageInfo(mi)
 		}
-
 		return ms
 	}
-
 	return mi.MessageOf(x)
 }
 
@@ -2420,7 +2235,6 @@ func (x *ContextSet) GetContexts() []*Context {
 	if x != nil {
 		return x.Contexts
 	}
-
 	return nil
 }
 
@@ -2435,7 +2249,6 @@ type Context struct {
 
 func (x *Context) Reset() {
 	*x = Context{}
-
 	if protoimpl.UnsafeEnabled {
 		mi := &file_prefab_proto_msgTypes[22]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -2451,16 +2264,13 @@ func (*Context) ProtoMessage() {}
 
 func (x *Context) ProtoReflect() protoreflect.Message {
 	mi := &file_prefab_proto_msgTypes[22]
-
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
 			ms.StoreMessageInfo(mi)
 		}
-
 		return ms
 	}
-
 	return mi.MessageOf(x)
 }
 
@@ -2473,7 +2283,6 @@ func (x *Context) GetType() string {
 	if x != nil && x.Type != nil {
 		return *x.Type
 	}
-
 	return ""
 }
 
@@ -2481,7 +2290,6 @@ func (x *Context) GetValues() map[string]*ConfigValue {
 	if x != nil {
 		return x.Values
 	}
-
 	return nil
 }
 
@@ -2496,7 +2304,6 @@ type Identity struct {
 
 func (x *Identity) Reset() {
 	*x = Identity{}
-
 	if protoimpl.UnsafeEnabled {
 		mi := &file_prefab_proto_msgTypes[23]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -2512,16 +2319,13 @@ func (*Identity) ProtoMessage() {}
 
 func (x *Identity) ProtoReflect() protoreflect.Message {
 	mi := &file_prefab_proto_msgTypes[23]
-
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
 			ms.StoreMessageInfo(mi)
 		}
-
 		return ms
 	}
-
 	return mi.MessageOf(x)
 }
 
@@ -2534,7 +2338,6 @@ func (x *Identity) GetLookup() string {
 	if x != nil && x.Lookup != nil {
 		return *x.Lookup
 	}
-
 	return ""
 }
 
@@ -2542,7 +2345,6 @@ func (x *Identity) GetAttributes() map[string]string {
 	if x != nil {
 		return x.Attributes
 	}
-
 	return nil
 }
 
@@ -2561,7 +2363,6 @@ type ConfigEvaluationMetaData struct {
 
 func (x *ConfigEvaluationMetaData) Reset() {
 	*x = ConfigEvaluationMetaData{}
-
 	if protoimpl.UnsafeEnabled {
 		mi := &file_prefab_proto_msgTypes[24]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -2577,16 +2378,13 @@ func (*ConfigEvaluationMetaData) ProtoMessage() {}
 
 func (x *ConfigEvaluationMetaData) ProtoReflect() protoreflect.Message {
 	mi := &file_prefab_proto_msgTypes[24]
-
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
 			ms.StoreMessageInfo(mi)
 		}
-
 		return ms
 	}
-
 	return mi.MessageOf(x)
 }
 
@@ -2599,7 +2397,6 @@ func (x *ConfigEvaluationMetaData) GetConfigRowIndex() int64 {
 	if x != nil && x.ConfigRowIndex != nil {
 		return *x.ConfigRowIndex
 	}
-
 	return 0
 }
 
@@ -2607,7 +2404,6 @@ func (x *ConfigEvaluationMetaData) GetConditionalValueIndex() int64 {
 	if x != nil && x.ConditionalValueIndex != nil {
 		return *x.ConditionalValueIndex
 	}
-
 	return 0
 }
 
@@ -2615,7 +2411,6 @@ func (x *ConfigEvaluationMetaData) GetWeightedValueIndex() int64 {
 	if x != nil && x.WeightedValueIndex != nil {
 		return *x.WeightedValueIndex
 	}
-
 	return 0
 }
 
@@ -2623,7 +2418,6 @@ func (x *ConfigEvaluationMetaData) GetType() ConfigType {
 	if x != nil && x.Type != nil {
 		return *x.Type
 	}
-
 	return ConfigType_NOT_SET_CONFIG_TYPE
 }
 
@@ -2631,7 +2425,6 @@ func (x *ConfigEvaluationMetaData) GetId() int64 {
 	if x != nil && x.Id != nil {
 		return *x.Id
 	}
-
 	return 0
 }
 
@@ -2639,7 +2432,6 @@ func (x *ConfigEvaluationMetaData) GetValueType() Config_ValueType {
 	if x != nil && x.ValueType != nil {
 		return *x.ValueType
 	}
-
 	return Config_NOT_SET_VALUE_TYPE
 }
 
@@ -2665,7 +2457,6 @@ type ClientConfigValue struct {
 
 func (x *ClientConfigValue) Reset() {
 	*x = ClientConfigValue{}
-
 	if protoimpl.UnsafeEnabled {
 		mi := &file_prefab_proto_msgTypes[25]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -2681,16 +2472,13 @@ func (*ClientConfigValue) ProtoMessage() {}
 
 func (x *ClientConfigValue) ProtoReflect() protoreflect.Message {
 	mi := &file_prefab_proto_msgTypes[25]
-
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
 			ms.StoreMessageInfo(mi)
 		}
-
 		return ms
 	}
-
 	return mi.MessageOf(x)
 }
 
@@ -2703,7 +2491,6 @@ func (m *ClientConfigValue) GetType() isClientConfigValue_Type {
 	if m != nil {
 		return m.Type
 	}
-
 	return nil
 }
 
@@ -2711,7 +2498,6 @@ func (x *ClientConfigValue) GetInt() int64 {
 	if x, ok := x.GetType().(*ClientConfigValue_Int); ok {
 		return x.Int
 	}
-
 	return 0
 }
 
@@ -2719,7 +2505,6 @@ func (x *ClientConfigValue) GetString_() string {
 	if x, ok := x.GetType().(*ClientConfigValue_String_); ok {
 		return x.String_
 	}
-
 	return ""
 }
 
@@ -2727,7 +2512,6 @@ func (x *ClientConfigValue) GetDouble() float64 {
 	if x, ok := x.GetType().(*ClientConfigValue_Double); ok {
 		return x.Double
 	}
-
 	return 0
 }
 
@@ -2735,7 +2519,6 @@ func (x *ClientConfigValue) GetBool() bool {
 	if x, ok := x.GetType().(*ClientConfigValue_Bool); ok {
 		return x.Bool
 	}
-
 	return false
 }
 
@@ -2743,7 +2526,6 @@ func (x *ClientConfigValue) GetLogLevel() LogLevel {
 	if x, ok := x.GetType().(*ClientConfigValue_LogLevel); ok {
 		return x.LogLevel
 	}
-
 	return LogLevel_NOT_SET_LOG_LEVEL
 }
 
@@ -2751,7 +2533,6 @@ func (x *ClientConfigValue) GetStringList() *StringList {
 	if x, ok := x.GetType().(*ClientConfigValue_StringList); ok {
 		return x.StringList
 	}
-
 	return nil
 }
 
@@ -2759,7 +2540,6 @@ func (x *ClientConfigValue) GetIntRange() *IntRange {
 	if x, ok := x.GetType().(*ClientConfigValue_IntRange); ok {
 		return x.IntRange
 	}
-
 	return nil
 }
 
@@ -2767,7 +2547,6 @@ func (x *ClientConfigValue) GetDuration() *ClientDuration {
 	if x, ok := x.GetType().(*ClientConfigValue_Duration); ok {
 		return x.Duration
 	}
-
 	return nil
 }
 
@@ -2775,7 +2554,6 @@ func (x *ClientConfigValue) GetJson() *Json {
 	if x, ok := x.GetType().(*ClientConfigValue_Json); ok {
 		return x.Json
 	}
-
 	return nil
 }
 
@@ -2783,7 +2561,6 @@ func (x *ClientConfigValue) GetConfigEvaluationMetadata() *ConfigEvaluationMetaD
 	if x != nil {
 		return x.ConfigEvaluationMetadata
 	}
-
 	return nil
 }
 
@@ -2857,7 +2634,6 @@ type ClientDuration struct {
 
 func (x *ClientDuration) Reset() {
 	*x = ClientDuration{}
-
 	if protoimpl.UnsafeEnabled {
 		mi := &file_prefab_proto_msgTypes[26]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -2873,16 +2649,13 @@ func (*ClientDuration) ProtoMessage() {}
 
 func (x *ClientDuration) ProtoReflect() protoreflect.Message {
 	mi := &file_prefab_proto_msgTypes[26]
-
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
 			ms.StoreMessageInfo(mi)
 		}
-
 		return ms
 	}
-
 	return mi.MessageOf(x)
 }
 
@@ -2895,7 +2668,6 @@ func (x *ClientDuration) GetSeconds() int64 {
 	if x != nil {
 		return x.Seconds
 	}
-
 	return 0
 }
 
@@ -2903,7 +2675,6 @@ func (x *ClientDuration) GetNanos() int32 {
 	if x != nil {
 		return x.Nanos
 	}
-
 	return 0
 }
 
@@ -2911,7 +2682,6 @@ func (x *ClientDuration) GetDefinition() string {
 	if x != nil {
 		return x.Definition
 	}
-
 	return ""
 }
 
@@ -2927,7 +2697,6 @@ type ConfigEvaluations struct {
 
 func (x *ConfigEvaluations) Reset() {
 	*x = ConfigEvaluations{}
-
 	if protoimpl.UnsafeEnabled {
 		mi := &file_prefab_proto_msgTypes[27]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -2943,16 +2712,13 @@ func (*ConfigEvaluations) ProtoMessage() {}
 
 func (x *ConfigEvaluations) ProtoReflect() protoreflect.Message {
 	mi := &file_prefab_proto_msgTypes[27]
-
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
 			ms.StoreMessageInfo(mi)
 		}
-
 		return ms
 	}
-
 	return mi.MessageOf(x)
 }
 
@@ -2965,7 +2731,6 @@ func (x *ConfigEvaluations) GetValues() map[string]*ClientConfigValue {
 	if x != nil {
 		return x.Values
 	}
-
 	return nil
 }
 
@@ -2973,7 +2738,6 @@ func (x *ConfigEvaluations) GetApikeyMetadata() *ApiKeyMetadata {
 	if x != nil {
 		return x.ApikeyMetadata
 	}
-
 	return nil
 }
 
@@ -2981,7 +2745,6 @@ func (x *ConfigEvaluations) GetDefaultContext() *ContextSet {
 	if x != nil {
 		return x.DefaultContext
 	}
-
 	return nil
 }
 
@@ -3001,7 +2764,6 @@ type LimitDefinition struct {
 
 func (x *LimitDefinition) Reset() {
 	*x = LimitDefinition{}
-
 	if protoimpl.UnsafeEnabled {
 		mi := &file_prefab_proto_msgTypes[28]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -3017,16 +2779,13 @@ func (*LimitDefinition) ProtoMessage() {}
 
 func (x *LimitDefinition) ProtoReflect() protoreflect.Message {
 	mi := &file_prefab_proto_msgTypes[28]
-
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
 			ms.StoreMessageInfo(mi)
 		}
-
 		return ms
 	}
-
 	return mi.MessageOf(x)
 }
 
@@ -3039,7 +2798,6 @@ func (x *LimitDefinition) GetPolicyName() LimitResponse_LimitPolicyNames {
 	if x != nil {
 		return x.PolicyName
 	}
-
 	return LimitResponse_NOT_SET
 }
 
@@ -3047,7 +2805,6 @@ func (x *LimitDefinition) GetLimit() int32 {
 	if x != nil {
 		return x.Limit
 	}
-
 	return 0
 }
 
@@ -3055,7 +2812,6 @@ func (x *LimitDefinition) GetBurst() int32 {
 	if x != nil {
 		return x.Burst
 	}
-
 	return 0
 }
 
@@ -3063,7 +2819,6 @@ func (x *LimitDefinition) GetAccountId() int64 {
 	if x != nil {
 		return x.AccountId
 	}
-
 	return 0
 }
 
@@ -3071,7 +2826,6 @@ func (x *LimitDefinition) GetLastModified() int64 {
 	if x != nil {
 		return x.LastModified
 	}
-
 	return 0
 }
 
@@ -3079,7 +2833,6 @@ func (x *LimitDefinition) GetReturnable() bool {
 	if x != nil {
 		return x.Returnable
 	}
-
 	return false
 }
 
@@ -3087,7 +2840,6 @@ func (x *LimitDefinition) GetSafetyLevel() LimitDefinition_SafetyLevel {
 	if x != nil {
 		return x.SafetyLevel
 	}
-
 	return LimitDefinition_NOT_SET
 }
 
@@ -3101,7 +2853,6 @@ type LimitDefinitions struct {
 
 func (x *LimitDefinitions) Reset() {
 	*x = LimitDefinitions{}
-
 	if protoimpl.UnsafeEnabled {
 		mi := &file_prefab_proto_msgTypes[29]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -3117,16 +2868,13 @@ func (*LimitDefinitions) ProtoMessage() {}
 
 func (x *LimitDefinitions) ProtoReflect() protoreflect.Message {
 	mi := &file_prefab_proto_msgTypes[29]
-
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
 			ms.StoreMessageInfo(mi)
 		}
-
 		return ms
 	}
-
 	return mi.MessageOf(x)
 }
 
@@ -3139,7 +2887,6 @@ func (x *LimitDefinitions) GetDefinitions() []*LimitDefinition {
 	if x != nil {
 		return x.Definitions
 	}
-
 	return nil
 }
 
@@ -3159,7 +2906,6 @@ type BufferedRequest struct {
 
 func (x *BufferedRequest) Reset() {
 	*x = BufferedRequest{}
-
 	if protoimpl.UnsafeEnabled {
 		mi := &file_prefab_proto_msgTypes[30]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -3175,16 +2921,13 @@ func (*BufferedRequest) ProtoMessage() {}
 
 func (x *BufferedRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_prefab_proto_msgTypes[30]
-
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
 			ms.StoreMessageInfo(mi)
 		}
-
 		return ms
 	}
-
 	return mi.MessageOf(x)
 }
 
@@ -3197,7 +2940,6 @@ func (x *BufferedRequest) GetAccountId() int64 {
 	if x != nil {
 		return x.AccountId
 	}
-
 	return 0
 }
 
@@ -3205,7 +2947,6 @@ func (x *BufferedRequest) GetMethod() string {
 	if x != nil {
 		return x.Method
 	}
-
 	return ""
 }
 
@@ -3213,7 +2954,6 @@ func (x *BufferedRequest) GetUri() string {
 	if x != nil {
 		return x.Uri
 	}
-
 	return ""
 }
 
@@ -3221,7 +2961,6 @@ func (x *BufferedRequest) GetBody() string {
 	if x != nil {
 		return x.Body
 	}
-
 	return ""
 }
 
@@ -3229,7 +2968,6 @@ func (x *BufferedRequest) GetLimitGroups() []string {
 	if x != nil {
 		return x.LimitGroups
 	}
-
 	return nil
 }
 
@@ -3237,7 +2975,6 @@ func (x *BufferedRequest) GetContentType() string {
 	if x != nil {
 		return x.ContentType
 	}
-
 	return ""
 }
 
@@ -3245,7 +2982,6 @@ func (x *BufferedRequest) GetFifo() bool {
 	if x != nil {
 		return x.Fifo
 	}
-
 	return false
 }
 
@@ -3265,7 +3001,6 @@ type BatchRequest struct {
 
 func (x *BatchRequest) Reset() {
 	*x = BatchRequest{}
-
 	if protoimpl.UnsafeEnabled {
 		mi := &file_prefab_proto_msgTypes[31]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -3281,16 +3016,13 @@ func (*BatchRequest) ProtoMessage() {}
 
 func (x *BatchRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_prefab_proto_msgTypes[31]
-
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
 			ms.StoreMessageInfo(mi)
 		}
-
 		return ms
 	}
-
 	return mi.MessageOf(x)
 }
 
@@ -3303,7 +3035,6 @@ func (x *BatchRequest) GetAccountId() int64 {
 	if x != nil {
 		return x.AccountId
 	}
-
 	return 0
 }
 
@@ -3311,7 +3042,6 @@ func (x *BatchRequest) GetMethod() string {
 	if x != nil {
 		return x.Method
 	}
-
 	return ""
 }
 
@@ -3319,7 +3049,6 @@ func (x *BatchRequest) GetUri() string {
 	if x != nil {
 		return x.Uri
 	}
-
 	return ""
 }
 
@@ -3327,7 +3056,6 @@ func (x *BatchRequest) GetBody() string {
 	if x != nil {
 		return x.Body
 	}
-
 	return ""
 }
 
@@ -3335,7 +3063,6 @@ func (x *BatchRequest) GetLimitGroups() []string {
 	if x != nil {
 		return x.LimitGroups
 	}
-
 	return nil
 }
 
@@ -3343,7 +3070,6 @@ func (x *BatchRequest) GetBatchTemplate() string {
 	if x != nil {
 		return x.BatchTemplate
 	}
-
 	return ""
 }
 
@@ -3351,7 +3077,6 @@ func (x *BatchRequest) GetBatchSeparator() string {
 	if x != nil {
 		return x.BatchSeparator
 	}
-
 	return ""
 }
 
@@ -3365,7 +3090,6 @@ type BasicResponse struct {
 
 func (x *BasicResponse) Reset() {
 	*x = BasicResponse{}
-
 	if protoimpl.UnsafeEnabled {
 		mi := &file_prefab_proto_msgTypes[32]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -3381,16 +3105,13 @@ func (*BasicResponse) ProtoMessage() {}
 
 func (x *BasicResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_prefab_proto_msgTypes[32]
-
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
 			ms.StoreMessageInfo(mi)
 		}
-
 		return ms
 	}
-
 	return mi.MessageOf(x)
 }
 
@@ -3403,7 +3124,6 @@ func (x *BasicResponse) GetMessage() string {
 	if x != nil {
 		return x.Message
 	}
-
 	return ""
 }
 
@@ -3418,7 +3138,6 @@ type CreationResponse struct {
 
 func (x *CreationResponse) Reset() {
 	*x = CreationResponse{}
-
 	if protoimpl.UnsafeEnabled {
 		mi := &file_prefab_proto_msgTypes[33]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -3434,16 +3153,13 @@ func (*CreationResponse) ProtoMessage() {}
 
 func (x *CreationResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_prefab_proto_msgTypes[33]
-
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
 			ms.StoreMessageInfo(mi)
 		}
-
 		return ms
 	}
-
 	return mi.MessageOf(x)
 }
 
@@ -3456,7 +3172,6 @@ func (x *CreationResponse) GetMessage() string {
 	if x != nil {
 		return x.Message
 	}
-
 	return ""
 }
 
@@ -3464,7 +3179,6 @@ func (x *CreationResponse) GetNewId() int64 {
 	if x != nil {
 		return x.NewId
 	}
-
 	return 0
 }
 
@@ -3482,7 +3196,6 @@ type IdBlock struct {
 
 func (x *IdBlock) Reset() {
 	*x = IdBlock{}
-
 	if protoimpl.UnsafeEnabled {
 		mi := &file_prefab_proto_msgTypes[34]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -3498,16 +3211,13 @@ func (*IdBlock) ProtoMessage() {}
 
 func (x *IdBlock) ProtoReflect() protoreflect.Message {
 	mi := &file_prefab_proto_msgTypes[34]
-
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
 			ms.StoreMessageInfo(mi)
 		}
-
 		return ms
 	}
-
 	return mi.MessageOf(x)
 }
 
@@ -3520,7 +3230,6 @@ func (x *IdBlock) GetProjectId() int64 {
 	if x != nil {
 		return x.ProjectId
 	}
-
 	return 0
 }
 
@@ -3528,7 +3237,6 @@ func (x *IdBlock) GetProjectEnvId() int64 {
 	if x != nil {
 		return x.ProjectEnvId
 	}
-
 	return 0
 }
 
@@ -3536,7 +3244,6 @@ func (x *IdBlock) GetSequenceName() string {
 	if x != nil {
 		return x.SequenceName
 	}
-
 	return ""
 }
 
@@ -3544,7 +3251,6 @@ func (x *IdBlock) GetStart() int64 {
 	if x != nil {
 		return x.Start
 	}
-
 	return 0
 }
 
@@ -3552,7 +3258,6 @@ func (x *IdBlock) GetEnd() int64 {
 	if x != nil {
 		return x.End
 	}
-
 	return 0
 }
 
@@ -3569,7 +3274,6 @@ type IdBlockRequest struct {
 
 func (x *IdBlockRequest) Reset() {
 	*x = IdBlockRequest{}
-
 	if protoimpl.UnsafeEnabled {
 		mi := &file_prefab_proto_msgTypes[35]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -3585,16 +3289,13 @@ func (*IdBlockRequest) ProtoMessage() {}
 
 func (x *IdBlockRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_prefab_proto_msgTypes[35]
-
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
 			ms.StoreMessageInfo(mi)
 		}
-
 		return ms
 	}
-
 	return mi.MessageOf(x)
 }
 
@@ -3607,7 +3308,6 @@ func (x *IdBlockRequest) GetProjectId() int64 {
 	if x != nil {
 		return x.ProjectId
 	}
-
 	return 0
 }
 
@@ -3615,7 +3315,6 @@ func (x *IdBlockRequest) GetProjectEnvId() int64 {
 	if x != nil {
 		return x.ProjectEnvId
 	}
-
 	return 0
 }
 
@@ -3623,7 +3322,6 @@ func (x *IdBlockRequest) GetSequenceName() string {
 	if x != nil {
 		return x.SequenceName
 	}
-
 	return ""
 }
 
@@ -3631,7 +3329,6 @@ func (x *IdBlockRequest) GetSize() int64 {
 	if x != nil {
 		return x.Size
 	}
-
 	return 0
 }
 
@@ -3646,7 +3343,6 @@ type ContextShape struct {
 
 func (x *ContextShape) Reset() {
 	*x = ContextShape{}
-
 	if protoimpl.UnsafeEnabled {
 		mi := &file_prefab_proto_msgTypes[36]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -3662,16 +3358,13 @@ func (*ContextShape) ProtoMessage() {}
 
 func (x *ContextShape) ProtoReflect() protoreflect.Message {
 	mi := &file_prefab_proto_msgTypes[36]
-
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
 			ms.StoreMessageInfo(mi)
 		}
-
 		return ms
 	}
-
 	return mi.MessageOf(x)
 }
 
@@ -3684,7 +3377,6 @@ func (x *ContextShape) GetName() string {
 	if x != nil {
 		return x.Name
 	}
-
 	return ""
 }
 
@@ -3692,7 +3384,6 @@ func (x *ContextShape) GetFieldTypes() map[string]int32 {
 	if x != nil {
 		return x.FieldTypes
 	}
-
 	return nil
 }
 
@@ -3707,7 +3398,6 @@ type ContextShapes struct {
 
 func (x *ContextShapes) Reset() {
 	*x = ContextShapes{}
-
 	if protoimpl.UnsafeEnabled {
 		mi := &file_prefab_proto_msgTypes[37]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -3723,16 +3413,13 @@ func (*ContextShapes) ProtoMessage() {}
 
 func (x *ContextShapes) ProtoReflect() protoreflect.Message {
 	mi := &file_prefab_proto_msgTypes[37]
-
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
 			ms.StoreMessageInfo(mi)
 		}
-
 		return ms
 	}
-
 	return mi.MessageOf(x)
 }
 
@@ -3745,7 +3432,6 @@ func (x *ContextShapes) GetShapes() []*ContextShape {
 	if x != nil {
 		return x.Shapes
 	}
-
 	return nil
 }
 
@@ -3753,7 +3439,6 @@ func (x *ContextShapes) GetNamespace() string {
 	if x != nil && x.Namespace != nil {
 		return *x.Namespace
 	}
-
 	return ""
 }
 
@@ -3768,7 +3453,6 @@ type EvaluatedKeys struct {
 
 func (x *EvaluatedKeys) Reset() {
 	*x = EvaluatedKeys{}
-
 	if protoimpl.UnsafeEnabled {
 		mi := &file_prefab_proto_msgTypes[38]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -3784,16 +3468,13 @@ func (*EvaluatedKeys) ProtoMessage() {}
 
 func (x *EvaluatedKeys) ProtoReflect() protoreflect.Message {
 	mi := &file_prefab_proto_msgTypes[38]
-
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
 			ms.StoreMessageInfo(mi)
 		}
-
 		return ms
 	}
-
 	return mi.MessageOf(x)
 }
 
@@ -3806,7 +3487,6 @@ func (x *EvaluatedKeys) GetKeys() []string {
 	if x != nil {
 		return x.Keys
 	}
-
 	return nil
 }
 
@@ -3814,7 +3494,6 @@ func (x *EvaluatedKeys) GetNamespace() string {
 	if x != nil && x.Namespace != nil {
 		return *x.Namespace
 	}
-
 	return ""
 }
 
@@ -3832,7 +3511,6 @@ type EvaluatedConfig struct {
 
 func (x *EvaluatedConfig) Reset() {
 	*x = EvaluatedConfig{}
-
 	if protoimpl.UnsafeEnabled {
 		mi := &file_prefab_proto_msgTypes[39]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -3848,16 +3526,13 @@ func (*EvaluatedConfig) ProtoMessage() {}
 
 func (x *EvaluatedConfig) ProtoReflect() protoreflect.Message {
 	mi := &file_prefab_proto_msgTypes[39]
-
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
 			ms.StoreMessageInfo(mi)
 		}
-
 		return ms
 	}
-
 	return mi.MessageOf(x)
 }
 
@@ -3870,7 +3545,6 @@ func (x *EvaluatedConfig) GetKey() string {
 	if x != nil {
 		return x.Key
 	}
-
 	return ""
 }
 
@@ -3878,7 +3552,6 @@ func (x *EvaluatedConfig) GetConfigVersion() int64 {
 	if x != nil {
 		return x.ConfigVersion
 	}
-
 	return 0
 }
 
@@ -3886,7 +3559,6 @@ func (x *EvaluatedConfig) GetResult() *ConfigValue {
 	if x != nil {
 		return x.Result
 	}
-
 	return nil
 }
 
@@ -3894,7 +3566,6 @@ func (x *EvaluatedConfig) GetContext() *ContextSet {
 	if x != nil {
 		return x.Context
 	}
-
 	return nil
 }
 
@@ -3902,7 +3573,6 @@ func (x *EvaluatedConfig) GetTimestamp() int64 {
 	if x != nil {
 		return x.Timestamp
 	}
-
 	return 0
 }
 
@@ -3916,7 +3586,6 @@ type EvaluatedConfigs struct {
 
 func (x *EvaluatedConfigs) Reset() {
 	*x = EvaluatedConfigs{}
-
 	if protoimpl.UnsafeEnabled {
 		mi := &file_prefab_proto_msgTypes[40]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -3932,16 +3601,13 @@ func (*EvaluatedConfigs) ProtoMessage() {}
 
 func (x *EvaluatedConfigs) ProtoReflect() protoreflect.Message {
 	mi := &file_prefab_proto_msgTypes[40]
-
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
 			ms.StoreMessageInfo(mi)
 		}
-
 		return ms
 	}
-
 	return mi.MessageOf(x)
 }
 
@@ -3954,7 +3620,6 @@ func (x *EvaluatedConfigs) GetConfigs() []*EvaluatedConfig {
 	if x != nil {
 		return x.Configs
 	}
-
 	return nil
 }
 
@@ -3975,7 +3640,6 @@ type ConfigEvaluationCounter struct {
 
 func (x *ConfigEvaluationCounter) Reset() {
 	*x = ConfigEvaluationCounter{}
-
 	if protoimpl.UnsafeEnabled {
 		mi := &file_prefab_proto_msgTypes[41]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -3991,16 +3655,13 @@ func (*ConfigEvaluationCounter) ProtoMessage() {}
 
 func (x *ConfigEvaluationCounter) ProtoReflect() protoreflect.Message {
 	mi := &file_prefab_proto_msgTypes[41]
-
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
 			ms.StoreMessageInfo(mi)
 		}
-
 		return ms
 	}
-
 	return mi.MessageOf(x)
 }
 
@@ -4013,7 +3674,6 @@ func (x *ConfigEvaluationCounter) GetCount() int64 {
 	if x != nil {
 		return x.Count
 	}
-
 	return 0
 }
 
@@ -4021,7 +3681,6 @@ func (x *ConfigEvaluationCounter) GetConfigId() int64 {
 	if x != nil && x.ConfigId != nil {
 		return *x.ConfigId
 	}
-
 	return 0
 }
 
@@ -4029,7 +3688,6 @@ func (x *ConfigEvaluationCounter) GetSelectedIndex() uint32 {
 	if x != nil && x.SelectedIndex != nil {
 		return *x.SelectedIndex
 	}
-
 	return 0
 }
 
@@ -4037,7 +3695,6 @@ func (x *ConfigEvaluationCounter) GetSelectedValue() *ConfigValue {
 	if x != nil {
 		return x.SelectedValue
 	}
-
 	return nil
 }
 
@@ -4045,7 +3702,6 @@ func (x *ConfigEvaluationCounter) GetConfigRowIndex() uint32 {
 	if x != nil && x.ConfigRowIndex != nil {
 		return *x.ConfigRowIndex
 	}
-
 	return 0
 }
 
@@ -4053,7 +3709,6 @@ func (x *ConfigEvaluationCounter) GetConditionalValueIndex() uint32 {
 	if x != nil && x.ConditionalValueIndex != nil {
 		return *x.ConditionalValueIndex
 	}
-
 	return 0
 }
 
@@ -4061,7 +3716,6 @@ func (x *ConfigEvaluationCounter) GetWeightedValueIndex() uint32 {
 	if x != nil && x.WeightedValueIndex != nil {
 		return *x.WeightedValueIndex
 	}
-
 	return 0
 }
 
@@ -4069,7 +3723,6 @@ func (x *ConfigEvaluationCounter) GetReason() ConfigEvaluationCounter_Reason {
 	if x != nil {
 		return x.Reason
 	}
-
 	return ConfigEvaluationCounter_UNKNOWN
 }
 
@@ -4085,7 +3738,6 @@ type ConfigEvaluationSummary struct {
 
 func (x *ConfigEvaluationSummary) Reset() {
 	*x = ConfigEvaluationSummary{}
-
 	if protoimpl.UnsafeEnabled {
 		mi := &file_prefab_proto_msgTypes[42]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -4101,16 +3753,13 @@ func (*ConfigEvaluationSummary) ProtoMessage() {}
 
 func (x *ConfigEvaluationSummary) ProtoReflect() protoreflect.Message {
 	mi := &file_prefab_proto_msgTypes[42]
-
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
 			ms.StoreMessageInfo(mi)
 		}
-
 		return ms
 	}
-
 	return mi.MessageOf(x)
 }
 
@@ -4123,7 +3772,6 @@ func (x *ConfigEvaluationSummary) GetKey() string {
 	if x != nil {
 		return x.Key
 	}
-
 	return ""
 }
 
@@ -4131,7 +3779,6 @@ func (x *ConfigEvaluationSummary) GetType() ConfigType {
 	if x != nil {
 		return x.Type
 	}
-
 	return ConfigType_NOT_SET_CONFIG_TYPE
 }
 
@@ -4139,7 +3786,6 @@ func (x *ConfigEvaluationSummary) GetCounters() []*ConfigEvaluationCounter {
 	if x != nil {
 		return x.Counters
 	}
-
 	return nil
 }
 
@@ -4155,7 +3801,6 @@ type ConfigEvaluationSummaries struct {
 
 func (x *ConfigEvaluationSummaries) Reset() {
 	*x = ConfigEvaluationSummaries{}
-
 	if protoimpl.UnsafeEnabled {
 		mi := &file_prefab_proto_msgTypes[43]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -4171,16 +3816,13 @@ func (*ConfigEvaluationSummaries) ProtoMessage() {}
 
 func (x *ConfigEvaluationSummaries) ProtoReflect() protoreflect.Message {
 	mi := &file_prefab_proto_msgTypes[43]
-
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
 			ms.StoreMessageInfo(mi)
 		}
-
 		return ms
 	}
-
 	return mi.MessageOf(x)
 }
 
@@ -4193,7 +3835,6 @@ func (x *ConfigEvaluationSummaries) GetStart() int64 {
 	if x != nil {
 		return x.Start
 	}
-
 	return 0
 }
 
@@ -4201,7 +3842,6 @@ func (x *ConfigEvaluationSummaries) GetEnd() int64 {
 	if x != nil {
 		return x.End
 	}
-
 	return 0
 }
 
@@ -4209,7 +3849,6 @@ func (x *ConfigEvaluationSummaries) GetSummaries() []*ConfigEvaluationSummary {
 	if x != nil {
 		return x.Summaries
 	}
-
 	return nil
 }
 
@@ -4225,7 +3864,6 @@ type LoggersTelemetryEvent struct {
 
 func (x *LoggersTelemetryEvent) Reset() {
 	*x = LoggersTelemetryEvent{}
-
 	if protoimpl.UnsafeEnabled {
 		mi := &file_prefab_proto_msgTypes[44]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -4241,16 +3879,13 @@ func (*LoggersTelemetryEvent) ProtoMessage() {}
 
 func (x *LoggersTelemetryEvent) ProtoReflect() protoreflect.Message {
 	mi := &file_prefab_proto_msgTypes[44]
-
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
 			ms.StoreMessageInfo(mi)
 		}
-
 		return ms
 	}
-
 	return mi.MessageOf(x)
 }
 
@@ -4263,7 +3898,6 @@ func (x *LoggersTelemetryEvent) GetLoggers() []*Logger {
 	if x != nil {
 		return x.Loggers
 	}
-
 	return nil
 }
 
@@ -4271,7 +3905,6 @@ func (x *LoggersTelemetryEvent) GetStartAt() int64 {
 	if x != nil {
 		return x.StartAt
 	}
-
 	return 0
 }
 
@@ -4279,7 +3912,6 @@ func (x *LoggersTelemetryEvent) GetEndAt() int64 {
 	if x != nil {
 		return x.EndAt
 	}
-
 	return 0
 }
 
@@ -4300,7 +3932,6 @@ type TelemetryEvent struct {
 
 func (x *TelemetryEvent) Reset() {
 	*x = TelemetryEvent{}
-
 	if protoimpl.UnsafeEnabled {
 		mi := &file_prefab_proto_msgTypes[45]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -4316,16 +3947,13 @@ func (*TelemetryEvent) ProtoMessage() {}
 
 func (x *TelemetryEvent) ProtoReflect() protoreflect.Message {
 	mi := &file_prefab_proto_msgTypes[45]
-
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
 			ms.StoreMessageInfo(mi)
 		}
-
 		return ms
 	}
-
 	return mi.MessageOf(x)
 }
 
@@ -4338,7 +3966,6 @@ func (m *TelemetryEvent) GetPayload() isTelemetryEvent_Payload {
 	if m != nil {
 		return m.Payload
 	}
-
 	return nil
 }
 
@@ -4346,7 +3973,6 @@ func (x *TelemetryEvent) GetSummaries() *ConfigEvaluationSummaries {
 	if x, ok := x.GetPayload().(*TelemetryEvent_Summaries); ok {
 		return x.Summaries
 	}
-
 	return nil
 }
 
@@ -4354,7 +3980,6 @@ func (x *TelemetryEvent) GetExampleContexts() *ExampleContexts {
 	if x, ok := x.GetPayload().(*TelemetryEvent_ExampleContexts); ok {
 		return x.ExampleContexts
 	}
-
 	return nil
 }
 
@@ -4362,7 +3987,6 @@ func (x *TelemetryEvent) GetClientStats() *ClientStats {
 	if x, ok := x.GetPayload().(*TelemetryEvent_ClientStats); ok {
 		return x.ClientStats
 	}
-
 	return nil
 }
 
@@ -4370,7 +3994,6 @@ func (x *TelemetryEvent) GetLoggers() *LoggersTelemetryEvent {
 	if x, ok := x.GetPayload().(*TelemetryEvent_Loggers); ok {
 		return x.Loggers
 	}
-
 	return nil
 }
 
@@ -4378,7 +4001,6 @@ func (x *TelemetryEvent) GetContextShapes() *ContextShapes {
 	if x, ok := x.GetPayload().(*TelemetryEvent_ContextShapes); ok {
 		return x.ContextShapes
 	}
-
 	return nil
 }
 
@@ -4427,7 +4049,6 @@ type TelemetryEvents struct {
 
 func (x *TelemetryEvents) Reset() {
 	*x = TelemetryEvents{}
-
 	if protoimpl.UnsafeEnabled {
 		mi := &file_prefab_proto_msgTypes[46]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -4443,16 +4064,13 @@ func (*TelemetryEvents) ProtoMessage() {}
 
 func (x *TelemetryEvents) ProtoReflect() protoreflect.Message {
 	mi := &file_prefab_proto_msgTypes[46]
-
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
 			ms.StoreMessageInfo(mi)
 		}
-
 		return ms
 	}
-
 	return mi.MessageOf(x)
 }
 
@@ -4465,7 +4083,6 @@ func (x *TelemetryEvents) GetInstanceHash() string {
 	if x != nil {
 		return x.InstanceHash
 	}
-
 	return ""
 }
 
@@ -4473,7 +4090,6 @@ func (x *TelemetryEvents) GetEvents() []*TelemetryEvent {
 	if x != nil {
 		return x.Events
 	}
-
 	return nil
 }
 
@@ -4487,7 +4103,6 @@ type TelemetryEventsResponse struct {
 
 func (x *TelemetryEventsResponse) Reset() {
 	*x = TelemetryEventsResponse{}
-
 	if protoimpl.UnsafeEnabled {
 		mi := &file_prefab_proto_msgTypes[47]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -4503,16 +4118,13 @@ func (*TelemetryEventsResponse) ProtoMessage() {}
 
 func (x *TelemetryEventsResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_prefab_proto_msgTypes[47]
-
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
 			ms.StoreMessageInfo(mi)
 		}
-
 		return ms
 	}
-
 	return mi.MessageOf(x)
 }
 
@@ -4525,7 +4137,6 @@ func (x *TelemetryEventsResponse) GetSuccess() bool {
 	if x != nil {
 		return x.Success
 	}
-
 	return false
 }
 
@@ -4539,7 +4150,6 @@ type ExampleContexts struct {
 
 func (x *ExampleContexts) Reset() {
 	*x = ExampleContexts{}
-
 	if protoimpl.UnsafeEnabled {
 		mi := &file_prefab_proto_msgTypes[48]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -4555,16 +4165,13 @@ func (*ExampleContexts) ProtoMessage() {}
 
 func (x *ExampleContexts) ProtoReflect() protoreflect.Message {
 	mi := &file_prefab_proto_msgTypes[48]
-
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
 			ms.StoreMessageInfo(mi)
 		}
-
 		return ms
 	}
-
 	return mi.MessageOf(x)
 }
 
@@ -4577,7 +4184,6 @@ func (x *ExampleContexts) GetExamples() []*ExampleContext {
 	if x != nil {
 		return x.Examples
 	}
-
 	return nil
 }
 
@@ -4592,7 +4198,6 @@ type ExampleContext struct {
 
 func (x *ExampleContext) Reset() {
 	*x = ExampleContext{}
-
 	if protoimpl.UnsafeEnabled {
 		mi := &file_prefab_proto_msgTypes[49]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -4608,16 +4213,13 @@ func (*ExampleContext) ProtoMessage() {}
 
 func (x *ExampleContext) ProtoReflect() protoreflect.Message {
 	mi := &file_prefab_proto_msgTypes[49]
-
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
 			ms.StoreMessageInfo(mi)
 		}
-
 		return ms
 	}
-
 	return mi.MessageOf(x)
 }
 
@@ -4630,7 +4232,6 @@ func (x *ExampleContext) GetTimestamp() int64 {
 	if x != nil {
 		return x.Timestamp
 	}
-
 	return 0
 }
 
@@ -4638,7 +4239,6 @@ func (x *ExampleContext) GetContextSet() *ContextSet {
 	if x != nil {
 		return x.ContextSet
 	}
-
 	return nil
 }
 
@@ -4654,7 +4254,6 @@ type ClientStats struct {
 
 func (x *ClientStats) Reset() {
 	*x = ClientStats{}
-
 	if protoimpl.UnsafeEnabled {
 		mi := &file_prefab_proto_msgTypes[50]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -4670,16 +4269,13 @@ func (*ClientStats) ProtoMessage() {}
 
 func (x *ClientStats) ProtoReflect() protoreflect.Message {
 	mi := &file_prefab_proto_msgTypes[50]
-
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
 			ms.StoreMessageInfo(mi)
 		}
-
 		return ms
 	}
-
 	return mi.MessageOf(x)
 }
 
@@ -4692,7 +4288,6 @@ func (x *ClientStats) GetStart() int64 {
 	if x != nil {
 		return x.Start
 	}
-
 	return 0
 }
 
@@ -4700,7 +4295,6 @@ func (x *ClientStats) GetEnd() int64 {
 	if x != nil {
 		return x.End
 	}
-
 	return 0
 }
 
@@ -4708,7 +4302,6 @@ func (x *ClientStats) GetDroppedEventCount() uint64 {
 	if x != nil {
 		return x.DroppedEventCount
 	}
-
 	return 0
 }
 
@@ -5400,7 +4993,6 @@ func file_prefab_proto_rawDescGZIP() []byte {
 	file_prefab_proto_rawDescOnce.Do(func() {
 		file_prefab_proto_rawDescData = protoimpl.X.CompressGZIP(file_prefab_proto_rawDescData)
 	})
-
 	return file_prefab_proto_rawDescData
 }
 
@@ -5557,7 +5149,6 @@ func file_prefab_proto_init() {
 	if File_prefab_proto != nil {
 		return
 	}
-
 	if !protoimpl.UnsafeEnabled {
 		file_prefab_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ConfigServicePointer); i {
@@ -6172,7 +5763,6 @@ func file_prefab_proto_init() {
 			}
 		}
 	}
-
 	file_prefab_proto_msgTypes[1].OneofWrappers = []interface{}{
 		(*ConfigValue_Int)(nil),
 		(*ConfigValue_String_)(nil),
@@ -6222,9 +5812,7 @@ func file_prefab_proto_init() {
 		(*TelemetryEvent_Loggers)(nil),
 		(*TelemetryEvent_ContextShapes)(nil),
 	}
-
 	type x struct{}
-
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
