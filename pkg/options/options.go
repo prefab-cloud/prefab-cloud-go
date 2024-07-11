@@ -8,15 +8,6 @@ import (
 	"strings"
 
 	"github.com/prefab-cloud/prefab-cloud-go/pkg/internal/contexts"
-	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
-)
-
-type Datasource int
-
-const (
-	ALL Datasource = iota
-	// TODO: support LocalOnly
-	// LocalOnly
 )
 
 type OnInitializationFailure int
@@ -32,20 +23,12 @@ const (
 	APIURLVar    = "PREFAB_API_URL"
 )
 
-type OfflineConfig struct {
-	Configs      []*prefabProto.Config
-	ProjectEnvID int64
-}
-
 type Options struct {
-	ConfigDirectory              *string
-	ConfigOverrideDirectory      *string
+	Sources                      []ConfigSource
 	GlobalContext                *contexts.ContextSet
-	OfflineConfig                *OfflineConfig
 	APIKey                       string
 	APIUrl                       string
 	EnvironmentNames             []string
-	Datasource                   Datasource
 	InitializationTimeoutSeconds float64
 	OnInitializationFailure      OnInitializationFailure
 }
@@ -53,14 +36,12 @@ type Options struct {
 const timeoutDefault = 10.0
 
 var DefaultOptions = Options{
-	APIKey:                       "",
+	APIKey: "",
+	// TODO: deprecate this
 	APIUrl:                       "https://api.prefab.cloud",
-	Datasource:                   ALL,
 	InitializationTimeoutSeconds: timeoutDefault,
 	OnInitializationFailure:      RAISE,
 	EnvironmentNames:             getDefaultEnvironmentNames(),
-	ConfigDirectory:              getHomeDir(),
-	ConfigOverrideDirectory:      StringPtr("."),
 	GlobalContext:                contexts.NewContextSet(),
 }
 

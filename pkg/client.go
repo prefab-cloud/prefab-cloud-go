@@ -18,13 +18,7 @@ import (
 
 type ConfigMatch = internal.ConfigMatch
 
-type Options = options.Options
-
-type Option func(*options.Options) error
-
 type OnInitializationFailure = options.OnInitializationFailure
-
-type OfflineConfig = options.OfflineConfig
 
 type ContextSet = contexts.ContextSet
 
@@ -42,86 +36,6 @@ const (
 	RAISE  OnInitializationFailure = options.RAISE
 	UNLOCK OnInitializationFailure = options.UNLOCK
 )
-
-func WithOfflineConfig(offlineConfig options.OfflineConfig) Option {
-	return func(o *options.Options) error {
-		o.OfflineConfig = &offlineConfig
-
-		return nil
-	}
-}
-
-func WithConfigDirectory(configDirectory string) Option {
-	return func(o *options.Options) error {
-		o.ConfigDirectory = &configDirectory
-
-		return nil
-	}
-}
-
-func WithGlobalContext(globalContext *ContextSet) Option {
-	return func(o *options.Options) error {
-		o.GlobalContext = globalContext
-
-		return nil
-	}
-}
-
-func WithConfigOverrideDirectory(configOverrideDirectory string) Option {
-	return func(o *options.Options) error {
-		o.ConfigOverrideDirectory = &configOverrideDirectory
-
-		return nil
-	}
-}
-
-func WithEnvironmentNames(environmentNames []string) Option {
-	return func(o *options.Options) error {
-		o.EnvironmentNames = environmentNames
-
-		return nil
-	}
-}
-
-func WithAPIKey(apiKey string) Option {
-	return func(o *options.Options) error {
-		o.APIKey = apiKey
-
-		return nil
-	}
-}
-
-func WithAPIURL(apiURL string) Option {
-	return func(o *options.Options) error {
-		o.APIUrl = apiURL
-
-		return nil
-	}
-}
-
-func WithDatasource(datasource options.Datasource) Option {
-	return func(o *options.Options) error {
-		o.Datasource = datasource
-
-		return nil
-	}
-}
-
-func WithInitializationTimeoutSeconds(timeoutSeconds float64) Option {
-	return func(o *options.Options) error {
-		o.InitializationTimeoutSeconds = timeoutSeconds
-
-		return nil
-	}
-}
-
-func WithOnInitializationFailure(onInitializationFailure options.OnInitializationFailure) Option {
-	return func(o *options.Options) error {
-		o.OnInitializationFailure = onInitializationFailure
-
-		return nil
-	}
-}
 
 type ClientInterface interface {
 	GetIntValue(key string, contextSet ContextSet) (int64, bool, error)
