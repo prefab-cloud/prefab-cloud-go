@@ -35,21 +35,22 @@ func (suite *LocalConfigStoreSuite) TestNewLocalConfigStore() {
 	}{
 		{
 			name:            "Default only",
-			sourceDirectory: "testdata/local_configs",
+			sourceDirectory: "testdata/local_configs/.prefab.default.config.yaml",
 			options: &options.Options{
 				EnvironmentNames: []string{},
 			},
 			expectedConfigs: []configExpectation{
 				{key: "cool.bool.enabled", expected: testutils.CreateConfigValueAndAssertOk(suite.T(), true)},
 				{key: "cool.bool", exists: false},
+				// only in prod
 				{key: "hot.int", exists: false},
 				{key: "sample_to_override", expected: testutils.CreateConfigValueAndAssertOk(suite.T(), "value from override in default")},
 				{key: "cool.count", expected: testutils.CreateConfigValueAndAssertOk(suite.T(), 100)},
 			},
 		},
 		{
-			name:            "Default and production",
-			sourceDirectory: "testdata/local_configs",
+			name:            "Production",
+			sourceDirectory: "testdata/local_configs/.prefab.production.config.yaml",
 			options: &options.Options{
 				EnvironmentNames: []string{"production"},
 			},
@@ -58,14 +59,17 @@ func (suite *LocalConfigStoreSuite) TestNewLocalConfigStore() {
 				{key: "cool.bool", exists: false},
 				{key: "hot.int", expected: testutils.CreateConfigValueAndAssertOk(suite.T(), 212)},
 				{key: "sample_to_override", expected: testutils.CreateConfigValueAndAssertOk(suite.T(), "value from override in production")},
-				{key: "cool.count", expected: testutils.CreateConfigValueAndAssertOk(suite.T(), 100)},
+				// Only in default
+				{key: "cool.count", exists: false},
 			},
 		},
 	}
 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			store := internal.NewLocalConfigStore(tc.sourceDirectory, tc.options)
+			store, err := internal.NewLocalConfigStore(tc.sourceDirectory)
+
+			suite.Require().NoError(err, "Expected no error creating local config store")
 
 			// Assert the expected configurations
 			for _, expectation := range tc.expectedConfigs {
