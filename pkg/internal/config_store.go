@@ -16,7 +16,7 @@ func BuildConfigStore(options opts.Options, source opts.ConfigSource, apiSourceF
 		store, err := NewLocalConfigStore(source.Path)
 		return store, false, err
 	case opts.ConfigDump:
-		store, err := NewConfigDumpConfigStore(source.Path)
+		store, err := NewConfigDumpConfigStore(source.Path, options.ProjectEnvID)
 		return store, false, err
 	default:
 		return nil, false, fmt.Errorf("unknown store type %v", source.Store)

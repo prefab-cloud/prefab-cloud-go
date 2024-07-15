@@ -405,7 +405,7 @@ func raw(cv *prefabProto.ConfigValue) (*prefabProto.ConfigValue, bool) {
 }
 
 func (c *boundClient) GetConfig(key string) (*prefabProto.Config, bool) {
-	return c.client.GetConfig(key)
+	return c.client.configStore.GetConfig(key)
 }
 
 func (c *boundClient) GetConfigMatch(key string, contextSet ContextSet) (*ConfigMatch, error) {

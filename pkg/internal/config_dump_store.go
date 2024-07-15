@@ -1,31 +1,34 @@
-// TODO: need to figure out ProjectEnvID here. If we don't have an API key, we can't parse it so it'll need to be provided?
 package internal
 
 import (
 	"fmt"
+	"os"
 
 	"google.golang.org/protobuf/proto"
-
-	"os"
 
 	prefabInternalProto "github.com/prefab-cloud/prefab-cloud-go/internal-proto"
 	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
 )
 
 type ConfigDumpConfigStore struct {
-	configMap   map[string]*prefabProto.Config
-	path        string
-	Initialized bool
+	configMap    map[string]*prefabProto.Config
+	path         string
+	ProjectEnvID int64
+	Initialized  bool
 }
 
-func NewConfigDumpConfigStore(path string) (*ConfigDumpConfigStore, error) {
+func NewConfigDumpConfigStore(path string, projectEnvID int64) (*ConfigDumpConfigStore, error) {
 	configMap, err := configDumpFileToConfigMap(path)
 
 	if err != nil {
 		return nil, fmt.Errorf("error creating ConfigDumpConfigStore: %v", err)
 	}
 
-	return &ConfigDumpConfigStore{configMap: configMap, Initialized: true, path: path}, nil
+	if projectEnvID == 0 {
+		return nil, fmt.Errorf("projectEnvID must be provided for ConfigDumpConfigStore")
+	}
+
+	return &ConfigDumpConfigStore{configMap: configMap, Initialized: true, path: path, ProjectEnvID: projectEnvID}, nil
 }
 
 func configDumpFileToConfigMap(path string) (map[string]*prefabProto.Config, error) {
@@ -75,5 +78,5 @@ func (cs *ConfigDumpConfigStore) Keys() []string {
 }
 
 func (cs *ConfigDumpConfigStore) GetProjectEnvID() int64 {
-	return 0
+	return cs.ProjectEnvID
 }

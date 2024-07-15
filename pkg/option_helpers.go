@@ -11,6 +11,14 @@ type Option func(*options.Options) error
 
 type ConfigDump = prefabInternalProto.ConfigDump
 
+func WithProjectEnvID(projectEnvID int64) Option {
+	return func(o *options.Options) error {
+		o.ProjectEnvID = projectEnvID
+
+		return nil
+	}
+}
+
 func WithOfflineSources(sources []string) Option {
 	return WithSources(sources, true)
 }
@@ -36,9 +44,7 @@ func WithSources(sources []string, excludeDefault bool) Option {
 		}
 
 		if !excludeDefault {
-			for _, defaultSource := range options.DefaultConfigSources {
-				configSources = append(configSources, defaultSource)
-			}
+			configSources = append(configSources, options.DefaultConfigSources...)
 		}
 
 		o.Sources = configSources

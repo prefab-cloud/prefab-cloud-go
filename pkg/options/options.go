@@ -22,11 +22,12 @@ const (
 )
 
 type Options struct {
-	Sources                      []ConfigSource
 	GlobalContext                *contexts.ContextSet
 	APIKey                       string
 	APIUrl                       string
+	Sources                      []ConfigSource
 	EnvironmentNames             []string
+	ProjectEnvID                 int64
 	InitializationTimeoutSeconds float64
 	OnInitializationFailure      OnInitializationFailure
 }

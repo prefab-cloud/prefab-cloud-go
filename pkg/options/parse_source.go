@@ -28,10 +28,10 @@ var DefaultConfigSources = []ConfigSource{
 }
 
 func ParseConfigSource(rawSource string) (ConfigSource, error) {
-	parts := strings.Split(rawSource, ":")
+	parts := strings.Split(rawSource, "://")
 
 	if len(parts) < 2 {
-		return ConfigSource{}, fmt.Errorf("invalid source %s", rawSource)
+		return ConfigSource{}, fmt.Errorf("invalid source (protocol is missing): %s", rawSource)
 	}
 
 	protocol := parts[0]
