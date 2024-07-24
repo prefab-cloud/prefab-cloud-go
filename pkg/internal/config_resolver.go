@@ -13,9 +13,9 @@ import (
 type ConfigMatch struct {
 	OriginalMatch            *prefabProto.ConfigValue
 	Match                    *prefabProto.ConfigValue
-	WeightedValueIndex       *int
 	SelectedConditionalValue *prefabProto.ConditionalValue
 	OriginalKey              string
+	WeightedValueIndex       int
 	RowIndex                 int
 	ConditionalValueIndex    int
 	IsMatch                  bool
@@ -87,7 +87,7 @@ func (c ConfigResolver) ResolveValueForConfig(config *prefabProto.Config, contex
 	switch v := ruleMatchResults.Match.GetType().(type) {
 	case *prefabProto.ConfigValue_WeightedValues:
 		result, index := c.handleWeightedValue(key, v.WeightedValues, contextSet)
-		configMatch.WeightedValueIndex = &index
+		configMatch.WeightedValueIndex = index
 		configMatch.Match = result
 	case *prefabProto.ConfigValue_Provided:
 		provided := ruleMatchResults.Match.GetProvided()

@@ -397,7 +397,7 @@ func TestConfigResolver_ResolveValue(t *testing.T) {
 				OriginalMatch:         weightedValuesConfigValue,
 				ConditionalValueIndex: 1,
 				RowIndex:              1,
-				WeightedValueIndex:    internal.IntPtr(2),
+				WeightedValueIndex:    2,
 			},
 			mockConfigStoreArgs: []mocks.ConfigMockingArgs{
 				{
