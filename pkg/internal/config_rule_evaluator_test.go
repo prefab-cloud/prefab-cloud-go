@@ -243,6 +243,8 @@ func (suite *ConfigRuleTestSuite) TestPropIsOneOf() {
 		{"returns false when valueToMatch is not a string slice", testutils.CreateConfigValueAndAssertOk(suite.T(), "example.com"), "doesn't matter", true, false},
 		{"returns true when the string matches the slice", alternateValueToMatch, "2", true, true},
 		{"returns true when the non-string matches the slice (it is coerced)", alternateValueToMatch, 2, true, true},
+		{"returns true when the context array overlaps the set", defaultValueToMatch, []string{"yahoo.com", "hats"}, true, true},
+		{"returns false when the context array does not overlap the set", defaultValueToMatch, []string{"pumpkins", "hats", "shoes"}, true, false},
 	}
 
 	for _, testCase := range tests {
@@ -277,6 +279,8 @@ func (suite *ConfigRuleTestSuite) TestPropIsNotOneOf() {
 		{"returns true when valueToMatch is not a string slice", testutils.CreateConfigValueAndAssertOk(suite.T(), "example.com"), "doesn't matter", true, true},
 		{"returns false when the string matches the slice", alternateValueToMatch, "2", true, false},
 		{"returns false when the non-string matches the slice (it is coerced)", alternateValueToMatch, 2, true, false},
+		{"returns false when the context array overlaps the set", defaultValueToMatch, []string{"yahoo.com", "hats"}, true, false},
+		{"returns true when the context array does not overlap the set", defaultValueToMatch, []string{"pumpkins", "hats", "shoes"}, true, true},
 	}
 
 	for _, testCase := range tests {

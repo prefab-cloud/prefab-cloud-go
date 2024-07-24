@@ -23,7 +23,6 @@ const (
 )
 
 var DefaultConfigSources = []ConfigSource{
-	{Raw: "sse:prefab", Store: APIStore, Default: true},
 	{Raw: "api:prefab", Store: APIStore, Default: true},
 }
 
