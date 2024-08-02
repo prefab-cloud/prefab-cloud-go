@@ -148,7 +148,6 @@ func (cve *ConfigRuleEvaluator) EvaluateCriterion(criterion *prefabProto.Criteri
 				matchFound := false
 
 				for _, stringContextValue := range sliceContextValue {
-					fmt.Println("Comparing", stringContextValue, "to", stringSliceMatchValue)
 					// Check if stringContextValue is contained within stringSliceMatchValue
 					if stringInSlice(stringContextValue, stringSliceMatchValue) {
 						matchFound = true
