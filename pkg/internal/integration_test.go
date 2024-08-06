@@ -14,6 +14,7 @@ import (
 	prefab "github.com/prefab-cloud/prefab-cloud-go/pkg"
 	"github.com/prefab-cloud/prefab-cloud-go/pkg/internal/anyhelpers"
 	"github.com/prefab-cloud/prefab-cloud-go/pkg/internal/contexts"
+	"github.com/prefab-cloud/prefab-cloud-go/pkg/internal/options"
 
 	"github.com/stretchr/testify/suite"
 	"gopkg.in/yaml.v3"
@@ -271,9 +272,9 @@ func (suite *GeneratedTestSuite) makeGetCall(client prefab.ClientInterface, data
 	return result
 }
 
-func buildClient(apiKey string, testCase *getTestCase) (prefab.ClientInterface, error) {
+func buildClient(apiKey string, testCase *getTestCase) (*prefab.ContextBoundClient, error) {
 	options := []prefab.Option{
-		prefab.WithAPIURL("https://api.staging-prefab.cloud"),
+		prefab.WithAPIURLs([]string{"https://api.staging-prefab.cloud"}),
 		prefab.WithAPIKey(apiKey),
 		prefab.WithGlobalContext(testCase.Contexts.global),
 	}
@@ -283,12 +284,11 @@ func buildClient(apiKey string, testCase *getTestCase) (prefab.ClientInterface, 
 	}
 
 	client, err := prefab.NewClient(options...)
-
-	if testCase.Contexts.block != nil {
-		return client.WithContext(testCase.Contexts.block), nil
+	if err != nil {
+		return nil, err
 	}
 
-	return client, err
+	return client.WithContext(testCase.Contexts.block), nil
 }
 
 func applyOverrides(testCase *getTestCase, options []prefab.Option) []prefab.Option {
@@ -306,7 +306,7 @@ func applyOverrides(testCase *getTestCase, options []prefab.Option) []prefab.Opt
 	}
 
 	if testCase.ClientOverrides.PrefabAPIURL != nil {
-		options = append(options, prefab.WithAPIURL(*testCase.ClientOverrides.PrefabAPIURL))
+		options = append(options, prefab.WithAPIURLs([]string{*testCase.ClientOverrides.PrefabAPIURL}))
 	}
 
 	return options
@@ -469,14 +469,14 @@ func processExpectedResult(testCase *getTestCase) (expectedResult, bool) {
 }
 
 // Mapping function from string to OnInitializationFailure
-func mapStringToOnInitializationFailure(str string) (prefab.OnInitializationFailure, error) {
+func mapStringToOnInitializationFailure(str string) (options.OnInitializationFailure, error) {
 	switch str {
 	case ":raise":
-		return prefab.RAISE, nil
+		return prefab.ReturnError, nil
 	case ":return":
-		return prefab.UNLOCK, nil
+		return prefab.ReturnNilMatch, nil
 	default:
-		return prefab.RAISE, fmt.Errorf("unknown OnInitializationFailure value %s", str)
+		return prefab.ReturnError, fmt.Errorf("unknown OnInitializationFailure value %s", str)
 	}
 }
 

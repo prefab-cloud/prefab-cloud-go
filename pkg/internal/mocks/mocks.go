@@ -66,6 +66,24 @@ type MockConfigStoreGetter struct {
 	mock.Mock
 }
 
+func (m *MockConfigStoreGetter) Keys() []string {
+	args := m.Called()
+
+	return args.Get(0).([]string)
+}
+
+func (m *MockConfigStoreGetter) GetContextValue(propertyName string) (interface{}, bool) {
+	args := m.Called(propertyName)
+
+	return args.Get(0), args.Bool(1)
+}
+
+func (m *MockConfigStoreGetter) GetProjectEnvID() int64 {
+	args := m.Called()
+
+	return args.Get(0).(int64)
+}
+
 func (m *MockConfigStoreGetter) GetConfig(key string) (*prefabProto.Config, bool) {
 	var config *prefabProto.Config
 

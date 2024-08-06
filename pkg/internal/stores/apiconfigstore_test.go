@@ -1,4 +1,4 @@
-package internal_test
+package stores_test
 
 import (
 	"testing"
@@ -7,11 +7,15 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	"github.com/prefab-cloud/prefab-cloud-go/pkg/internal"
+	opts "github.com/prefab-cloud/prefab-cloud-go/pkg/internal/options"
+	"github.com/prefab-cloud/prefab-cloud-go/pkg/internal/stores"
 	"github.com/prefab-cloud/prefab-cloud-go/pkg/internal/testutils"
 	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
 )
 
 func TestApiConfigStore(t *testing.T) {
+	options := opts.Options{APIURLs: []string{"https://api.prefab.cloud"}}
+
 	configFoo := &prefabProto.Config{
 		Key:        "foo",
 		Id:         10,
@@ -79,7 +83,7 @@ func TestApiConfigStore(t *testing.T) {
 	emptyConfigs := &prefabProto.Configs{}
 
 	t.Run("store initialized after set called and has two values", func(t *testing.T) {
-		store := internal.BuildAPIConfigStore()
+		store, _ := stores.NewAPIConfigStore(options, func() {})
 		store.SetFromConfigsProto(configs)
 		assert.Equal(t, 2, store.Len())
 		assert.True(t, store.Initialized)
@@ -97,7 +101,7 @@ func TestApiConfigStore(t *testing.T) {
 	})
 
 	t.Run("store initialized with empty configs still marked initialized", func(t *testing.T) {
-		store := internal.BuildAPIConfigStore()
+		store, _ := stores.NewAPIConfigStore(options, func() {})
 		store.SetFromConfigsProto(emptyConfigs)
 		assert.Equal(t, 0, store.Len())
 		assert.True(t, store.Initialized)
@@ -109,7 +113,7 @@ func TestApiConfigStore(t *testing.T) {
 	})
 
 	t.Run("updating with tombstoned config foo deletes", func(t *testing.T) {
-		store := internal.BuildAPIConfigStore()
+		store, _ := stores.NewAPIConfigStore(options, func() {})
 		store.SetFromConfigsProto(configs)
 		assert.Equal(t, 2, store.Len())
 		assert.True(t, store.Initialized)
@@ -129,7 +133,7 @@ func TestApiConfigStore(t *testing.T) {
 	})
 
 	t.Run("updating with tombstoned config foo does nothing with smaller id", func(t *testing.T) {
-		store := internal.BuildAPIConfigStore()
+		store, _ := stores.NewAPIConfigStore(options, func() {})
 		store.SetFromConfigsProto(configs)
 		assert.Equal(t, 2, store.Len())
 		assert.True(t, store.Initialized)
@@ -151,7 +155,7 @@ func TestApiConfigStore(t *testing.T) {
 	})
 
 	t.Run("updating with changed config foo does nothing with smaller id", func(t *testing.T) {
-		store := internal.BuildAPIConfigStore()
+		store, _ := stores.NewAPIConfigStore(options, func() {})
 		store.SetFromConfigsProto(configs)
 		assert.Equal(t, 2, store.Len())
 		assert.True(t, store.Initialized)
@@ -173,7 +177,7 @@ func TestApiConfigStore(t *testing.T) {
 	})
 
 	t.Run("updating with changed config foo updates when id is larger", func(t *testing.T) {
-		store := internal.BuildAPIConfigStore()
+		store, _ := stores.NewAPIConfigStore(options, func() {})
 		store.SetFromConfigsProto(configs)
 		assert.Equal(t, 2, store.Len())
 		assert.True(t, store.Initialized)
