@@ -87,9 +87,13 @@ func ExtractValue(cv *prefabProto.ConfigValue) (any, bool, error) {
 		return v.Double, true, nil
 	case *prefabProto.ConfigValue_Bool:
 		return v.Bool, true, nil
+	case *prefabProto.ConfigValue_LogLevel:
+		return v.LogLevel, true, nil
 	case *prefabProto.ConfigValue_StringList:
 		// StringList is considered a simple type, returning the slice of strings directly.
 		return v.StringList.GetValues(), true, nil
+	case *prefabProto.ConfigValue_Json:
+		return ExtractJSONValue(cv)
 	case *prefabProto.ConfigValue_Duration:
 		duration, ok := ExtractDurationValue(cv)
 
@@ -171,23 +175,32 @@ func ExtractStringValue(cv *prefabProto.ConfigValue) (string, bool) {
 	}
 }
 
-func ExtractJSONValue(cv *prefabProto.ConfigValue) (interface{}, bool) {
+func ExtractJSONValueWithoutError(cv *prefabProto.ConfigValue) (interface{}, bool) {
+	jsonValue, ok, err := ExtractJSONValue(cv)
+	if err != nil {
+		return "", false
+	}
+
+	return jsonValue, ok
+}
+
+func ExtractJSONValue(cv *prefabProto.ConfigValue) (interface{}, bool, error) {
 	switch v := cv.GetType().(type) {
 	case *prefabProto.ConfigValue_Json:
 		var jsonValue interface{}
 
-		jsonString := v.Json.Json
+		jsonString := v.Json.GetJson()
 
 		err := json.Unmarshal([]byte(jsonString), &jsonValue)
 		if err != nil {
 			slog.Error("Failed to parse JSON value: " + jsonString)
 
-			return "", false
+			return "", false, err
 		}
 
-		return jsonValue, true
+		return jsonValue, true, nil
 	default:
-		return "", false
+		return "", false, nil
 	}
 }
 

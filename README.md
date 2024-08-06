@@ -51,3 +51,8 @@ func main() {
 ## Documentation
 
 - [API Reference](https://pkg.go.dev/github.com/prefab-cloud/prefab-cloud-go/pkg)
+
+## Notable pending features
+
+- Telemetry
+- JSON dump data source

@@ -6,8 +6,12 @@ type ContextValueGetter interface {
 	GetContextValue(propertyName string) (value interface{}, valueExists bool)
 }
 
+// TODO: add a `freshen` or similar method
 type ConfigStoreGetter interface {
 	GetConfig(key string) (config *prefabProto.Config, exists bool)
+	Keys() []string
+	ContextValueGetter
+	ProjectEnvIDSupplier
 }
 
 type ProjectEnvIDSupplier interface {

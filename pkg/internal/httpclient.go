@@ -1,45 +1,42 @@
 package internal
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
-	"strings"
 
 	"google.golang.org/protobuf/proto"
 
-	"github.com/prefab-cloud/prefab-cloud-go/pkg/options"
+	"github.com/prefab-cloud/prefab-cloud-go/pkg/internal/options"
 	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
 )
 
 type HTTPClient struct {
 	Options *options.Options
-	apiURL  string
-	cdnURL  string
+	URLs    []string
 }
 
 func BuildHTTPClient(options options.Options) (*HTTPClient, error) {
-	apiURL, err := options.PrefabAPIURLEnvVarOrSetting()
+	apiURLs, err := options.PrefabAPIURLEnvVarOrSetting()
 	if err != nil {
 		return nil, err
 	}
 
-	cdnURL := strings.ReplaceAll(apiURL, ".", "-") + ".global.ssl.fastly.net"
-
-	client := HTTPClient{Options: &options, apiURL: apiURL, cdnURL: cdnURL}
+	client := HTTPClient{Options: &options, URLs: apiURLs}
 
 	return &client, nil
 }
 
-func (c *HTTPClient) Load(offset int32) (*prefabProto.Configs, error) {
+func (c *HTTPClient) Load(offset int64) (*prefabProto.Configs, error) {
 	apiKey, err := c.Options.APIKeySettingOrEnvVar()
 	if err != nil {
 		return nil, err
 	}
 
-	for _, url := range []string{c.cdnURL, c.apiURL} {
+	for _, url := range c.URLs {
 		uri := fmt.Sprintf("%s/api/v1/configs/%d", url, offset)
 
 		configs, err := c.LoadFromURI(uri, apiKey, offset)
@@ -55,11 +52,11 @@ func (c *HTTPClient) Load(offset int32) (*prefabProto.Configs, error) {
 	return nil, errors.New("error loading configs from all URIs")
 }
 
-func (c *HTTPClient) LoadFromURI(uri string, apiKey string, offset int32) (*prefabProto.Configs, error) {
-	slog.Debug("Getting data from " + uri)
+func (c *HTTPClient) LoadFromURI(uri string, apiKey string, offset int64) (*prefabProto.Configs, error) {
+	slog.Debug("Getting data from "+uri, "offset", offset)
 
 	// Perform the HTTP GET request
-	req, err := http.NewRequest(http.MethodGet, uri, nil)
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, uri, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -71,6 +68,8 @@ func (c *HTTPClient) LoadFromURI(uri string, apiKey string, offset int32) (*pref
 	if err != nil {
 		return nil, err
 	}
+
+	defer resp.Body.Close()
 
 	defer func(Body io.ReadCloser) {
 		err = Body.Close()

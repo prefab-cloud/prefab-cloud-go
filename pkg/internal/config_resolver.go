@@ -13,9 +13,9 @@ import (
 type ConfigMatch struct {
 	OriginalMatch            *prefabProto.ConfigValue
 	Match                    *prefabProto.ConfigValue
-	WeightedValueIndex       *int
 	SelectedConditionalValue *prefabProto.ConditionalValue
 	OriginalKey              string
+	WeightedValueIndex       int
 	RowIndex                 int
 	ConditionalValueIndex    int
 	IsMatch                  bool
@@ -27,7 +27,7 @@ func NewConfigMatchFromConditionMatch(conditionMatch ConditionMatch) ConfigMatch
 		OriginalMatch:            conditionMatch.Match,
 		Match:                    conditionMatch.Match,
 		RowIndex:                 conditionMatch.RowIndex,
-		ConditionalValueIndex:    conditionMatch.RowIndex,
+		ConditionalValueIndex:    conditionMatch.ConditionalValueIndex,
 		SelectedConditionalValue: conditionMatch.SelectedConditionalValue,
 	}
 }
@@ -53,15 +53,19 @@ type ConfigResolver struct {
 	ContextGetter         ContextValueGetter
 }
 
-func NewConfigResolver(configStore ConfigStoreGetter, supplier ProjectEnvIDSupplier, apiContextGetter ContextValueGetter) *ConfigResolver {
+func NewConfigResolver(configStore ConfigStoreGetter) *ConfigResolver {
 	return &ConfigResolver{
 		ConfigStore:           configStore,
-		RuleEvaluator:         NewConfigRuleEvaluator(configStore, supplier),
+		RuleEvaluator:         NewConfigRuleEvaluator(configStore, configStore),
 		WeightedValueResolver: NewWeightedValueResolver(time.Now().UnixNano(), &Hashing{}),
 		Decrypter:             &Encryption{},
 		EnvLookup:             &RealEnvLookup{},
-		ContextGetter:         apiContextGetter,
+		ContextGetter:         configStore,
 	}
+}
+
+func (c ConfigResolver) Keys() []string {
+	return c.ConfigStore.Keys()
 }
 
 func (c ConfigResolver) ResolveValue(key string, contextSet ContextValueGetter) (ConfigMatch, error) {
@@ -70,6 +74,10 @@ func (c ConfigResolver) ResolveValue(key string, contextSet ContextValueGetter) 
 		return ConfigMatch{IsMatch: false, OriginalKey: key}, ErrConfigDoesNotExist
 	}
 
+	return c.ResolveValueForConfig(config, contextSet, key)
+}
+
+func (c ConfigResolver) ResolveValueForConfig(config *prefabProto.Config, contextSet ContextValueGetter, key string) (ConfigMatch, error) {
 	contextSet = makeMultiContextGetter(contextSet, c.ContextGetter)
 
 	ruleMatchResults := c.RuleEvaluator.EvaluateConfig(config, contextSet)
@@ -79,7 +87,7 @@ func (c ConfigResolver) ResolveValue(key string, contextSet ContextValueGetter) 
 	switch v := ruleMatchResults.Match.GetType().(type) {
 	case *prefabProto.ConfigValue_WeightedValues:
 		result, index := c.handleWeightedValue(key, v.WeightedValues, contextSet)
-		configMatch.WeightedValueIndex = &index
+		configMatch.WeightedValueIndex = index
 		configMatch.Match = result
 	case *prefabProto.ConfigValue_Provided:
 		provided := ruleMatchResults.Match.GetProvided()
@@ -167,12 +175,12 @@ func (c ConfigResolver) handleDecryption(configValue *prefabProto.ConfigValue, c
 				decryptedValue, decryptionError := c.Decrypter.DecryptValue(keyStr, configValue.GetString_())
 
 				return decryptedValue, decryptionError
-			} else {
-				return "", errors.New("secret key lookup failed")
 			}
-		} else {
-			return "", errors.New("no match in config value")
+
+			return "", errors.New("secret key lookup failed")
 		}
+
+		return "", errors.New("no match in config value")
 	}
 
 	return "", errors.New("no config value exists")

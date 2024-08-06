@@ -23,10 +23,10 @@ type ConfigRuleEvaluator struct {
 	projectEnvIDSupplier ProjectEnvIDSupplier
 }
 
-func NewConfigRuleEvaluator(configStore ConfigStoreGetter, supplier ProjectEnvIDSupplier) *ConfigRuleEvaluator {
+func NewConfigRuleEvaluator(configStore ConfigStoreGetter, projectEnvIDSupplier ProjectEnvIDSupplier) *ConfigRuleEvaluator {
 	return &ConfigRuleEvaluator{
 		configStore:          configStore,
-		projectEnvIDSupplier: supplier,
+		projectEnvIDSupplier: projectEnvIDSupplier,
 	}
 }
 
@@ -94,6 +94,27 @@ func contextValueToString(contextValue interface{}) string {
 	return fmt.Sprintf("%v", contextValue)
 }
 
+func contextValueToStringSlice(contextValue interface{}) []string {
+	if contextValue == nil {
+		return nil
+	}
+
+	if stringArray, ok := contextValue.([]string); ok {
+		return stringArray
+	}
+
+	if reflect.TypeOf(contextValue).Kind() == reflect.Slice {
+		stringSlice := make([]string, 0)
+		for _, value := range contextValue.([]interface{}) {
+			stringSlice = append(stringSlice, contextValueToString(value))
+		}
+
+		return stringSlice
+	}
+
+	return []string{contextValueToString(contextValue)}
+}
+
 func (cve *ConfigRuleEvaluator) EvaluateCriterion(criterion *prefabProto.Criterion, contextSet ContextValueGetter) bool {
 	// get the value from context
 	contextValue, contextValueExists := contextSet.GetContextValue(criterion.GetPropertyName())
@@ -120,12 +141,22 @@ func (cve *ConfigRuleEvaluator) EvaluateCriterion(criterion *prefabProto.Criteri
 		return criterion.GetOperator() == prefabProto.Criterion_PROP_DOES_NOT_END_WITH_ONE_OF
 	case prefabProto.Criterion_PROP_IS_ONE_OF, prefabProto.Criterion_PROP_IS_NOT_ONE_OF:
 		if err == nil && contextValueExists {
-			stringContextValue := contextValueToString(contextValue)
+			sliceContextValue := contextValueToStringSlice(contextValue)
 
 			// Type assertion for matchValue as []string
 			if stringSliceMatchValue, matchValueIsStringSlice := matchValue.([]string); matchValueIsStringSlice {
-				// Check if stringContextValue is contained within stringSliceMatchValue
-				return stringInSlice(stringContextValue, stringSliceMatchValue) == (criterion.GetOperator() == prefabProto.Criterion_PROP_IS_ONE_OF)
+				matchFound := false
+
+				for _, stringContextValue := range sliceContextValue {
+					// Check if stringContextValue is contained within stringSliceMatchValue
+					if stringInSlice(stringContextValue, stringSliceMatchValue) {
+						matchFound = true
+
+						break
+					}
+				}
+
+				return matchFound == (criterion.GetOperator() == prefabProto.Criterion_PROP_IS_ONE_OF)
 			}
 		}
 
