@@ -155,8 +155,6 @@ func (cve *ConfigRuleEvaluator) EvaluateCriterion(criterion *prefabProto.Criteri
 					}
 				}
 
-				fmt.Println("Match found:", matchFound)
-
 				return matchFound == (criterion.GetOperator() == prefabProto.Criterion_PROP_IS_ONE_OF)
 			}
 		}
