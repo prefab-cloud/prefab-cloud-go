@@ -1,9 +1,9 @@
 package options
 
 import (
-	"errors"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/prefab-cloud/prefab-cloud-go/pkg/internal/contexts"
 )
@@ -21,10 +21,15 @@ const (
 	APIURLVar    = "PREFAB_API_URL"
 )
 
+var DefaultAPIURLs = []string{
+	"https://belt.prefab.cloud",
+	"https://suspenders.prefab.cloud",
+}
+
 type Options struct {
 	GlobalContext                *contexts.ContextSet
 	APIKey                       string
-	APIUrl                       string
+	APIURLs                      []string
 	Sources                      []ConfigSource
 	EnvironmentNames             []string
 	ProjectEnvID                 int64
@@ -36,18 +41,11 @@ const timeoutDefault = 10.0
 
 var DefaultOptions = Options{
 	APIKey:                       "",
-	APIUrl:                       "https://api.prefab.cloud",
+	APIURLs:                      nil,
 	InitializationTimeoutSeconds: timeoutDefault,
 	OnInitializationFailure:      RAISE,
 	GlobalContext:                contexts.NewContextSet(),
 	Sources:                      DefaultConfigSources,
-}
-
-func NewOptions(modifyFn func(*Options)) Options {
-	opts := DefaultOptions
-	modifyFn(&opts)
-
-	return opts
 }
 
 func (o *Options) APIKeySettingOrEnvVar() (string, error) {
@@ -64,19 +62,32 @@ func (o *Options) APIKeySettingOrEnvVar() (string, error) {
 	return o.APIKey, nil
 }
 
-func (o *Options) PrefabAPIURLEnvVarOrSetting() (string, error) {
-	apiURLFromEnvVar := os.Getenv(APIURLVar)
-	if apiURLFromEnvVar != "" {
-		o.APIUrl = apiURLFromEnvVar
+func (o *Options) PrefabAPIURLEnvVarOrSetting() ([]string, error) {
+	apiURLs := []string{}
+
+	if os.Getenv(APIURLVar) != "" {
+		for _, url := range strings.Split(os.Getenv(APIURLVar), ",") {
+			if url != "" {
+				apiURLs = append(apiURLs, url)
+			}
+		}
+
+		if len(apiURLs) == 0 {
+			return nil, fmt.Errorf("environment variable %s is blank", APIURLVar)
+		}
+
+		return apiURLs, nil
 	}
 
-	if o.APIUrl == "" {
-		return "", errors.New("no PrefabApiUrl set")
+	for _, url := range o.APIURLs {
+		if url != "" {
+			apiURLs = append(apiURLs, url)
+		}
 	}
 
-	return o.APIUrl, nil
-}
+	if o.APIURLs == nil {
+		apiURLs = DefaultAPIURLs
+	}
 
-func StringPtr(str string) *string {
-	return &str
+	return apiURLs, nil
 }

@@ -273,7 +273,7 @@ func (suite *GeneratedTestSuite) makeGetCall(client prefab.ClientInterface, data
 
 func buildClient(apiKey string, testCase *getTestCase) (prefab.ClientInterface, error) {
 	options := []prefab.Option{
-		prefab.WithAPIURL("https://api.staging-prefab.cloud"),
+		prefab.WithAPIURLs([]string{"https://api.staging-prefab.cloud"}),
 		prefab.WithAPIKey(apiKey),
 		prefab.WithGlobalContext(testCase.Contexts.global),
 	}
@@ -306,7 +306,7 @@ func applyOverrides(testCase *getTestCase, options []prefab.Option) []prefab.Opt
 	}
 
 	if testCase.ClientOverrides.PrefabAPIURL != nil {
-		options = append(options, prefab.WithAPIURL(*testCase.ClientOverrides.PrefabAPIURL))
+		options = append(options, prefab.WithAPIURLs([]string{*testCase.ClientOverrides.PrefabAPIURL}))
 	}
 
 	return options

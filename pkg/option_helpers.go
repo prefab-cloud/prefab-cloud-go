@@ -25,12 +25,6 @@ func WithOfflineSources(sources []string) Option {
 
 func WithSources(sources []string, excludeDefault bool) Option {
 	// some of these are their own datastore, some map to the same datastore (e.g. poll and sse)
-
-	// e.g.
-	// "datafile://secret-submodule/secrets.json",
-	// "datafile://this-project/project-config.json",
-	// "sse:sse.prefab.cloud"
-
 	return func(o *options.Options) error {
 		configSources := make([]options.ConfigSource, 0, len(sources))
 
@@ -77,9 +71,9 @@ func WithAPIKey(apiKey string) Option {
 	}
 }
 
-func WithAPIURL(apiURL string) Option {
+func WithAPIURLs(apiURL []string) Option {
 	return func(o *options.Options) error {
-		o.APIUrl = apiURL
+		o.APIURLs = apiURL
 
 		return nil
 	}

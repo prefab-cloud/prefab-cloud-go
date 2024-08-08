@@ -2,6 +2,7 @@ package internal
 
 import (
 	"encoding/base64"
+	"errors"
 	"log/slog"
 	"strconv"
 	"time"
@@ -14,14 +15,19 @@ import (
 )
 
 func BuildSSEClient(options options.Options) (*sse.Client, error) {
-	apiURL, err := options.PrefabAPIURLEnvVarOrSetting()
+	apiURLs, err := options.PrefabAPIURLEnvVarOrSetting()
 	if err != nil {
 		return nil, err
 	}
 
+	if len(apiURLs) == 0 {
+		return nil, errors.New("no api urls provided")
+	}
+
 	authString := base64.StdEncoding.EncodeToString([]byte("authuser:" + options.APIKey))
 
-	client := sse.NewClient(apiURL + "/api/v1/sse/config")
+	// TODO: handle multiple api urls
+	client := sse.NewClient(apiURLs[0] + "/api/v1/sse/config")
 	client.Headers = map[string]string{
 		"Authorization":                "Basic " + authString,
 		"X-PrefabCloud-Client-Version": ClientVersionHeader,

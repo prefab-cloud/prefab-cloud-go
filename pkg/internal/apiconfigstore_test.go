@@ -13,7 +13,7 @@ import (
 )
 
 func TestApiConfigStore(t *testing.T) {
-	options := opts.Options{APIUrl: "https://api.prefab.cloud"}
+	options := opts.Options{APIURLs: []string{"https://api.prefab.cloud"}}
 
 	configFoo := &prefabProto.Config{
 		Key:        "foo",

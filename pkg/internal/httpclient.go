@@ -6,7 +6,6 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
-	"strings"
 
 	"google.golang.org/protobuf/proto"
 
@@ -16,19 +15,16 @@ import (
 
 type HTTPClient struct {
 	Options *options.Options
-	apiURL  string
-	cdnURL  string
+	URLs    []string
 }
 
 func BuildHTTPClient(options options.Options) (*HTTPClient, error) {
-	apiURL, err := options.PrefabAPIURLEnvVarOrSetting()
+	apiURLs, err := options.PrefabAPIURLEnvVarOrSetting()
 	if err != nil {
 		return nil, err
 	}
 
-	cdnURL := strings.ReplaceAll(apiURL, ".", "-") + ".global.ssl.fastly.net"
-
-	client := HTTPClient{Options: &options, apiURL: apiURL, cdnURL: cdnURL}
+	client := HTTPClient{Options: &options, URLs: apiURLs}
 
 	return &client, nil
 }
@@ -39,7 +35,7 @@ func (c *HTTPClient) Load(offset int64) (*prefabProto.Configs, error) {
 		return nil, err
 	}
 
-	for _, url := range []string{c.cdnURL, c.apiURL} {
+	for _, url := range c.URLs {
 		uri := fmt.Sprintf("%s/api/v1/configs/%d", url, offset)
 
 		configs, err := c.LoadFromURI(uri, apiKey, offset)

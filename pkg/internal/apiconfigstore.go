@@ -14,14 +14,14 @@ import (
 const maxRetries = 10
 
 type APIConfigStore struct {
-	configMap     map[string]*prefabProto.Config
-	contextSet    *contexts.ContextSet
-	highWatermark int64
-	projectEnvID  int64
-	sync.RWMutex
-	Initialized     bool
+	configMap       map[string]*prefabProto.Config
+	contextSet      *contexts.ContextSet
 	httpClient      *HTTPClient
 	finishedLoading func()
+	highWatermark   int64
+	projectEnvID    int64
+	sync.RWMutex
+	Initialized bool
 }
 
 func NewAPIConfigStore(options opts.Options, finishedLoading func()) (*APIConfigStore, error) {
