@@ -22,6 +22,10 @@ func BuildConfigStore(options opts.Options, source opts.ConfigSource, apiSourceF
 		store, err := NewConfigDumpConfigStore(source.Path, options.ProjectEnvID)
 
 		return store, false, err
+	case opts.Memory:
+		store, err := NewMemoryConfigStore(options.ProjectEnvID, options.Configs)
+
+		return store, false, err
 	default:
 		return nil, false, fmt.Errorf("unknown store type %v", source.Store)
 	}

@@ -12,7 +12,7 @@ type OnInitializationFailure int
 
 const (
 	ReturnError    OnInitializationFailure = iota // ReturnError = 0
-	ReturnNilMatch                                // UNLOCK = 1
+	ReturnNilMatch                                // ReturnNilMatch = 1
 )
 
 const (
@@ -30,6 +30,7 @@ func GetDefaultAPIURLs() []string {
 
 type Options struct {
 	GlobalContext                *contexts.ContextSet
+	Configs                      map[string]interface{}
 	APIKey                       string
 	APIURLs                      []string
 	Sources                      []ConfigSource

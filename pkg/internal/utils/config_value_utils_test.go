@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/prefab-cloud/prefab-cloud-go/pkg/internal/utils"
 
@@ -29,7 +30,7 @@ func TestExtractValue(t *testing.T) {
 		configValue := &prefabProto.ConfigValue{Type: value}
 
 		extracted, ok, err := utils.ExtractValue(configValue)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.True(t, ok)
 		assert.Equal(t, time.Minute, extracted)
 	})

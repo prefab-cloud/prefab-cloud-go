@@ -1,6 +1,7 @@
 package stores
 
 import (
+	"errors"
 	"fmt"
 	"os"
 
@@ -24,7 +25,7 @@ func NewConfigDumpConfigStore(path string, projectEnvID int64) (*ConfigDumpConfi
 	}
 
 	if projectEnvID == 0 {
-		return nil, fmt.Errorf("projectEnvID must be provided for ConfigDumpConfigStore")
+		return nil, errors.New("projectEnvID must be provided for ConfigDumpConfigStore")
 	}
 
 	return &ConfigDumpConfigStore{configMap: configMap, Initialized: true, path: path, ProjectEnvID: projectEnvID}, nil
