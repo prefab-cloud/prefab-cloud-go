@@ -52,6 +52,13 @@ func Create(value any) (*prefabProto.ConfigValue, bool) {
 		configValue.Type = valueType
 	case time.Duration:
 		configValue.Type = &prefabProto.ConfigValue_Duration{Duration: &prefabProto.IsoDuration{Definition: durationToISO8601(valueType)}}
+	case map[string]interface{}:
+		jsonValue, err := json.Marshal(valueType)
+		if err != nil {
+			slog.Error("Failed to marshal JSON value: " + err.Error())
+		}
+
+		configValue.Type = &prefabProto.ConfigValue_Json{Json: &prefabProto.Json{Json: string(jsonValue)}}
 	case *any:
 		if valueType != nil {
 			return Create(*valueType)

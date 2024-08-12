@@ -108,3 +108,31 @@ func WithOnInitializationFailure(onInitializationFailure options.OnInitializatio
 		return nil
 	}
 }
+
+// WithConfigs lets you provide a map of configs to the prefab client to aid in
+// testing. This is not compatible with other sources.
+//
+//	configs := map[string]interface{}{
+//		"string.key": "value",
+//		"int.key":    int64(42),
+//		"bool.key":   true,
+//		"float.key":  3.14,
+//		"slice.key":  []string{"a", "b", "c"},
+//		"json.key": map[string]interface{}{
+//			"nested": "value",
+//		},
+//	}
+//
+//	client, err := prefab.NewClient(prefab.WithConfigs(configs))
+func WithConfigs(configs map[string]interface{}) Option {
+	return func(o *options.Options) error {
+		err := WithOfflineSources([]string{options.MemoryStoreKey})(o)
+		if err != nil {
+			return err
+		}
+
+		o.Configs = configs
+
+		return nil
+	}
+}

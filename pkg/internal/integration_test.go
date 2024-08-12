@@ -80,13 +80,13 @@ func TestGeneratedSuite(t *testing.T) {
 }
 
 func (suite *GeneratedTestSuite) SetupSuite() {
-	suite.BaseDirectory = "./testdata/prefab-cloud-integration-test-data/tests/current"
-	suite.APIKey = os.Getenv("PREFAB_INTEGRATION_TEST_API_KEY")
-	suite.Require().NotEmpty(suite.APIKey, "No API key found in environment var PREFAB_INTEGRATION_TEST_API_KEY")
-
 	if os.Getenv("FAST") == "true" {
 		suite.T().Skip("Skipping integration tests because FAST=true")
 	}
+
+	suite.BaseDirectory = "./testdata/prefab-cloud-integration-test-data/tests/current"
+	suite.APIKey = os.Getenv("PREFAB_INTEGRATION_TEST_API_KEY")
+	suite.Require().NotEmpty(suite.APIKey, "No API key found in environment var PREFAB_INTEGRATION_TEST_API_KEY")
 }
 
 func (suite *GeneratedTestSuite) loadGetTestCasesFromYAML(filename string) []*getTestCase {

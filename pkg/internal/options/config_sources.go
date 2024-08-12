@@ -18,8 +18,11 @@ const (
 	APIStore   StoreType = "API"
 	DataFile   StoreType = "DataFile"
 	ConfigDump StoreType = "ConfigDump"
+	Memory     StoreType = "Memory"
 	// TODO: Support polling
 	// Poll       StoreType = "Poll"
+
+	MemoryStoreKey = "memory://configs"
 )
 
 func GetDefaultConfigSources() []ConfigSource {
@@ -43,6 +46,8 @@ func ParseConfigSource(rawSource string) (ConfigSource, error) {
 		return ConfigSource{Raw: rawSource, Store: DataFile, Default: false, Path: path}, nil
 	case "dump":
 		return ConfigSource{Raw: rawSource, Store: ConfigDump, Default: false, Path: path}, nil
+	case "memory":
+		return ConfigSource{Raw: rawSource, Store: Memory, Default: false, Path: path}, nil
 	}
 
 	return ConfigSource{}, fmt.Errorf("unknown protocol %s", protocol)

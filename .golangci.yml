@@ -6,7 +6,6 @@ linters:
     - execinquery
     - copyloopvar
     - intrange
-    - nonamedreturns
 
     - exhaustruct
     - forbidigo
@@ -15,6 +14,7 @@ linters:
     - wrapcheck
     - lll
     - gci # argues with other formatting
+    - nonamedreturns
 
 issues:
   exclude-rules:

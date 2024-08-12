@@ -10,7 +10,7 @@ import (
 
 	"github.com/prefab-cloud/prefab-cloud-go/pkg/internal"
 	"github.com/prefab-cloud/prefab-cloud-go/pkg/internal/contexts"
-	"github.com/prefab-cloud/prefab-cloud-go/pkg/internal/options"
+	optionsPkg "github.com/prefab-cloud/prefab-cloud-go/pkg/internal/options"
 	"github.com/prefab-cloud/prefab-cloud-go/pkg/internal/stores"
 	"github.com/prefab-cloud/prefab-cloud-go/pkg/internal/utils"
 	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
@@ -34,9 +34,9 @@ func NewContextSet() *ContextSet {
 
 const (
 	// ReturnError will return an error when checking config/flag values if initialization times out
-	ReturnError options.OnInitializationFailure = options.ReturnError
+	ReturnError optionsPkg.OnInitializationFailure = optionsPkg.ReturnError
 	// ReturnNilMatch will continue (generally returning a zero value, ok=false result) if initialization times out
-	ReturnNilMatch options.OnInitializationFailure = options.ReturnNilMatch
+	ReturnNilMatch optionsPkg.OnInitializationFailure = optionsPkg.ReturnNilMatch
 )
 
 // ClientInterface is the interface for the Prefab client
@@ -71,7 +71,7 @@ type ContextBoundClient struct {
 // Client is the Prefab client
 type Client struct {
 	boundClient                     *ContextBoundClient
-	options                         *options.Options
+	options                         *optionsPkg.Options
 	configStore                     internal.ConfigStoreGetter
 	configResolver                  *internal.ConfigResolver
 	initializationComplete          chan struct{}
@@ -80,7 +80,7 @@ type Client struct {
 
 // NewClient creates a new Prefab client. It takes options as arguments (e.g. WithAPIKey)
 func NewClient(opts ...Option) (*Client, error) {
-	options := options.GetDefaultOptions()
+	options := optionsPkg.GetDefaultOptions()
 
 	var client Client
 
@@ -113,6 +113,10 @@ func NewClient(opts ...Option) (*Client, error) {
 		}
 
 		configStores = append(configStores, configStore)
+	}
+
+	if (len(options.Sources) > 1 || options.Sources[0].Raw != optionsPkg.MemoryStoreKey) && len(options.Configs) > 0 {
+		return nil, errors.New("cannot use WithConfigs with other sources")
 	}
 
 	configStore := stores.BuildCompositeConfigStore(configStores...)
@@ -459,11 +463,11 @@ func (c *ContextBoundClient) GetConfigMatch(key string, contextSet ContextSet) (
 func (c *Client) internalGetValue(key string, contextSet contexts.ContextSet) (resolutionResult, error) {
 	if c.awaitInitialization() == timeout {
 		switch c.options.OnInitializationFailure {
-		case options.ReturnNilMatch:
+		case optionsPkg.ReturnNilMatch:
 			c.closeInitializationCompleteOnce.Do(func() {
 				close(c.initializationComplete)
 			})
-		case options.ReturnError:
+		case optionsPkg.ReturnError:
 			return resolutionResultError(), errors.New("initialization timeout")
 		}
 	}
