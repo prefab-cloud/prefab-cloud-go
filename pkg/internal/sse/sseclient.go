@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"log/slog"
+	"regexp"
 	"strconv"
 	"time"
 
@@ -14,6 +15,8 @@ import (
 	"github.com/prefab-cloud/prefab-cloud-go/pkg/internal/options"
 	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
 )
+
+var subdomainRegex = regexp.MustCompile(`(belt|suspenders)\.`)
 
 func BuildSSEClient(options options.Options) (*sse.Client, error) {
 	apiURLs, err := options.PrefabAPIURLEnvVarOrSetting()
@@ -28,7 +31,8 @@ func BuildSSEClient(options options.Options) (*sse.Client, error) {
 	authString := base64.StdEncoding.EncodeToString([]byte("authuser:" + options.APIKey))
 
 	// TODO: handle multiple api urls
-	client := sse.NewClient(apiURLs[0] + "/api/v1/sse/config")
+	url := replaceFirstOccurrence(apiURLs[0], subdomainRegex, "stream.") + "/api/v1/sse/config"
+	client := sse.NewClient(url)
 	client.Headers = map[string]string{
 		"Authorization":                "Basic " + authString,
 		"X-PrefabCloud-Client-Version": internal.ClientVersionHeader,
@@ -79,4 +83,13 @@ func StartSSEConnection(client *sse.Client, apiConfigStore ConfigStore) {
 		// We sleep for a second to avoid hammering the server.
 		time.Sleep(1 * time.Second)
 	}
+}
+
+func replaceFirstOccurrence(s string, r *regexp.Regexp, replacement string) string {
+	found := r.FindStringIndex(s)
+	if found == nil {
+		return s
+	}
+
+	return s[:found[0]] + replacement + s[found[1]:]
 }
