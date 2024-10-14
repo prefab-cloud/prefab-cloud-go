@@ -43,9 +43,15 @@ type Options struct {
 const timeoutDefault = 10.0
 
 func GetDefaultOptions() Options {
+	var apiURLs []string
+
+	if os.Getenv("PREFAB_API_URL_OVERRIDE") != "" {
+		apiURLs = []string{os.Getenv("PREFAB_API_URL_OVERRIDE")}
+	}
+
 	return Options{
 		APIKey:                       "",
-		APIURLs:                      nil,
+		APIURLs:                      apiURLs,
 		InitializationTimeoutSeconds: timeoutDefault,
 		OnInitializationFailure:      ReturnError,
 		GlobalContext:                contexts.NewContextSet(),
@@ -84,9 +90,13 @@ func (o *Options) PrefabAPIURLEnvVarOrSetting() ([]string, error) {
 		return apiURLs, nil
 	}
 
-	for _, url := range o.APIURLs {
-		if url != "" {
-			apiURLs = append(apiURLs, url)
+	if os.Getenv("PREFAB_API_URL_OVERRIDE") != "" {
+		apiURLs = []string{os.Getenv("PREFAB_API_URL_OVERRIDE")}
+	} else {
+		for _, url := range o.APIURLs {
+			if url != "" {
+				apiURLs = append(apiURLs, url)
+			}
 		}
 	}
 

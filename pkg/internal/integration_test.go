@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"math/rand"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -272,11 +273,29 @@ func (suite *GeneratedTestSuite) makeGetCall(client prefab.ClientInterface, data
 	return result
 }
 
-func buildClient(apiKey string, testCase *getTestCase) (*prefab.ContextBoundClient, error) {
+func buildClient(suite *GeneratedTestSuite, testCase *getTestCase) (*prefab.ContextBoundClient, error) {
+	apiKey := suite.APIKey
+	// 50/50 setting the API URLs and using the env var override
+	useEnvVarOverride := rand.Intn(2) == 1
+	url := "https://api.staging-prefab.cloud"
+
+	// default to using the hardcoded URL override
 	options := []prefab.Option{
-		prefab.WithAPIURLs([]string{"https://api.staging-prefab.cloud"}),
+		prefab.WithAPIURLs([]string{url}),
 		prefab.WithAPIKey(apiKey),
 		prefab.WithGlobalContext(testCase.Contexts.global),
+	}
+
+	// if we flip the coin and get 1, then we'll use the env var override
+	if useEnvVarOverride {
+		suite.T().Setenv("PREFAB_API_URL_OVERRIDE", url)
+
+		options = []prefab.Option{
+			// this URL won't work, but that's great because it is overridden by the env var
+			prefab.WithAPIURLs([]string{"https://localhost/this-will-not-work"}),
+			prefab.WithAPIKey(apiKey),
+			prefab.WithGlobalContext(testCase.Contexts.global),
+		}
 	}
 
 	if testCase.ClientOverrides != nil {
@@ -332,7 +351,7 @@ func (suite *GeneratedTestSuite) executeLogLevelTest(filename string) {
 	testCases := suite.loadGetTestCasesFromYAML(filename)
 	for _, testCase := range testCases {
 		suite.Run(buildTestCaseName(testCase, filename), func() {
-			client, err := buildClient(suite.APIKey, testCase)
+			client, err := buildClient(suite, testCase)
 			suite.Require().NoError(err, "client constructor failed")
 
 			expectedValue, foundExpectedValue := processExpectedResult(testCase)
@@ -355,7 +374,7 @@ func (suite *GeneratedTestSuite) executeGetOrEnabledTest(filename string) {
 	testCases := suite.loadGetTestCasesFromYAML(filename)
 	for _, testCase := range testCases {
 		suite.Run(buildTestCaseName(testCase, filename), func() {
-			client, err := buildClient(suite.APIKey, testCase)
+			client, err := buildClient(suite, testCase)
 			suite.Require().NoError(err, "client constructor failed")
 
 			expectedValue, foundExpectedValue := processExpectedResult(testCase)

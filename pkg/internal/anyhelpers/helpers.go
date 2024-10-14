@@ -1,6 +1,8 @@
 package anyhelpers
 
-import "reflect"
+import (
+	"reflect"
+)
 
 // DetectAndReturnStringListIfPresent checks if the input interface{} is a slice with only string elements
 // and returns the slice and a bool indicating if a string slice was found.
