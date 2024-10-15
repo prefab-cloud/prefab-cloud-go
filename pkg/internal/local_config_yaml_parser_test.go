@@ -106,13 +106,14 @@ log-level:
 		s.Run(testCase.name, func() {
 			p := &internal.LocalConfigYamlParser{}
 
-			gotConfigValues, err := p.Parse([]byte(testCase.yamlInput))
+			gotConfigValues, projectEnvID, err := p.Parse([]byte(testCase.yamlInput))
 			if !testCase.wantErr(s.T(), err, fmt.Sprintf("parse(%v)", testCase.yamlInput)) {
 				return
 			}
 
 			s.ElementsMatch(s.collectKeys(testCase.wantConfigs), s.collectKeys(gotConfigValues))
 			s.ElementsMatchf(testCase.wantConfigs, gotConfigValues, "parse(%v)", testCase.yamlInput)
+			s.Equal(int64(0), projectEnvID)
 		})
 	}
 }
