@@ -2,6 +2,10 @@ package internal
 
 import prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
 
+type ConfigParser interface {
+	Parse(data []byte) ([]*prefabProto.Config, int64, error)
+}
+
 type ContextValueGetter interface {
 	GetContextValue(propertyName string) (value interface{}, valueExists bool)
 }

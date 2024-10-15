@@ -49,13 +49,26 @@ func GetDefaultOptions() Options {
 		apiURLs = []string{os.Getenv("PREFAB_API_URL_OVERRIDE")}
 	}
 
+	sources := GetDefaultConfigSources()
+
+	if os.Getenv("PREFAB_DATAFILE") != "" {
+		sources = []ConfigSource{
+			{
+				Path:    os.Getenv("PREFAB_DATAFILE"),
+				Raw:     os.Getenv("PREFAB_DATAFILE"),
+				Store:   DataFile,
+				Default: false,
+			},
+		}
+	}
+
 	return Options{
 		APIKey:                       "",
 		APIURLs:                      apiURLs,
 		InitializationTimeoutSeconds: timeoutDefault,
 		OnInitializationFailure:      ReturnError,
 		GlobalContext:                contexts.NewContextSet(),
-		Sources:                      GetDefaultConfigSources(),
+		Sources:                      sources,
 	}
 }
 

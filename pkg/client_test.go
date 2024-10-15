@@ -79,3 +79,35 @@ func TestCannotUseWithConfigAndOtherSources(t *testing.T) {
 	require.Error(t, err)
 	assert.Equal(t, "cannot use WithConfigs with other sources", err.Error())
 }
+
+func TestWithAJSONConfigDump(t *testing.T) {
+	t.Setenv("PREFAB_DATAFILE", "testdata/download.json")
+
+	client, err := prefab.NewClient()
+	require.NoError(t, err)
+
+	str, ok, err := client.GetStringValue("my.test.string", prefab.ContextSet{})
+	require.NoError(t, err)
+	assert.True(t, ok)
+	assert.Equal(t, "hello world", str)
+
+	boolean, ok, err := client.GetBoolValue("flag.list.environments", prefab.ContextSet{})
+	require.NoError(t, err)
+	assert.True(t, ok)
+	assert.False(t, boolean)
+
+	contextSet := prefab.NewContextSet().
+		WithNamedContextValues("user", map[string]interface{}{
+			"key": "5905ecd1-9bbf-4711-a663-4f713628a78c",
+		})
+
+	boolean, ok, err = client.GetBoolValue("flag.list.environments", *contextSet)
+	require.NoError(t, err)
+	assert.True(t, ok)
+	assert.True(t, boolean)
+
+	// This one is deleted
+	_, ok, err = client.GetLogLevelStringValue("log-level", prefab.ContextSet{})
+	require.ErrorContains(t, err, "config did not produce a result and no default is specified")
+	assert.False(t, ok)
+}

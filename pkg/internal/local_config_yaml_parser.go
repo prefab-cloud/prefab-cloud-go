@@ -14,12 +14,12 @@ import (
 
 type LocalConfigYamlParser struct{}
 
-func (p *LocalConfigYamlParser) Parse(yamlData []byte) ([]*prefabProto.Config, error) {
+func (p *LocalConfigYamlParser) Parse(yamlData []byte) ([]*prefabProto.Config, int64, error) {
 	var data map[string]interface{}
 	// Unmarshal the YAML into the map
 	err := yaml.Unmarshal(yamlData, &data)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	var outputValues []*prefabProto.Config
@@ -27,13 +27,13 @@ func (p *LocalConfigYamlParser) Parse(yamlData []byte) ([]*prefabProto.Config, e
 	for mapKey, mapValue := range data {
 		configValues, err := p.handleMapKeyValue([]string{}, mapKey, mapValue)
 		if err != nil {
-			return nil, err
+			return nil, 0, err
 		}
 
 		outputValues = append(outputValues, configValues...)
 	}
 
-	return outputValues, nil
+	return outputValues, 0, nil
 }
 
 func (p *LocalConfigYamlParser) handleMapKeyValue(keyPath []string, mapKey string, mapValue interface{}) ([]*prefabProto.Config, error) {

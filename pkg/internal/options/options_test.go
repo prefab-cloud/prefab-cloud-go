@@ -34,4 +34,10 @@ func TestGetDefaultOptions(t *testing.T) {
 
 	o = options.GetDefaultOptions()
 	assert.Equal(t, []string{desiredAPIURL}, o.APIURLs)
+
+	t.Setenv("PREFAB_API_URL_OVERRIDE", "")
+	t.Setenv("PREFAB_DATAFILE", "testdata/download.json")
+
+	o = options.GetDefaultOptions()
+	assert.Equal(t, []options.ConfigSource([]options.ConfigSource{{Store: "DataFile", Raw: "testdata/download.json", Path: "testdata/download.json", Default: false}}), o.Sources)
 }
