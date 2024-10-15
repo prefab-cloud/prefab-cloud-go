@@ -55,4 +55,3 @@ func main() {
 ## Notable pending features
 
 - Telemetry
-- JSON dump data source
