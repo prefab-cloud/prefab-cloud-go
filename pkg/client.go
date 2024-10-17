@@ -12,6 +12,7 @@ import (
 	"github.com/prefab-cloud/prefab-cloud-go/pkg/internal/contexts"
 	optionsPkg "github.com/prefab-cloud/prefab-cloud-go/pkg/internal/options"
 	"github.com/prefab-cloud/prefab-cloud-go/pkg/internal/stores"
+	"github.com/prefab-cloud/prefab-cloud-go/pkg/internal/telemetry"
 	"github.com/prefab-cloud/prefab-cloud-go/pkg/internal/utils"
 	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
 )
@@ -39,6 +40,8 @@ const (
 	ReturnNilMatch optionsPkg.OnInitializationFailure = optionsPkg.ReturnNilMatch
 )
 
+var ContextTelemetryMode = optionsPkg.ContextTelemetryModes
+
 // ClientInterface is the interface for the Prefab client
 type ClientInterface interface {
 	GetIntValue(key string, contextSet ContextSet) (int64, bool, error)
@@ -60,6 +63,7 @@ type ClientInterface interface {
 	GetConfig(key string) (*prefabProto.Config, bool)
 	FeatureIsOn(key string, contextSet ContextSet) (bool, bool)
 	WithContext(contextSet *ContextSet) *ContextBoundClient
+	GetInstanceHash() string
 }
 
 // ContextBoundClient is a Client bound to a specific context. Any calls to the client will use the context provided.
@@ -76,6 +80,8 @@ type Client struct {
 	configResolver                  *internal.ConfigResolver
 	initializationComplete          chan struct{}
 	closeInitializationCompleteOnce sync.Once
+	telemetry                       telemetry.Submitter
+	instanceHash                    string
 }
 
 // NewClient creates a new Prefab client. It takes options as arguments (e.g. WithAPIKey)
@@ -123,7 +129,14 @@ func NewClient(opts ...Option) (*Client, error) {
 
 	configResolver := internal.NewConfigResolver(configStore)
 
-	client = Client{options: &options, configStore: configStore, configResolver: configResolver, initializationComplete: make(chan struct{})}
+	client = Client{
+		options:                &options,
+		configStore:            configStore,
+		configResolver:         configResolver,
+		initializationComplete: make(chan struct{}),
+		telemetry:              *telemetry.NewTelemetrySubmitter(options),
+		instanceHash:           options.InstanceHash,
+	}
 
 	if !anyAsync {
 		client.closeInitializationCompleteOnce.Do(func() {
@@ -132,6 +145,8 @@ func NewClient(opts ...Option) (*Client, error) {
 	}
 
 	client.boundClient = &ContextBoundClient{client: &client, context: options.GlobalContext}
+
+	client.telemetry.StartPeriodicSubmission(options.TelemetrySyncInterval)
 
 	return &client, nil
 }
@@ -249,10 +264,17 @@ func (c *Client) Keys() ([]string, error) {
 	return c.configResolver.Keys(), nil
 }
 
+// GetInstanceHash returns the instance hash for the client
+func (c *Client) GetInstanceHash() string {
+	return c.instanceHash
+}
+
 func clientInternalGetValueFunc[T any](contextBoundClient *ContextBoundClient, key string, contextSet contexts.ContextSet, parseFunc func(*prefabProto.ConfigValue) (T, bool)) (T, bool, error) {
 	var zeroValue T
 
 	mergedContextSet := *contexts.Merge(contextBoundClient.context, &contextSet)
+
+	contextBoundClient.client.telemetry.RecordContext(&mergedContextSet)
 
 	fetchResult, fetchOk, fetchErr := contextBoundClient.fetchAndProcessValue(key, mergedContextSet, func(cv *prefabProto.ConfigValue) (any, bool) {
 		pVal, pOk := clientParseValueWrapper(cv, parseFunc)
@@ -279,6 +301,14 @@ func clientInternalGetValueFunc[T any](contextBoundClient *ContextBoundClient, k
 	}
 
 	return typedValue, true, nil
+}
+
+func (c *Client) SendTelemetry() error {
+	return c.telemetry.Submit()
+}
+
+func (c *ContextBoundClient) SendTelemetry() error {
+	return c.client.telemetry.Submit()
 }
 
 // GetIntValueWithDefault returns an int value for a given key and context, with a default value if the key does not exist
@@ -444,6 +474,11 @@ func (c *ContextBoundClient) GetConfigMatch(key string, contextSet ContextSet) (
 	return &getResult.match, nil
 }
 
+// GetInstanceHash returns the instance hash for the client
+func (c *ContextBoundClient) GetInstanceHash() string {
+	return c.client.GetInstanceHash()
+}
+
 func (c *Client) internalGetValue(key string, contextSet contexts.ContextSet) (resolutionResult, error) {
 	if c.awaitInitialization() == timeout {
 		switch c.options.OnInitializationFailure {
@@ -460,6 +495,8 @@ func (c *Client) internalGetValue(key string, contextSet contexts.ContextSet) (r
 	if err != nil {
 		return resolutionResultError(), err
 	}
+
+	c.telemetry.RecordEvaluation(match)
 
 	return resolutionResultSuccess(match), nil
 }

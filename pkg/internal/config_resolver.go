@@ -11,24 +11,24 @@ import (
 )
 
 type ConfigMatch struct {
-	OriginalMatch            *prefabProto.ConfigValue
-	Match                    *prefabProto.ConfigValue
-	SelectedConditionalValue *prefabProto.ConditionalValue
-	OriginalKey              string
-	WeightedValueIndex       int
-	RowIndex                 int
-	ConditionalValueIndex    int
-	IsMatch                  bool
+	ConfigID              int64
+	ConfigType            prefabProto.ConfigType
+	OriginalMatch         *prefabProto.ConfigValue
+	Match                 *prefabProto.ConfigValue
+	ConfigKey             string
+	WeightedValueIndex    *int
+	RowIndex              *int
+	ConditionalValueIndex *int
+	IsMatch               bool
 }
 
 func NewConfigMatchFromConditionMatch(conditionMatch ConditionMatch) ConfigMatch {
 	return ConfigMatch{
-		IsMatch:                  conditionMatch.IsMatch,
-		OriginalMatch:            conditionMatch.Match,
-		Match:                    conditionMatch.Match,
-		RowIndex:                 conditionMatch.RowIndex,
-		ConditionalValueIndex:    conditionMatch.ConditionalValueIndex,
-		SelectedConditionalValue: conditionMatch.SelectedConditionalValue,
+		IsMatch:               conditionMatch.IsMatch,
+		OriginalMatch:         conditionMatch.Match,
+		Match:                 conditionMatch.Match,
+		RowIndex:              conditionMatch.RowIndex,
+		ConditionalValueIndex: conditionMatch.ConditionalValueIndex,
 	}
 }
 
@@ -71,7 +71,7 @@ func (c ConfigResolver) Keys() []string {
 func (c ConfigResolver) ResolveValue(key string, contextSet ContextValueGetter) (ConfigMatch, error) {
 	config, configExists := c.ConfigStore.GetConfig(key)
 	if !configExists {
-		return ConfigMatch{IsMatch: false, OriginalKey: key}, ErrConfigDoesNotExist
+		return ConfigMatch{IsMatch: false, ConfigKey: key}, ErrConfigDoesNotExist
 	}
 
 	return c.ResolveValueForConfig(config, contextSet, key)
@@ -82,12 +82,14 @@ func (c ConfigResolver) ResolveValueForConfig(config *prefabProto.Config, contex
 
 	ruleMatchResults := c.RuleEvaluator.EvaluateConfig(config, contextSet)
 	configMatch := NewConfigMatchFromConditionMatch(ruleMatchResults)
-	configMatch.OriginalKey = key
+	configMatch.ConfigKey = key
+	configMatch.ConfigType = config.GetConfigType()
+	configMatch.ConfigID = config.GetId()
 
 	switch v := ruleMatchResults.Match.GetType().(type) {
 	case *prefabProto.ConfigValue_WeightedValues:
 		result, index := c.handleWeightedValue(key, v.WeightedValues, contextSet)
-		configMatch.WeightedValueIndex = index
+		configMatch.WeightedValueIndex = &index
 		configMatch.Match = result
 	case *prefabProto.ConfigValue_Provided:
 		provided := ruleMatchResults.Match.GetProvided()

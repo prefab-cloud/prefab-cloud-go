@@ -11,11 +11,10 @@ import (
 )
 
 type ConditionMatch struct {
-	Match                    *prefabProto.ConfigValue
-	SelectedConditionalValue *prefabProto.ConditionalValue
-	RowIndex                 int
-	ConditionalValueIndex    int
-	IsMatch                  bool
+	Match                 *prefabProto.ConfigValue
+	RowIndex              *int
+	ConditionalValueIndex *int
+	IsMatch               bool
 }
 
 type ConfigRuleEvaluator struct {
@@ -65,8 +64,8 @@ func (cve *ConfigRuleEvaluator) EvaluateRow(row *prefabProto.ConfigRow, contextS
 		matchedValue, matched := cve.EvaluateConditionalValue(conditionalValue, contextSet)
 		if matched {
 			conditionMatch.IsMatch = true
-			conditionMatch.RowIndex = rowIndex
-			conditionMatch.ConditionalValueIndex = conditionalValueIndex
+			conditionMatch.RowIndex = &rowIndex
+			conditionMatch.ConditionalValueIndex = &conditionalValueIndex
 			conditionMatch.Match = matchedValue
 
 			break

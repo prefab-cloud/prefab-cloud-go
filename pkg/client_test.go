@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	prefab "github.com/prefab-cloud/prefab-cloud-go/pkg"
+	"github.com/prefab-cloud/prefab-cloud-go/pkg/internal/options"
 )
 
 func TestWithConfig(t *testing.T) {
@@ -23,7 +24,8 @@ func TestWithConfig(t *testing.T) {
 
 	client, err := prefab.NewClient(
 		prefab.WithConfigs(configs),
-		prefab.WithInitializationTimeoutSeconds(0.5))
+		prefab.WithInitializationTimeoutSeconds(0.5),
+		prefab.WithContextTelemetryMode(options.ContextTelemetryModes.None))
 
 	require.NoError(t, err)
 
@@ -65,6 +67,7 @@ func TestCannotUseWithConfigAndOtherSources(t *testing.T) {
 
 	_, err := prefab.NewClient(
 		prefab.WithConfigs(configs),
+		prefab.WithContextTelemetryMode(options.ContextTelemetryModes.None),
 		prefab.WithSources([]string{}, false)) // Explicitly try to use online sources
 
 	require.Error(t, err)
@@ -73,6 +76,7 @@ func TestCannotUseWithConfigAndOtherSources(t *testing.T) {
 	_, err = prefab.NewClient(
 		prefab.WithConfigs(configs),
 		prefab.WithOfflineSources([]string{"dump://testdata/example.dump"}),
+		prefab.WithContextTelemetryMode(options.ContextTelemetryModes.None),
 		prefab.WithProjectEnvID(8),
 	)
 
@@ -83,7 +87,7 @@ func TestCannotUseWithConfigAndOtherSources(t *testing.T) {
 func TestWithAJSONConfigDump(t *testing.T) {
 	t.Setenv("PREFAB_DATAFILE", "testdata/download.json")
 
-	client, err := prefab.NewClient()
+	client, err := prefab.NewClient(prefab.WithContextTelemetryMode(options.ContextTelemetryModes.None))
 	require.NoError(t, err)
 
 	str, ok, err := client.GetStringValue("my.test.string", prefab.ContextSet{})
@@ -102,6 +106,12 @@ func TestWithAJSONConfigDump(t *testing.T) {
 		})
 
 	boolean, ok, err = client.GetBoolValue("flag.list.environments", *contextSet)
+	require.NoError(t, err)
+	assert.True(t, ok)
+	assert.True(t, boolean)
+
+	// Same thing as above, but with client.WithContext
+	boolean, ok, err = client.WithContext(contextSet).GetBoolValue("flag.list.environments", prefab.ContextSet{})
 	require.NoError(t, err)
 	assert.True(t, ok)
 	assert.True(t, boolean)

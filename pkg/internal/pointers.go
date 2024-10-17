@@ -15,3 +15,7 @@ func IntPtr(val int) *int {
 func StringPtr(val string) *string {
 	return &val
 }
+
+func Uint32Ptr(val uint32) *uint32 {
+	return &val
+}

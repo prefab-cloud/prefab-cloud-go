@@ -14,7 +14,6 @@ func BuildConfigStore(options opts.Options, source opts.ConfigSource, apiSourceF
 
 		return store, true, err
 	case opts.DataFile:
-		// TODO: handle JSON here too (based on file extension)
 		store, err := NewLocalConfigStore(source.Path)
 
 		return store, false, err

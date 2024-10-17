@@ -9,66 +9,22 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"strings"
 	"testing"
 	"time"
 
 	prefab "github.com/prefab-cloud/prefab-cloud-go/pkg"
 	"github.com/prefab-cloud/prefab-cloud-go/pkg/internal/anyhelpers"
 	"github.com/prefab-cloud/prefab-cloud-go/pkg/internal/contexts"
+	integrationtestsupport "github.com/prefab-cloud/prefab-cloud-go/pkg/internal/integration_test_support"
 	"github.com/prefab-cloud/prefab-cloud-go/pkg/internal/options"
+	"github.com/prefab-cloud/prefab-cloud-go/pkg/internal/telemetry"
+	"github.com/prefab-cloud/prefab-cloud-go/pkg/internal/testutils"
+	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
 
 	"github.com/stretchr/testify/suite"
 	"gopkg.in/yaml.v3"
 )
-
-type clientOverridesYaml struct {
-	InitializationTimeOutSec *float64 `yaml:"initialization_timeout_sec"`
-	PrefabAPIURL             *string  `yaml:"prefab_api_url"`
-	OnInitFailure            *string  `yaml:"on_init_failure"`
-}
-
-type input struct {
-	Key     *string `yaml:"key"`
-	Flag    *string `yaml:"flag"`
-	Default *string `yaml:"default"`
-}
-
-type expected struct {
-	Status *string      `yaml:"status"`
-	Value  *interface{} `yaml:"value"`
-	Error  *string      `yaml:"error"`
-	Millis *int64       `yaml:"millis"`
-}
-
-type getTest struct {
-	Name  *string           `yaml:"name"`
-	Cases []getTestCaseYaml `yaml:"cases"`
-}
-
-type getTestCaseYaml struct {
-	Expected        expected               `yaml:"expected"`
-	Input           input                  `yaml:"input"`
-	Type            *string                `yaml:"type"`
-	ClientOverrides *clientOverridesYaml   `yaml:"client_overrides"`
-	RawContexts     map[string]TestContext `yaml:"contexts"`
-	CaseName        string                 `yaml:"name"`
-	Client          string                 `yaml:"client"`
-	Function        string                 `yaml:"function"`
-}
-
-type TestContext = map[string]map[string]interface{}
-
-type TestCaseContexts struct {
-	global *contexts.ContextSet
-	local  *contexts.ContextSet
-	block  *contexts.ContextSet
-}
-
-type getTestCase struct {
-	Contexts TestCaseContexts
-	TestName *string
-	getTestCaseYaml
-}
 
 type GeneratedTestSuite struct {
 	suite.Suite
@@ -90,7 +46,7 @@ func (suite *GeneratedTestSuite) SetupSuite() {
 	suite.Require().NotEmpty(suite.APIKey, "No API key found in environment var PREFAB_INTEGRATION_TEST_API_KEY")
 }
 
-func (suite *GeneratedTestSuite) loadGetTestCasesFromYAML(filename string) []*getTestCase {
+func (suite *GeneratedTestSuite) loadGetTestCasesFromYAML(filename string) []*integrationtestsupport.GetTestCase {
 	fileContents, err := os.ReadFile(filepath.Join(suite.BaseDirectory, filename))
 	suite.Require().NoError(err)
 
@@ -105,20 +61,24 @@ func (suite *GeneratedTestSuite) loadGetTestCasesFromYAML(filename string) []*ge
 	casesBytes, err := yaml.Marshal(testsData)
 	suite.Require().NoError(err)
 
-	var tests []*getTest
+	var tests []*integrationtestsupport.GetTest
 	err = yaml.Unmarshal(casesBytes, &tests)
 	suite.Require().NoError(err)
 
-	var testCases []*getTestCase
+	var testCases []*integrationtestsupport.GetTestCase
 
 	for _, test := range tests {
 		for _, testCaseYaml := range test.Cases {
-			testCase := &getTestCase{getTestCaseYaml: testCaseYaml, TestName: test.Name}
+			if testCaseYaml.CaseName == "" {
+				panic("test name should not be empty")
+			}
 
-			testCase.Contexts = TestCaseContexts{
-				global: testContextToContextSet(testCase.RawContexts["global"]),
-				local:  testContextToContextSet(testCase.RawContexts["local"]),
-				block:  testContextToContextSet(testCase.RawContexts["block"]),
+			testCase := &integrationtestsupport.GetTestCase{GetTestCaseYaml: testCaseYaml, TestName: testCaseYaml.CaseName}
+
+			testCase.Contexts = integrationtestsupport.TestCaseContexts{
+				Global: testContextToContextSet(testCase.RawContexts["global"]),
+				Local:  testContextToContextSet(testCase.RawContexts["local"]),
+				Block:  testContextToContextSet(testCase.RawContexts["block"]),
 			}
 
 			testCases = append(testCases, testCase)
@@ -128,7 +88,43 @@ func (suite *GeneratedTestSuite) loadGetTestCasesFromYAML(filename string) []*ge
 	return testCases
 }
 
-func testContextToContextSet(rawContext TestContext) *contexts.ContextSet {
+func (suite *GeneratedTestSuite) loadTelemetryTestCasesFromYAML(filename string) []*integrationtestsupport.TelemetryTestCase {
+	fileContents, err := os.ReadFile(filepath.Join(suite.BaseDirectory, filename))
+	suite.Require().NoError(err)
+
+	var data map[string]interface{}
+
+	err = yaml.Unmarshal(fileContents, &data)
+	suite.Require().NoError(err)
+
+	testsData, ok := data["tests"].([]interface{})
+	suite.True(ok, "Failed to find 'tests' array in YAML file")
+
+	casesBytes, err := yaml.Marshal(testsData)
+	suite.Require().NoError(err)
+
+	var tests []*integrationtestsupport.TelemetryTest
+	err = yaml.Unmarshal(casesBytes, &tests)
+	suite.Require().NoError(err)
+
+	var testCases []*integrationtestsupport.TelemetryTestCase
+
+	for _, test := range tests {
+		for _, testCaseYaml := range test.Cases {
+			testCase := &integrationtestsupport.TelemetryTestCase{
+				TestName:   testCaseYaml.CaseName,
+				Aggregator: testCaseYaml.Aggregator,
+				Err:        err,
+				Yaml:       testCaseYaml,
+			}
+			testCases = append(testCases, testCase)
+		}
+	}
+
+	return testCases
+}
+
+func testContextToContextSet(rawContext integrationtestsupport.TestContext) *contexts.ContextSet {
 	contextSet := contexts.NewContextSet()
 
 	for key, value := range rawContext {
@@ -195,9 +191,7 @@ func runSuiteFromFile(suite *GeneratedTestSuite, filename string) func(string) {
 	case "get_log_level.yaml":
 		return suite.executeLogLevelTest
 	case "post.yaml":
-		suite.T().Skip("Telemetry integration tests aren't implemented yet")
-
-		return nil
+		return suite.executeTelemetryTest
 	default:
 		suite.T().Fatal("Unsupported test file: ", filename)
 
@@ -212,9 +206,11 @@ func (suite *GeneratedTestSuite) TestAll() {
 	for _, file := range files {
 		testFunction := runSuiteFromFile(suite, file.Name())
 
-		if testFunction != nil {
-			testFunction(file.Name())
+		if testFunction == nil {
+			panic("Unsupported test file: " + file.Name())
 		}
+
+		testFunction(file.Name())
 	}
 }
 
@@ -264,7 +260,7 @@ func (suite *GeneratedTestSuite) makeGetCall(client prefab.ClientInterface, data
 		if returnedValue != nil {
 			var errOk bool
 			result.err, errOk = returnedValue.(error)
-			suite.Require().True(errOk, fmt.Sprintf("Expected third return value to be of type error, but got: %T", returnedValue))
+			suite.Require().True(errOk, "Expected third return value to be of type error, but got: %T", returnedValue)
 		}
 	} else {
 		suite.Require().Fail(fmt.Sprintf("Expected at least three return values from the function, but got: %d", len(returnOfGetCall)))
@@ -273,33 +269,54 @@ func (suite *GeneratedTestSuite) makeGetCall(client prefab.ClientInterface, data
 	return result
 }
 
-func buildClient(suite *GeneratedTestSuite, testCase *getTestCase) (*prefab.ContextBoundClient, error) {
-	apiKey := suite.APIKey
+type testCaseForBuildingClient interface {
+	GetGlobalContexts() *contexts.ContextSet
+	GetBlockContexts() *contexts.ContextSet
+	GetClientOverrides() *integrationtestsupport.ClientOverridesYaml
+}
+
+func defaultTestOptions(suite *GeneratedTestSuite, apiKey string) []prefab.Option {
 	// 50/50 setting the API URLs and using the env var override
 	useEnvVarOverride := rand.Intn(2) == 1
-	url := "https://api.staging-prefab.cloud"
 
-	// default to using the hardcoded URL override
-	options := []prefab.Option{
-		prefab.WithAPIURLs([]string{url}),
-		prefab.WithAPIKey(apiKey),
-		prefab.WithGlobalContext(testCase.Contexts.global),
-	}
+	url := "https://api.staging-prefab.cloud"
 
 	// if we flip the coin and get 1, then we'll use the env var override
 	if useEnvVarOverride {
 		suite.T().Setenv("PREFAB_API_URL_OVERRIDE", url)
 
-		options = []prefab.Option{
+		return []prefab.Option{
 			// this URL won't work, but that's great because it is overridden by the env var
 			prefab.WithAPIURLs([]string{"https://localhost/this-will-not-work"}),
 			prefab.WithAPIKey(apiKey),
-			prefab.WithGlobalContext(testCase.Contexts.global),
+			// This can get overridden by provided `opts`
+			prefab.WithContextTelemetryMode(prefab.ContextTelemetryMode.None),
 		}
 	}
 
-	if testCase.ClientOverrides != nil {
-		options = applyOverrides(testCase, options)
+	// default to using the hardcoded URL override
+	return []prefab.Option{
+		prefab.WithAPIURLs([]string{url}),
+		prefab.WithAPIKey(apiKey),
+		// This can get overridden by provided `opts`
+		prefab.WithContextTelemetryMode(prefab.ContextTelemetryMode.None),
+	}
+}
+
+func buildClient(suite *GeneratedTestSuite, testCase testCaseForBuildingClient, opts []prefab.Option) (*prefab.ContextBoundClient, error) {
+	options := defaultTestOptions(suite, suite.APIKey)
+
+	globalContexts := testCase.GetGlobalContexts()
+	if globalContexts != nil {
+		options = append(options, prefab.WithGlobalContext(globalContexts))
+	}
+
+	if opts != nil {
+		options = append(options, opts...)
+	}
+
+	if testCase.GetClientOverrides() != nil {
+		options = applyOverrides(testCase.GetClientOverrides(), options)
 	}
 
 	client, err := prefab.NewClient(options...)
@@ -307,12 +324,17 @@ func buildClient(suite *GeneratedTestSuite, testCase *getTestCase) (*prefab.Cont
 		return nil, err
 	}
 
-	return client.WithContext(testCase.Contexts.block), nil
+	blockContexts := testCase.GetBlockContexts()
+	if blockContexts == nil {
+		return client.WithContext(prefab.NewContextSet()), nil
+	}
+
+	return client.WithContext(blockContexts), nil
 }
 
-func applyOverrides(testCase *getTestCase, options []prefab.Option) []prefab.Option {
-	if testCase.ClientOverrides.OnInitFailure != nil {
-		onInitFailure, onInitFailureMappingErr := mapStringToOnInitializationFailure(*testCase.ClientOverrides.OnInitFailure)
+func applyOverrides(clientOverrides *integrationtestsupport.ClientOverridesYaml, options []prefab.Option) []prefab.Option {
+	if clientOverrides.OnInitFailure != nil {
+		onInitFailure, onInitFailureMappingErr := mapStringToOnInitializationFailure(*clientOverrides.OnInitFailure)
 		if onInitFailureMappingErr != nil {
 			panic(onInitFailureMappingErr)
 		}
@@ -320,12 +342,12 @@ func applyOverrides(testCase *getTestCase, options []prefab.Option) []prefab.Opt
 		options = append(options, prefab.WithOnInitializationFailure(onInitFailure))
 	}
 
-	if testCase.ClientOverrides.InitializationTimeOutSec != nil {
-		options = append(options, prefab.WithInitializationTimeoutSeconds(*testCase.ClientOverrides.InitializationTimeOutSec))
+	if clientOverrides.InitializationTimeOutSec != nil {
+		options = append(options, prefab.WithInitializationTimeoutSeconds(*clientOverrides.InitializationTimeOutSec))
 	}
 
-	if testCase.ClientOverrides.PrefabAPIURL != nil {
-		options = append(options, prefab.WithAPIURLs([]string{*testCase.ClientOverrides.PrefabAPIURL}))
+	if clientOverrides.PrefabAPIURL != nil {
+		options = append(options, prefab.WithAPIURLs([]string{*clientOverrides.PrefabAPIURL}))
 	}
 
 	return options
@@ -336,11 +358,11 @@ type expectedResult struct {
 	err   *string
 }
 
-func enabledTest(suite *GeneratedTestSuite, testCase *getTestCase, client prefab.ClientInterface) {
+func enabledTest(suite *GeneratedTestSuite, testCase *integrationtestsupport.GetTestCase, client prefab.ClientInterface) {
 	expected, ok := processExpectedResult(testCase)
 	suite.Require().True(ok, "no expected value for test case %s", testCase.CaseName)
 
-	featureIsOn, featureIsOnOk := client.FeatureIsOn(*testCase.Input.Flag, *testCase.Contexts.local)
+	featureIsOn, featureIsOnOk := client.FeatureIsOn(*testCase.Input.Flag, *testCase.Contexts.Local)
 	suite.Require().True(featureIsOnOk, "FeatureIsOn should work")
 	suite.Require().NotNil(expected.value, "expected result's value field should not be nil")
 
@@ -350,8 +372,8 @@ func enabledTest(suite *GeneratedTestSuite, testCase *getTestCase, client prefab
 func (suite *GeneratedTestSuite) executeLogLevelTest(filename string) {
 	testCases := suite.loadGetTestCasesFromYAML(filename)
 	for _, testCase := range testCases {
-		suite.Run(buildTestCaseName(testCase, filename), func() {
-			client, err := buildClient(suite, testCase)
+		suite.Run(buildTestCaseName(testCase.TestName, filename), func() {
+			client, err := buildClient(suite, testCase, nil)
 			suite.Require().NoError(err, "client constructor failed")
 
 			expectedValue, foundExpectedValue := processExpectedResult(testCase)
@@ -360,7 +382,7 @@ func (suite *GeneratedTestSuite) executeLogLevelTest(filename string) {
 			configKey, configKeyErr := getConfigKeyToUse(testCase)
 			suite.Require().NoError(configKeyErr)
 
-			actualValue, found, err := client.GetLogLevelStringValue(configKey, *testCase.Contexts.local)
+			actualValue, found, err := client.GetLogLevelStringValue(configKey, *testCase.Contexts.Local)
 
 			suite.Require().NoError(err)
 			suite.True(found, "expected log level to be found")
@@ -373,8 +395,8 @@ func (suite *GeneratedTestSuite) executeLogLevelTest(filename string) {
 func (suite *GeneratedTestSuite) executeGetOrEnabledTest(filename string) {
 	testCases := suite.loadGetTestCasesFromYAML(filename)
 	for _, testCase := range testCases {
-		suite.Run(buildTestCaseName(testCase, filename), func() {
-			client, err := buildClient(suite, testCase)
+		suite.Run(buildTestCaseName(testCase.TestName, filename), func() {
+			client, err := buildClient(suite, testCase, nil)
 			suite.Require().NoError(err, "client constructor failed")
 
 			expectedValue, foundExpectedValue := processExpectedResult(testCase)
@@ -390,7 +412,7 @@ func (suite *GeneratedTestSuite) executeGetOrEnabledTest(filename string) {
 				return
 			}
 
-			result := suite.makeGetCall(client, testCase.Type, configKey, testCase.Contexts.local, defaultValueExists, defaultValue)
+			result := suite.makeGetCall(client, testCase.Type, configKey, testCase.Contexts.Local, defaultValueExists, defaultValue)
 
 			suite.Require().True(foundExpectedValue, "should have found some expected value or error")
 
@@ -429,16 +451,70 @@ func (suite *GeneratedTestSuite) executeGetOrEnabledTest(filename string) {
 	}
 }
 
-func buildTestCaseName(testCase *getTestCase, filename string) string {
-	testName := ""
-	if testCase.TestName != nil {
-		testName = *testCase.TestName
-	}
+func (suite *GeneratedTestSuite) executeTelemetryTest(filename string) {
+	testCases := suite.loadTelemetryTestCasesFromYAML(filename)
+	for _, testCase := range testCases {
+		name := buildTestCaseName(testCase.TestName, filename)
+		suite.Run(name, func() {
+			if strings.Contains(name, "reports log aggregation") {
+				suite.T().Skip("Skipping " + name)
+			}
 
-	return fmt.Sprintf("%s::%s::%s", filename, testName, testCase.CaseName)
+			// We don't care about the times in integration tests, those should be tested elsewhere
+			telemetry.NowProvider = func() int64 { return 0 }
+
+			suite.Require().NotNil(testCase.Aggregator, "Aggregator is nil")
+			suite.Require().NoError(testCase.Err, "Error is not nil")
+
+			tt := integrationtestsupport.NewTelemetryTestHarness(*testCase)
+			suite.Require().NotNil(tt, "TelemetryTestHarness is nil")
+
+			requests, ts := integrationtestsupport.StartTestServer()
+			defer ts.Close()
+
+			options := []prefab.Option{
+				prefab.WithTelemetryHost(ts.URL),
+				prefab.WithCollectEvaluationSummaries(false), // override by default
+			}
+			options = append(options, tt.GetOptions()...)
+
+			client, err := buildClient(suite, testCase, options)
+			suite.Require().NoError(err, "client constructor failed")
+
+			expectedEvent, err := tt.GetExpectedEvent()
+			suite.Require().NoError(err, "GetExpectedEvent should work")
+
+			tt.Exercise(client)
+
+			// Force the client to go ahead and submit the telemetry
+			err = client.SendTelemetry()
+			suite.Require().NoError(err, "SendTelemetry should work")
+
+			if expectedEvent == nil {
+				suite.Equal(0, len(*requests), "Expected no requests to be made")
+			} else {
+				suite.Equal(1, len(*requests), "Expected one request to be made")
+				payload := integrationtestsupport.RequestBodyToTelemetryEventsProto(&suite.Suite, (*requests)[0])
+
+				expectedEvents := prefabProto.TelemetryEvents{
+					InstanceHash: client.GetInstanceHash(),
+					Events:       []*prefabProto.TelemetryEvent{expectedEvent},
+				}
+				testutils.AssertJSONEqual(suite.T(), &expectedEvents, tt.MassagePayload(payload))
+			}
+		})
+	}
 }
 
-func getDefaultValue(testCase *getTestCase) (interface{}, bool) {
+func buildTestCaseName(testName string, filename string) string {
+	if testName == "" {
+		panic("testName should not be empty")
+	}
+
+	return fmt.Sprintf("%s::%s", filename, testName)
+}
+
+func getDefaultValue(testCase *integrationtestsupport.GetTestCase) (interface{}, bool) {
 	if testCase.Input.Default == nil {
 		return nil, false
 	}
@@ -446,7 +522,7 @@ func getDefaultValue(testCase *getTestCase) (interface{}, bool) {
 	return *testCase.Input.Default, true
 }
 
-func getConfigKeyToUse(testCase *getTestCase) (string, error) {
+func getConfigKeyToUse(testCase *integrationtestsupport.GetTestCase) (string, error) {
 	if testCase.Input.Key != nil {
 		return *testCase.Input.Key, nil
 	}
@@ -458,7 +534,7 @@ func getConfigKeyToUse(testCase *getTestCase) (string, error) {
 	return "", errors.New("no key or flag in testCase.Input")
 }
 
-func processExpectedResult(testCase *getTestCase) (expectedResult, bool) {
+func processExpectedResult(testCase *integrationtestsupport.GetTestCase) (expectedResult, bool) {
 	if testCase.Expected.Millis != nil {
 		return expectedResult{value: time.Duration(*testCase.Expected.Millis) * time.Millisecond}, true
 	}
@@ -484,7 +560,7 @@ func processExpectedResult(testCase *getTestCase) (expectedResult, bool) {
 		return expectedResult{err: testCase.Expected.Error}, true
 	}
 
-	return expectedResult{}, true // this being true handles the         expected.value: ~
+	return expectedResult{}, true // this being true handles the `expected.value: ~`
 }
 
 // Mapping function from string to OnInitializationFailure
