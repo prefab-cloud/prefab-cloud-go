@@ -1,6 +1,8 @@
 package prefab
 
 import (
+	"time"
+
 	"github.com/prefab-cloud/prefab-cloud-go/pkg/internal/options"
 )
 
@@ -29,7 +31,16 @@ func WithProjectEnvID(projectEnvID int64) Option {
 //			"dump://" + fileName,
 //		}))
 func WithOfflineSources(sources []string) Option {
-	return WithSources(sources, true)
+	return func(o *options.Options) error {
+		o.ContextTelemetryMode = options.ContextTelemetryModes.None
+
+		err := WithSources(sources, true)(o)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	}
 }
 
 // WithSources allows providing custom sources for the prefab client to use.
@@ -132,6 +143,44 @@ func WithConfigs(configs map[string]interface{}) Option {
 		}
 
 		o.Configs = configs
+
+		return nil
+	}
+}
+
+// WithTelemetrySyncInterval sets the interval at which the client will send telemetry data to the server.
+func WithTelemetrySyncInterval(interval time.Duration) Option {
+	return func(o *options.Options) error {
+		o.TelemetrySyncInterval = interval
+
+		return nil
+	}
+}
+
+// WithTelemetryHost sets the host to which the client will send telemetry data. You likely will never need to use this option.
+func WithTelemetryHost(host string) Option {
+	return func(o *options.Options) error {
+		o.TelemetryHost = host
+
+		return nil
+	}
+}
+
+// WithContextTelemetryMode sets the context telemetry mode for the prefab client.
+func WithContextTelemetryMode(mode options.ContextTelemetryMode) Option {
+	return func(o *options.Options) error {
+		o.ContextTelemetryMode = mode
+
+		return nil
+	}
+}
+
+// WithCollectEvaluationSummaries sets whether the client should collect evaluation summaries.
+//
+// The default is true
+func WithCollectEvaluationSummaries(collect bool) Option {
+	return func(o *options.Options) error {
+		o.CollectEvaluationSummaries = collect
 
 		return nil
 	}

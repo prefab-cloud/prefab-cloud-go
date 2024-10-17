@@ -3,6 +3,7 @@ module github.com/prefab-cloud/prefab-cloud-go
 go 1.21
 
 require (
+	github.com/google/uuid v1.6.0
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826
 	github.com/r3labs/sse/v2 v2.10.0
 	github.com/sosodev/duration v1.3.1

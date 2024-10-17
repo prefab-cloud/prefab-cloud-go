@@ -141,8 +141,8 @@ func (suite *ConfigRuleTestSuite) TestFullRuleEvaluation() {
 			mockContext, _ := suite.setupMockContextWithMultipleValues(testCase.contextMockings)
 			conditionMatch := suite.evaluator.EvaluateConfig(config, mockContext)
 			suite.Equal(testCase.expectedValue, conditionMatch.Match, "value should match")
-			suite.Equal(testCase.expectedRowIndex, conditionMatch.RowIndex, "rowIndex should match")
-			suite.Equal(testCase.expectedConditionalValueIndex, conditionMatch.ConditionalValueIndex, "conditionalValueIndex should match")
+			suite.Equal(testCase.expectedRowIndex, *conditionMatch.RowIndex, "rowIndex should match")
+			suite.Equal(testCase.expectedConditionalValueIndex, *conditionMatch.ConditionalValueIndex, "conditionalValueIndex should match")
 		})
 	}
 }

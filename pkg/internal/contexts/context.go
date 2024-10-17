@@ -1,6 +1,7 @@
 package contexts
 
 import (
+	"sort"
 	"strings"
 
 	"github.com/prefab-cloud/prefab-cloud-go/pkg/internal/utils"
@@ -10,6 +11,23 @@ import (
 type NamedContext struct {
 	Data map[string]any
 	Name string
+}
+
+func (nc *NamedContext) ToProto() *prefabProto.Context {
+	protoContext := &prefabProto.Context{
+		Type:   &nc.Name,
+		Values: make(map[string]*prefabProto.ConfigValue),
+	}
+
+	for key, value := range nc.Data {
+		protoValue, ok := utils.Create(value)
+
+		if ok {
+			protoContext.Values[key] = protoValue
+		}
+	}
+
+	return protoContext
 }
 
 func NewNamedContextWithValues(name string, values map[string]any) *NamedContext {
@@ -43,6 +61,39 @@ type ContextSet struct {
 	Data map[string]*NamedContext
 }
 
+func (cs *ContextSet) GroupedKey() string {
+	anyKeys := false
+	ids := []string{}
+
+	for _, context := range cs.Data {
+		if context.Data["key"] != nil {
+			anyKeys = true
+
+			ids = append(ids, context.Name+":"+context.Data["key"].(string))
+		} else {
+			ids = append(ids, context.Name+":")
+		}
+	}
+
+	if !anyKeys {
+		return ""
+	}
+
+	sort.Strings(ids)
+
+	return strings.Join(ids, "|")
+}
+
+func (cs *ContextSet) ToProto() *prefabProto.ContextSet {
+	protoContextSet := &prefabProto.ContextSet{}
+
+	for _, namedContext := range cs.Data {
+		protoContextSet.Contexts = append(protoContextSet.Contexts, namedContext.ToProto())
+	}
+
+	return protoContextSet
+}
+
 func NewContextSet() *ContextSet {
 	return &ContextSet{
 		Data: make(map[string]*NamedContext),
@@ -62,9 +113,9 @@ func NewContextSetFromProto(protoContextSet *prefabProto.ContextSet) *ContextSet
 	return contextSet
 }
 
-func (c *ContextSet) GetContextValue(propertyName string) (any, bool) {
+func (cs *ContextSet) GetContextValue(propertyName string) (any, bool) {
 	contextName, key := splitAtFirstDot(propertyName)
-	if namedContext, namedContextExists := c.Data[contextName]; namedContextExists {
+	if namedContext, namedContextExists := cs.Data[contextName]; namedContextExists {
 		value, valueExists := namedContext.Data[key]
 
 		return value, valueExists
@@ -73,20 +124,20 @@ func (c *ContextSet) GetContextValue(propertyName string) (any, bool) {
 	return nil, false // Return nil and false if the named context doesn't exist.
 }
 
-func (c *ContextSet) SetNamedContext(newNamedContext *NamedContext) {
-	c.Data[newNamedContext.Name] = newNamedContext
+func (cs *ContextSet) SetNamedContext(newNamedContext *NamedContext) {
+	cs.Data[newNamedContext.Name] = newNamedContext
 }
 
-func (c *ContextSet) WithNamedContext(newNamedContext *NamedContext) *ContextSet {
-	c.Data[newNamedContext.Name] = newNamedContext
+func (cs *ContextSet) WithNamedContext(newNamedContext *NamedContext) *ContextSet {
+	cs.Data[newNamedContext.Name] = newNamedContext
 
-	return c
+	return cs
 }
 
-func (c *ContextSet) WithNamedContextValues(name string, values map[string]interface{}) *ContextSet {
-	c.Data[name] = NewNamedContextWithValues(name, values)
+func (cs *ContextSet) WithNamedContextValues(name string, values map[string]interface{}) *ContextSet {
+	cs.Data[name] = NewNamedContextWithValues(name, values)
 
-	return c
+	return cs
 }
 
 func Merge(contextSets ...*ContextSet) *ContextSet {

@@ -156,10 +156,10 @@ func TestConfigResolver_ResolveValue(t *testing.T) {
 			wantConfigMatch: internal.ConfigMatch{
 				Match:                 configValueOne,
 				IsMatch:               true,
-				OriginalKey:           theKey,
+				ConfigKey:             theKey,
 				OriginalMatch:         configValueOne,
-				ConditionalValueIndex: 1,
-				RowIndex:              1,
+				ConditionalValueIndex: internal.IntPtr(1),
+				RowIndex:              internal.IntPtr(1),
 			},
 			mockConfigStoreArgs: []mocks.ConfigMockingArgs{
 				{
@@ -174,8 +174,8 @@ func TestConfigResolver_ResolveValue(t *testing.T) {
 					match: internal.ConditionMatch{
 						IsMatch:               true,
 						Match:                 configValueOne,
-						RowIndex:              1,
-						ConditionalValueIndex: 1,
+						RowIndex:              internal.IntPtr(1),
+						ConditionalValueIndex: internal.IntPtr(1),
 					},
 				},
 			},
@@ -185,9 +185,9 @@ func TestConfigResolver_ResolveValue(t *testing.T) {
 			expectError: true,
 			configKey:   theKey,
 			wantConfigMatch: internal.ConfigMatch{
-				Match:       nil,
-				IsMatch:     false,
-				OriginalKey: theKey,
+				Match:     nil,
+				IsMatch:   false,
+				ConfigKey: theKey,
 			},
 			mockConfigStoreArgs: []mocks.ConfigMockingArgs{
 				{
@@ -203,10 +203,10 @@ func TestConfigResolver_ResolveValue(t *testing.T) {
 			wantConfigMatch: internal.ConfigMatch{
 				Match:                 testutils.CreateConfigValueAndAssertOk(t, providedEnvVarValue),
 				IsMatch:               true,
-				OriginalKey:           theKey,
+				ConfigKey:             theKey,
 				OriginalMatch:         providedConfigValue,
-				ConditionalValueIndex: 1,
-				RowIndex:              1,
+				ConditionalValueIndex: internal.IntPtr(1),
+				RowIndex:              internal.IntPtr(1),
 			},
 			mockConfigStoreArgs: []mocks.ConfigMockingArgs{
 				{
@@ -221,8 +221,8 @@ func TestConfigResolver_ResolveValue(t *testing.T) {
 					match: internal.ConditionMatch{
 						IsMatch:               true,
 						Match:                 providedConfigValue,
-						RowIndex:              1,
-						ConditionalValueIndex: 1,
+						RowIndex:              internal.IntPtr(1),
+						ConditionalValueIndex: internal.IntPtr(1),
 					},
 				},
 			},
@@ -235,10 +235,10 @@ func TestConfigResolver_ResolveValue(t *testing.T) {
 			wantConfigMatch: internal.ConfigMatch{
 				Match:                 testutils.CreateConfigValueAndAssertOk(t, providedEnvVarValue),
 				IsMatch:               true,
-				OriginalKey:           theKey,
+				ConfigKey:             theKey,
 				OriginalMatch:         providedConfigValue,
-				ConditionalValueIndex: 1,
-				RowIndex:              1,
+				ConditionalValueIndex: internal.IntPtr(1),
+				RowIndex:              internal.IntPtr(1),
 			},
 			mockConfigStoreArgs: []mocks.ConfigMockingArgs{
 				{
@@ -253,8 +253,8 @@ func TestConfigResolver_ResolveValue(t *testing.T) {
 					match: internal.ConditionMatch{
 						IsMatch:               true,
 						Match:                 providedConfigValue,
-						RowIndex:              1,
-						ConditionalValueIndex: 1,
+						RowIndex:              internal.IntPtr(1),
+						ConditionalValueIndex: internal.IntPtr(1),
 					},
 				},
 			},
@@ -265,10 +265,10 @@ func TestConfigResolver_ResolveValue(t *testing.T) {
 			wantConfigMatch: internal.ConfigMatch{
 				Match:                 decryptedConfigValue,
 				IsMatch:               true,
-				OriginalKey:           theKey,
+				ConfigKey:             theKey,
 				OriginalMatch:         decryptWithConfigValue,
-				ConditionalValueIndex: 1,
-				RowIndex:              1,
+				ConditionalValueIndex: internal.IntPtr(1),
+				RowIndex:              internal.IntPtr(1),
 			},
 			mockConfigStoreArgs: []mocks.ConfigMockingArgs{
 				{
@@ -288,8 +288,8 @@ func TestConfigResolver_ResolveValue(t *testing.T) {
 					match: internal.ConditionMatch{
 						IsMatch:               true,
 						Match:                 decryptWithConfigValue, // points at "decrypt.with.me"
-						RowIndex:              1,
-						ConditionalValueIndex: 1,
+						RowIndex:              internal.IntPtr(1),
+						ConditionalValueIndex: internal.IntPtr(1),
 					},
 				},
 				{
@@ -297,8 +297,8 @@ func TestConfigResolver_ResolveValue(t *testing.T) {
 					match: internal.ConditionMatch{
 						IsMatch:               true,
 						Match:                 decryptionKeyConfigValue,
-						RowIndex:              1,
-						ConditionalValueIndex: 0,
+						RowIndex:              internal.IntPtr(1),
+						ConditionalValueIndex: internal.IntPtr(0),
 					},
 				},
 			},
@@ -311,10 +311,10 @@ func TestConfigResolver_ResolveValue(t *testing.T) {
 			wantConfigMatch: internal.ConfigMatch{
 				Match:                 decryptedConfigValue,
 				IsMatch:               true,
-				OriginalKey:           theKey,
+				ConfigKey:             theKey,
 				OriginalMatch:         decryptWithConfigValue,
-				ConditionalValueIndex: 1,
-				RowIndex:              1,
+				ConditionalValueIndex: internal.IntPtr(1),
+				RowIndex:              internal.IntPtr(1),
 			},
 			mockConfigStoreArgs: []mocks.ConfigMockingArgs{
 				{
@@ -334,8 +334,8 @@ func TestConfigResolver_ResolveValue(t *testing.T) {
 					match: internal.ConditionMatch{
 						IsMatch:               true,
 						Match:                 decryptWithConfigValue, // points at "decrypt.with.me"
-						RowIndex:              1,
-						ConditionalValueIndex: 1,
+						RowIndex:              internal.IntPtr(1),
+						ConditionalValueIndex: internal.IntPtr(1),
 					},
 				},
 				{
@@ -343,8 +343,8 @@ func TestConfigResolver_ResolveValue(t *testing.T) {
 					match: internal.ConditionMatch{
 						IsMatch:               true,
 						Match:                 decryptionKeyConfigValue,
-						RowIndex:              1,
-						ConditionalValueIndex: 0,
+						RowIndex:              internal.IntPtr(1),
+						ConditionalValueIndex: internal.IntPtr(0),
 					},
 				},
 			},
@@ -357,10 +357,10 @@ func TestConfigResolver_ResolveValue(t *testing.T) {
 			wantConfigMatch: internal.ConfigMatch{
 				Match:                 decryptedConfigValue,
 				IsMatch:               true,
-				OriginalKey:           theKey,
+				ConfigKey:             theKey,
 				OriginalMatch:         decryptWithConfigValue,
-				ConditionalValueIndex: 1,
-				RowIndex:              1,
+				ConditionalValueIndex: internal.IntPtr(1),
+				RowIndex:              internal.IntPtr(1),
 			},
 			mockConfigStoreArgs: []mocks.ConfigMockingArgs{
 				{
@@ -380,8 +380,8 @@ func TestConfigResolver_ResolveValue(t *testing.T) {
 					match: internal.ConditionMatch{
 						IsMatch:               true,
 						Match:                 decryptWithConfigValue, // points at "decrypt.with.me"
-						RowIndex:              1,
-						ConditionalValueIndex: 1,
+						RowIndex:              internal.IntPtr(1),
+						ConditionalValueIndex: internal.IntPtr(1),
 					},
 				},
 			},
@@ -393,11 +393,11 @@ func TestConfigResolver_ResolveValue(t *testing.T) {
 			wantConfigMatch: internal.ConfigMatch{
 				Match:                 weightedValueOne.GetValue(),
 				IsMatch:               true,
-				OriginalKey:           theKey,
+				ConfigKey:             theKey,
 				OriginalMatch:         weightedValuesConfigValue,
-				ConditionalValueIndex: 1,
-				RowIndex:              1,
-				WeightedValueIndex:    2,
+				ConditionalValueIndex: internal.IntPtr(1),
+				RowIndex:              internal.IntPtr(1),
+				WeightedValueIndex:    internal.IntPtr(2),
 			},
 			mockConfigStoreArgs: []mocks.ConfigMockingArgs{
 				{
@@ -412,8 +412,8 @@ func TestConfigResolver_ResolveValue(t *testing.T) {
 					match: internal.ConditionMatch{
 						IsMatch:               true,
 						Match:                 weightedValuesConfigValue, // points at "decrypt.with.me"
-						RowIndex:              1,
-						ConditionalValueIndex: 1,
+						RowIndex:              internal.IntPtr(1),
+						ConditionalValueIndex: internal.IntPtr(1),
 					},
 				},
 			},

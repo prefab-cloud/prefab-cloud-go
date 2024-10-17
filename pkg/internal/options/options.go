@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
+
+	"github.com/google/uuid"
 
 	"github.com/prefab-cloud/prefab-cloud-go/pkg/internal/contexts"
 )
@@ -28,6 +31,18 @@ func GetDefaultAPIURLs() []string {
 	}
 }
 
+type ContextTelemetryMode string
+
+var ContextTelemetryModes = struct {
+	PeriodicExample ContextTelemetryMode
+	Shapes          ContextTelemetryMode
+	None            ContextTelemetryMode
+}{
+	PeriodicExample: "periodic_example",
+	Shapes:          "shapes",
+	None:            "",
+}
+
 type Options struct {
 	GlobalContext                *contexts.ContextSet
 	Configs                      map[string]interface{}
@@ -38,6 +53,11 @@ type Options struct {
 	ProjectEnvID                 int64
 	InitializationTimeoutSeconds float64
 	OnInitializationFailure      OnInitializationFailure
+	ContextTelemetryMode         ContextTelemetryMode
+	CollectEvaluationSummaries   bool
+	TelemetrySyncInterval        time.Duration
+	TelemetryHost                string
+	InstanceHash                 string
 }
 
 const timeoutDefault = 10.0
@@ -69,6 +89,11 @@ func GetDefaultOptions() Options {
 		OnInitializationFailure:      ReturnError,
 		GlobalContext:                contexts.NewContextSet(),
 		Sources:                      sources,
+		ContextTelemetryMode:         ContextTelemetryModes.PeriodicExample,
+		TelemetrySyncInterval:        1 * time.Minute,
+		TelemetryHost:                "https://telemetry.prefab.cloud",
+		CollectEvaluationSummaries:   true,
+		InstanceHash:                 uuid.New().String(),
 	}
 }
 

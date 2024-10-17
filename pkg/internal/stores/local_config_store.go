@@ -56,12 +56,10 @@ func loadFileIntoMap(filePath string, configmap *map[string]*prefabProto.Config)
 
 	configs, projectEnvID, err := parser.Parse(data)
 	if err != nil {
-		fmt.Println("Error parsing config file", err)
 		return 0, err
 	}
 
 	for _, config := range configs {
-		fmt.Println("Adding config", config.GetKey())
 		(*configmap)[config.GetKey()] = config
 	}
 
