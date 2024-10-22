@@ -249,38 +249,36 @@ func (c *Client) Keys() ([]string, error) {
 	return c.configResolver.Keys(), nil
 }
 
-func clientInternalGetValueFunc[T any](key string, parentContextSet *contexts.ContextSet, contextSet contexts.ContextSet, parseFunc func(*prefabProto.ConfigValue) (T, bool)) func(c *ContextBoundClient) (T, bool, error) {
+func clientInternalGetValueFunc[T any](contextBoundClient *ContextBoundClient, key string, contextSet contexts.ContextSet, parseFunc func(*prefabProto.ConfigValue) (T, bool)) (T, bool, error) {
 	var zeroValue T
 
-	mergedContextSet := *contexts.Merge(parentContextSet, &contextSet)
+	mergedContextSet := *contexts.Merge(contextBoundClient.context, &contextSet)
 
-	return func(c *ContextBoundClient) (T, bool, error) {
-		fetchResult, fetchOk, fetchErr := c.fetchAndProcessValue(key, mergedContextSet, func(cv *prefabProto.ConfigValue) (any, bool) {
-			pVal, pOk := clientParseValueWrapper(cv, parseFunc)
-			if !pOk {
-				return nil, false
-			}
-
-			return pVal, pOk
-		})
-
-		if fetchErr != nil || !fetchOk {
-			return zeroValue, false, fetchErr
+	fetchResult, fetchOk, fetchErr := contextBoundClient.fetchAndProcessValue(key, mergedContextSet, func(cv *prefabProto.ConfigValue) (any, bool) {
+		pVal, pOk := clientParseValueWrapper(cv, parseFunc)
+		if !pOk {
+			return nil, false
 		}
 
-		if fetchResult == nil {
-			return zeroValue, false, nil
-		}
+		return pVal, pOk
+	})
 
-		typedValue, ok := (fetchResult).(T)
-		if !ok {
-			slog.Warn(fmt.Sprintf("unexpected type for %T value: %T", zeroValue, fetchResult))
-
-			return zeroValue, false, nil
-		}
-
-		return typedValue, true, nil
+	if fetchErr != nil || !fetchOk {
+		return zeroValue, false, fetchErr
 	}
+
+	if fetchResult == nil {
+		return zeroValue, false, nil
+	}
+
+	typedValue, ok := (fetchResult).(T)
+	if !ok {
+		slog.Warn(fmt.Sprintf("unexpected type for %T value: %T", zeroValue, fetchResult))
+
+		return zeroValue, false, nil
+	}
+
+	return typedValue, true, nil
 }
 
 // GetIntValueWithDefault returns an int value for a given key and context, with a default value if the key does not exist
@@ -295,9 +293,7 @@ func (c *ContextBoundClient) GetIntValueWithDefault(key string, contextSet conte
 
 // GetIntValue returns an int value for a given key and context
 func (c *ContextBoundClient) GetIntValue(key string, contextSet contexts.ContextSet) (value int64, ok bool, err error) {
-	val, ok, err := clientInternalGetValueFunc(key, c.context, contextSet, utils.ExtractIntValue)(c)
-
-	return val, ok, err
+	return clientInternalGetValueFunc(c, key, contextSet, utils.ExtractIntValue)
 }
 
 // GetStringValueWithDefault returns a string value for a given key and context, with a default value if the key does not exist
@@ -312,16 +308,12 @@ func (c *ContextBoundClient) GetStringValueWithDefault(key string, contextSet co
 
 // GetStringValue returns a string value for a given key and context
 func (c *ContextBoundClient) GetStringValue(key string, contextSet contexts.ContextSet) (value string, ok bool, err error) {
-	value, ok, err = clientInternalGetValueFunc(key, c.context, contextSet, utils.ExtractStringValue)(c)
-
-	return value, ok, err
+	return clientInternalGetValueFunc(c, key, contextSet, utils.ExtractStringValue)
 }
 
 // GetJSONValue returns a JSON value for a given key and context
 func (c *ContextBoundClient) GetJSONValue(key string, contextSet contexts.ContextSet) (value interface{}, ok bool, err error) {
-	value, ok, err = clientInternalGetValueFunc(key, c.context, contextSet, utils.ExtractJSONValueWithoutError)(c)
-
-	return value, ok, err
+	return clientInternalGetValueFunc(c, key, contextSet, utils.ExtractJSONValueWithoutError)
 }
 
 // GetJSONValueWithDefault returns a JSON value for a given key and context, with a default value if the key does not exist
@@ -343,7 +335,7 @@ func (c *ContextBoundClient) FeatureIsOn(key string, contextSet contexts.Context
 
 // GetLogLevelStringValue returns a string value for a given key and context, representing a log level.
 func (c *ContextBoundClient) GetLogLevelStringValue(key string, contextSet contexts.ContextSet) (value string, ok bool, err error) {
-	rawValue, ok, err := clientInternalGetValueFunc(key, c.context, contextSet, utils.ExtractLogLevelValue)(c)
+	rawValue, ok, err := clientInternalGetValueFunc(c, key, contextSet, utils.ExtractLogLevelValue)
 
 	if err != nil || !ok {
 		return "", false, err
@@ -364,9 +356,7 @@ func (c *ContextBoundClient) GetBoolValueWithDefault(key string, contextSet cont
 
 // GetBoolValue returns a bool value for a given key and context
 func (c *ContextBoundClient) GetBoolValue(key string, contextSet contexts.ContextSet) (value bool, ok bool, err error) {
-	value, ok, err = clientInternalGetValueFunc(key, c.context, contextSet, utils.ExtractBoolValue)(c)
-
-	return value, ok, err
+	return clientInternalGetValueFunc(c, key, contextSet, utils.ExtractBoolValue)
 }
 
 // GetFloatValueWithDefault returns a float value for a given key and context, with a default value if the key does not exist
@@ -381,9 +371,7 @@ func (c *ContextBoundClient) GetFloatValueWithDefault(key string, contextSet con
 
 // GetFloatValue returns a float value for a given key and context
 func (c *ContextBoundClient) GetFloatValue(key string, contextSet contexts.ContextSet) (value float64, ok bool, err error) {
-	value, ok, err = clientInternalGetValueFunc(key, c.context, contextSet, utils.ExtractFloatValue)(c)
-
-	return value, ok, err
+	return clientInternalGetValueFunc(c, key, contextSet, utils.ExtractFloatValue)
 }
 
 // GetStringSliceValueWithDefault returns a string slice value for a given key and context, with a default value if the key does not exist
@@ -398,9 +386,7 @@ func (c *ContextBoundClient) GetStringSliceValueWithDefault(key string, contextS
 
 // GetStringSliceValue returns a string slice value for a given key and context
 func (c *ContextBoundClient) GetStringSliceValue(key string, contextSet contexts.ContextSet) (value []string, ok bool, err error) {
-	value, ok, err = clientInternalGetValueFunc(key, c.context, contextSet, utils.ExtractStringListValue)(c)
-
-	return value, ok, err
+	return clientInternalGetValueFunc(c, key, contextSet, utils.ExtractStringListValue)
 }
 
 // GetDurationWithDefault returns a duration value for a given key and context, with a default value if the key does not exist
@@ -415,9 +401,7 @@ func (c *ContextBoundClient) GetDurationWithDefault(key string, contextSet conte
 
 // GetDurationValue returns a duration value for a given key and context
 func (c *ContextBoundClient) GetDurationValue(key string, contextSet contexts.ContextSet) (value time.Duration, ok bool, err error) {
-	value, ok, err = clientInternalGetValueFunc(key, c.context, contextSet, utils.ExtractDurationValue)(c)
-
-	return value, ok, err
+	return clientInternalGetValueFunc(c, key, contextSet, utils.ExtractDurationValue)
 }
 
 func (c *ContextBoundClient) fetchAndProcessValue(key string, contextSet contexts.ContextSet, parser utils.ExtractValueFunction) (any, bool, error) {
