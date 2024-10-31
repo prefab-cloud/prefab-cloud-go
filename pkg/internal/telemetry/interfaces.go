@@ -13,12 +13,12 @@ type Aggregator interface {
 	Unlock()
 }
 
-func NewContextAggregator(opts options.Options) Aggregator {
+func NewContextAggregators(opts options.Options) []Aggregator {
 	switch opts.ContextTelemetryMode {
 	case options.ContextTelemetryModes.PeriodicExample:
-		return NewExampleContextAggregator()
+		return []Aggregator{NewExampleContextAggregator(), NewContextShapeAggregator()}
 	case options.ContextTelemetryModes.Shapes:
-		return NewContextShapeAggregator()
+		return []Aggregator{NewContextShapeAggregator()}
 	default:
 		return nil
 	}

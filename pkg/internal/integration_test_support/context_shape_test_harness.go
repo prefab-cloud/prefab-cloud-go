@@ -18,7 +18,7 @@ func (c ContextShapeTestHarness) GetOptions() []prefab.Option {
 	return []prefab.Option{prefab.WithContextTelemetryMode(prefab.ContextTelemetryMode.Shapes)}
 }
 
-func (c ContextShapeTestHarness) GetExpectedEvent() (*prefabProto.TelemetryEvent, error) {
+func (c ContextShapeTestHarness) GetExpectedEvents() ([]*prefabProto.TelemetryEvent, error) {
 	var expectedData []expectedContextShapeData
 
 	err := unmarshalExampleData(c.testCase.Yaml.ExpectedData, &expectedData)
@@ -37,10 +37,12 @@ func (c ContextShapeTestHarness) GetExpectedEvent() (*prefabProto.TelemetryEvent
 		shapes = append(shapes, shape)
 	}
 
-	return &prefabProto.TelemetryEvent{
-		Payload: &prefabProto.TelemetryEvent_ContextShapes{
-			ContextShapes: &prefabProto.ContextShapes{
-				Shapes: shapes,
+	return []*prefabProto.TelemetryEvent{
+		{
+			Payload: &prefabProto.TelemetryEvent_ContextShapes{
+				ContextShapes: &prefabProto.ContextShapes{
+					Shapes: shapes,
+				},
 			},
 		},
 	}, nil

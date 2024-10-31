@@ -24,6 +24,8 @@ func (nc *NamedContext) ToProto() *prefabProto.Context {
 
 		if ok {
 			protoContext.Values[key] = protoValue
+		} else {
+			// utils.Create logs a warning
 		}
 	}
 

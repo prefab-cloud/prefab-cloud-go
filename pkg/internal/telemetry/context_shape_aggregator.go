@@ -29,7 +29,7 @@ func (eca *ContextShapeAggregator) Unlock() {
 	eca.mutex.Unlock()
 }
 
-func fieldTypeForValue(value interface{}) int32 {
+func FieldTypeForValue(value interface{}) int32 {
 	switch value.(type) {
 	case int, int32, int64:
 		return 1
@@ -61,7 +61,7 @@ func (eca *ContextShapeAggregator) Record(ctxSet interface{}) {
 			}
 
 			if _, ok := eca.data[context.Name][key]; !ok {
-				eca.data[context.Name][key] = fieldTypeForValue(value)
+				eca.data[context.Name][key] = FieldTypeForValue(value)
 			}
 		}
 	}

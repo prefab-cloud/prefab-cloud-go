@@ -34,7 +34,7 @@ func (c EvaluationSummaryTestHarness) GetOptions() []prefab.Option {
 	return []prefab.Option{prefab.WithCollectEvaluationSummaries(true)}
 }
 
-func (c EvaluationSummaryTestHarness) GetExpectedEvent() (*prefabProto.TelemetryEvent, error) {
+func (c EvaluationSummaryTestHarness) GetExpectedEvents() ([]*prefabProto.TelemetryEvent, error) {
 	summaries := []*prefabProto.ConfigEvaluationSummary{}
 
 	expectedData, err := c.ExpectedData()
@@ -61,10 +61,12 @@ func (c EvaluationSummaryTestHarness) GetExpectedEvent() (*prefabProto.Telemetry
 		summaries = append(summaries, summary)
 	}
 
-	return &prefabProto.TelemetryEvent{
-		Payload: &prefabProto.TelemetryEvent_Summaries{
-			Summaries: &prefabProto.ConfigEvaluationSummaries{
-				Summaries: summaries,
+	return []*prefabProto.TelemetryEvent{
+		{
+			Payload: &prefabProto.TelemetryEvent_Summaries{
+				Summaries: &prefabProto.ConfigEvaluationSummaries{
+					Summaries: summaries,
+				},
 			},
 		},
 	}, nil

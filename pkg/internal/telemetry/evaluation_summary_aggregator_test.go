@@ -10,9 +10,6 @@ import (
 	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
 )
 
-// add some ConfigMatch	data to the aggregator
-// run GetData() and assert
-
 func TestEvaluationSummaryAggregator_Record(t *testing.T) {
 	esa := telemetry.NewEvaluationSummaryAggregator()
 	letter := testutils.CreateConfigValueAndAssertOk(t, "ABC")
