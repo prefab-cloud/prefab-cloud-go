@@ -66,7 +66,7 @@ func sortJSONData(data interface{}) interface{} {
 }
 
 // Marshal and sort both keys and arrays in the JSON output
-func sortedJSON(message proto.Message) (string, error) {
+func SortedJSON(message proto.Message) (string, error) {
 	// Use protojson to marshal the message
 	options := protojson.MarshalOptions{
 		EmitUnpopulated: true,
@@ -96,10 +96,10 @@ func sortedJSON(message proto.Message) (string, error) {
 }
 
 func AssertJSONEqual(t *testing.T, expected proto.Message, actualData proto.Message) {
-	expectedJSON, err := sortedJSON(expected)
+	expectedJSON, err := SortedJSON(expected)
 	require.NoError(t, err)
 
-	actualJSON, err := sortedJSON(actualData)
+	actualJSON, err := SortedJSON(actualData)
 	require.NoError(t, err)
 
 	assert.Equal(t, expectedJSON, actualJSON)

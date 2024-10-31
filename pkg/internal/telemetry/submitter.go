@@ -18,10 +18,11 @@ import (
 )
 
 var NowProvider = time.Now().UnixMilli
+var client = &http.Client{}
 
 type Submitter struct {
 	aggregators                 []Aggregator
-	contextAggregator           Aggregator
+	contextAggregators          []Aggregator
 	evaluationSummaryAggregator *EvaluationSummaryAggregator
 	instanceHash                string
 	host                        string
@@ -34,10 +35,10 @@ type Payload = prefabProto.TelemetryEvents
 func NewTelemetrySubmitter(options options.Options) *Submitter {
 	aggregators := []Aggregator{}
 
-	contextAggregator := NewContextAggregator(options)
+	contextAggregators := NewContextAggregators(options)
 
-	if contextAggregator != nil {
-		aggregators = append(aggregators, contextAggregator)
+	if contextAggregators != nil {
+		aggregators = append(aggregators, contextAggregators...)
 	}
 
 	var evaluationSummaryAggregator *EvaluationSummaryAggregator
@@ -50,7 +51,7 @@ func NewTelemetrySubmitter(options options.Options) *Submitter {
 		aggregators:                 aggregators,
 		host:                        options.TelemetryHost,
 		apiKey:                      options.APIKey,
-		contextAggregator:           contextAggregator,
+		contextAggregators:          contextAggregators,
 		evaluationSummaryAggregator: evaluationSummaryAggregator,
 		mutex:                       &sync.Mutex{},
 		instanceHash:                options.InstanceHash,
@@ -83,11 +84,13 @@ func (ts *Submitter) RecordEvaluation(data internal.ConfigMatch) {
 }
 
 func (ts *Submitter) RecordContext(data *contexts.ContextSet) {
-	if ts.contextAggregator == nil {
+	if ts.contextAggregators == nil {
 		return
 	}
 
-	ts.contextAggregator.Record(data)
+	for _, aggregator := range ts.contextAggregators {
+		aggregator.Record(data)
+	}
 }
 
 func (ts *Submitter) Submit() error {
@@ -107,6 +110,7 @@ func (ts *Submitter) Submit() error {
 
 		data := aggregator.GetData()
 		if data == nil {
+			aggregator.Unlock()
 			continue
 		}
 
@@ -138,8 +142,6 @@ func (ts *Submitter) Submit() error {
 
 	encodedAuth := base64.StdEncoding.EncodeToString([]byte("authuser:" + ts.apiKey))
 	req.Header.Set("Authorization", "Basic "+encodedAuth)
-
-	client := &http.Client{}
 
 	resp, err := client.Do(req)
 	if err != nil {

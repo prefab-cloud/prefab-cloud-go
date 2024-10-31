@@ -481,7 +481,7 @@ func (suite *GeneratedTestSuite) executeTelemetryTest(filename string) {
 			client, err := buildClient(suite, testCase, options)
 			suite.Require().NoError(err, "client constructor failed")
 
-			expectedEvent, err := tt.GetExpectedEvent()
+			expectedEvents, err := tt.GetExpectedEvents()
 			suite.Require().NoError(err, "GetExpectedEvent should work")
 
 			tt.Exercise(client)
@@ -490,17 +490,29 @@ func (suite *GeneratedTestSuite) executeTelemetryTest(filename string) {
 			err = client.SendTelemetry()
 			suite.Require().NoError(err, "SendTelemetry should work")
 
-			if expectedEvent == nil {
-				suite.Equal(0, len(*requests), "Expected no requests to be made")
+			if expectedEvents == nil {
+				if testCase.Aggregator == "example_contexts" {
+					suite.Equal(1, len(*requests), "Expected one request to be made for the shapes but not the example_contexts")
+
+					payload := integrationtestsupport.RequestBodyToTelemetryEventsProto(&suite.Suite, (*requests)[0])
+					suite.Equal(1, len(payload.Events), "Expected one event to be in the payload")
+
+					expectedJSON, err := testutils.SortedJSON(payload.Events[0])
+					suite.NoError(err)
+
+					suite.Contains(expectedJSON, "contextShapes")
+				} else {
+					suite.Equal(0, len(*requests), "Expected no requests to be made")
+				}
 			} else {
 				suite.Equal(1, len(*requests), "Expected one request to be made")
 				payload := integrationtestsupport.RequestBodyToTelemetryEventsProto(&suite.Suite, (*requests)[0])
 
-				expectedEvents := prefabProto.TelemetryEvents{
+				expectedEventsProto := prefabProto.TelemetryEvents{
 					InstanceHash: client.GetInstanceHash(),
-					Events:       []*prefabProto.TelemetryEvent{expectedEvent},
+					Events:       expectedEvents,
 				}
-				testutils.AssertJSONEqual(suite.T(), &expectedEvents, tt.MassagePayload(payload))
+				testutils.AssertJSONEqual(suite.T(), &expectedEventsProto, tt.MassagePayload(payload))
 			}
 		})
 	}
