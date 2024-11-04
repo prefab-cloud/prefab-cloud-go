@@ -17,8 +17,10 @@ import (
 	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
 )
 
-var NowProvider = time.Now().UnixMilli
-var client = &http.Client{}
+var (
+	NowProvider = time.Now().UnixMilli
+	client      = &http.Client{}
+)
 
 type QueueItem interface{}
 
@@ -151,9 +153,11 @@ func (ts *Submitter) Submit(waitOnQueueToDrain bool) error {
 
 	for _, aggregator := range ts.aggregators {
 		aggregator.Lock()
+
 		data := aggregator.GetData()
 		if data != nil {
 			payload.Events = append(payload.Events, data)
+
 			aggregator.Clear()
 		}
 		aggregator.Unlock()
@@ -188,6 +192,7 @@ func (ts *Submitter) Submit(waitOnQueueToDrain bool) error {
 // retryRequest attempts an HTTP request with retries and exponential backoff
 func (ts *Submitter) retryRequest(req *http.Request) error {
 	const maxRetries = 5
+
 	backoff := 1 * time.Second
 
 	for attempt := 1; attempt <= maxRetries; attempt++ {
@@ -206,6 +211,7 @@ func (ts *Submitter) retryRequest(req *http.Request) error {
 			if err != nil {
 				return fmt.Errorf("failed to submit telemetry after %d attempts: %v", attempt, err)
 			}
+
 			return fmt.Errorf("telemetry submission failed with status %s after %d attempts", resp.Status, attempt)
 		}
 
