@@ -303,12 +303,22 @@ func clientInternalGetValueFunc[T any](contextBoundClient *ContextBoundClient, k
 	return typedValue, true, nil
 }
 
-func (c *Client) SendTelemetry() error {
-	return c.telemetry.Submit()
+// SendTelemetry sends telemetry data to the Prefab Cloud API. If
+// waitOnQueueToDrain is true, the method will block until the telemetry queue
+// is empty. You likely don't want to waitOnQueueToDrain in a production
+// environment unless you're shutting down and confident you're not further
+// enqueueing telemetry.
+func (c *Client) SendTelemetry(waitOnQueueToDrain bool) error {
+	return c.telemetry.Submit(waitOnQueueToDrain)
 }
 
-func (c *ContextBoundClient) SendTelemetry() error {
-	return c.client.telemetry.Submit()
+// SendTelemetry sends telemetry data to the Prefab Cloud API. If
+// waitOnQueueToDrain is true, the method will block until the telemetry queue
+// is empty. You likely don't want to waitOnQueueToDrain in a production
+// environment unless you're shutting down and confident you're not further
+// enqueueing telemetry.
+func (c *ContextBoundClient) SendTelemetry(waitOnQueueToDrain bool) error {
+	return c.client.telemetry.Submit(waitOnQueueToDrain)
 }
 
 // GetIntValueWithDefault returns an int value for a given key and context, with a default value if the key does not exist
