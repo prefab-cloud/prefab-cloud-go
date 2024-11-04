@@ -151,16 +151,11 @@ func (ts *Submitter) Submit(waitOnQueueToDrain bool) error {
 
 	for _, aggregator := range ts.aggregators {
 		aggregator.Lock()
-
 		data := aggregator.GetData()
-		if data == nil {
-			aggregator.Unlock()
-			continue
+		if data != nil {
+			payload.Events = append(payload.Events, data)
+			aggregator.Clear()
 		}
-
-		payload.Events = append(payload.Events, data)
-
-		aggregator.Clear()
 		aggregator.Unlock()
 	}
 
@@ -187,15 +182,35 @@ func (ts *Submitter) Submit(waitOnQueueToDrain bool) error {
 	encodedAuth := base64.StdEncoding.EncodeToString([]byte("authuser:" + ts.apiKey))
 	req.Header.Set("Authorization", "Basic "+encodedAuth)
 
-	resp, err := client.Do(req)
-	if err != nil {
-		return fmt.Errorf("failed to submit telemetry: %v", err)
-	}
+	return ts.retryRequest(req)
+}
 
-	defer resp.Body.Close()
+// retryRequest attempts an HTTP request with retries and exponential backoff
+func (ts *Submitter) retryRequest(req *http.Request) error {
+	const maxRetries = 5
+	backoff := 1 * time.Second
 
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("telemetry submission failed with status: %s", resp.Status)
+	for attempt := 1; attempt <= maxRetries; attempt++ {
+		resp, err := client.Do(req)
+
+		if err == nil && resp.StatusCode == http.StatusOK {
+			defer resp.Body.Close()
+			return nil
+		}
+
+		if resp != nil {
+			defer resp.Body.Close()
+		}
+
+		if attempt == maxRetries {
+			if err != nil {
+				return fmt.Errorf("failed to submit telemetry after %d attempts: %v", attempt, err)
+			}
+			return fmt.Errorf("telemetry submission failed with status %s after %d attempts", resp.Status, attempt)
+		}
+
+		time.Sleep(backoff)
+		backoff *= 2
 	}
 
 	return nil
