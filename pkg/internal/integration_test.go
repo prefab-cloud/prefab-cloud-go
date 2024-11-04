@@ -487,7 +487,7 @@ func (suite *GeneratedTestSuite) executeTelemetryTest(filename string) {
 			tt.Exercise(client)
 
 			// Force the client to go ahead and submit the telemetry
-			err = client.SendTelemetry()
+			err = client.SendTelemetry(true)
 			suite.Require().NoError(err, "SendTelemetry should work")
 
 			if expectedEvents == nil {

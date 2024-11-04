@@ -20,6 +20,8 @@ import (
 var NowProvider = time.Now().UnixMilli
 var client = &http.Client{}
 
+type QueueItem interface{}
+
 type Submitter struct {
 	aggregators                 []Aggregator
 	contextAggregators          []Aggregator
@@ -28,6 +30,7 @@ type Submitter struct {
 	host                        string
 	apiKey                      string
 	mutex                       *sync.Mutex
+	queue                       chan QueueItem
 }
 
 type Payload = prefabProto.TelemetryEvents
@@ -55,19 +58,46 @@ func NewTelemetrySubmitter(options options.Options) *Submitter {
 		evaluationSummaryAggregator: evaluationSummaryAggregator,
 		mutex:                       &sync.Mutex{},
 		instanceHash:                options.InstanceHash,
+		queue:                       make(chan QueueItem, 10000),
 	}
 }
 
+func (ts *Submitter) SetupQueueConsumer() {
+	go func() {
+		for {
+			for item := range ts.queue {
+				switch item := item.(type) {
+				case internal.ConfigMatch:
+					ts.internalRecordEvaluation(item)
+				case *contexts.ContextSet:
+					ts.internalRecordContext(item)
+				}
+			}
+		}
+	}()
+}
+
 func (ts *Submitter) StartPeriodicSubmission(interval time.Duration) {
+	ts.SetupQueueConsumer()
+
 	ticker := time.NewTicker(interval)
 
 	go func() {
 		for range ticker.C {
 			if len(ts.aggregators) > 0 {
-				ts.Submit()
+				ts.Submit(false)
 			}
 		}
 	}()
+}
+
+func (ts *Submitter) enqueue(item QueueItem) {
+	select {
+	case ts.queue <- item:
+		// Successfully enqueued
+	default:
+		// Queue is full, drop the item
+	}
 }
 
 func (ts *Submitter) RecordEvaluation(data internal.ConfigMatch) {
@@ -80,6 +110,10 @@ func (ts *Submitter) RecordEvaluation(data internal.ConfigMatch) {
 		return
 	}
 
+	ts.enqueue(data)
+}
+
+func (ts *Submitter) internalRecordEvaluation(data internal.ConfigMatch) {
 	ts.evaluationSummaryAggregator.Record(data)
 }
 
@@ -88,14 +122,24 @@ func (ts *Submitter) RecordContext(data *contexts.ContextSet) {
 		return
 	}
 
+	ts.enqueue(data)
+}
+
+func (ts *Submitter) internalRecordContext(data *contexts.ContextSet) {
 	for _, aggregator := range ts.contextAggregators {
 		aggregator.Record(data)
 	}
 }
 
-func (ts *Submitter) Submit() error {
+func (ts *Submitter) Submit(waitOnQueueToDrain bool) error {
 	ts.mutex.Lock()
 	defer ts.mutex.Unlock()
+
+	if waitOnQueueToDrain {
+		for len(ts.queue) > 0 {
+			time.Sleep(100 * time.Millisecond)
+		}
+	}
 
 	if len(ts.aggregators) == 0 {
 		return errors.New("no aggregators to submit")
