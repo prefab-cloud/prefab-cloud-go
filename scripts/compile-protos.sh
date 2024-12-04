@@ -15,8 +15,7 @@ protoc --go_out=. \
   --go_out=proto --go_opt=paths=source_relative \
   ./prefab-internal.slim.proto \
   -I ./ \
-  -I ../prefab-cloud-internal \
-  -I ../prefab-cloud/ \
+  -I proto-source/ \
   --go_opt=Mprefab-internal.slim.proto=prefab.internal.slim/
 
 mv prefab-internal.slim.pb.go internal-proto/prefab-internal.slim.pb.go

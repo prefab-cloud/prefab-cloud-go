@@ -138,6 +138,34 @@ func (cve *ConfigRuleEvaluator) EvaluateCriterion(criterion *prefabProto.Criteri
 		}
 
 		return criterion.GetOperator() == prefabProto.Criterion_PROP_DOES_NOT_END_WITH_ONE_OF
+	case prefabProto.Criterion_PROP_STARTS_WITH_ONE_OF, prefabProto.Criterion_PROP_DOES_NOT_START_WITH_ONE_OF:
+		if err == nil && contextValueExists {
+			stringContextValue := contextValueToString(contextValue)
+
+			if stringListMatchValue, ok := matchValue.([]string); ok {
+				// Check if the property value ends with any of the specified suffixes.
+				matchFound := startsWithAny(stringListMatchValue, stringContextValue)
+				// For STARTS_WITH_ONE_OF, return the result of startsWithAny directly.
+				// For DOES_NOT_START_WITH_ONE_OF, return the negation.
+				return matchFound == (criterion.GetOperator() == prefabProto.Criterion_PROP_STARTS_WITH_ONE_OF)
+			}
+		}
+
+		return criterion.GetOperator() == prefabProto.Criterion_PROP_DOES_NOT_START_WITH_ONE_OF
+	case prefabProto.Criterion_PROP_CONTAINS_ONE_OF, prefabProto.Criterion_PROP_DOES_NOT_CONTAIN_ONE_OF:
+		if err == nil && contextValueExists {
+			stringContextValue := contextValueToString(contextValue)
+
+			if stringListMatchValue, ok := matchValue.([]string); ok {
+				// Check if the property value ends with any of the specified suffixes.
+				matchFound := containsAny(stringListMatchValue, stringContextValue)
+				// For CONTAINS_ONE_OF, return the result of containsAny directly.
+				// For DOES_NOT_CONTAIN_ONE_OF, return the negation.
+				return matchFound == (criterion.GetOperator() == prefabProto.Criterion_PROP_CONTAINS_ONE_OF)
+			}
+		}
+
+		return criterion.GetOperator() == prefabProto.Criterion_PROP_DOES_NOT_CONTAIN_ONE_OF
 	case prefabProto.Criterion_PROP_IS_ONE_OF, prefabProto.Criterion_PROP_IS_NOT_ONE_OF:
 		if err == nil && contextValueExists {
 			sliceContextValue := contextValueToStringSlice(contextValue)
@@ -245,6 +273,26 @@ func rowWithoutEnvID(config *prefabProto.Config) (*prefabProto.ConfigRow, bool) 
 func endsWithAny(suffixes []string, target string) bool {
 	for _, suffix := range suffixes {
 		if strings.HasSuffix(target, suffix) {
+			return true // Found a suffix that matches.
+		}
+	}
+
+	return false // No matching suffix found.
+}
+
+func startsWithAny(suffixes []string, target string) bool {
+	for _, suffix := range suffixes {
+		if strings.HasPrefix(target, suffix) {
+			return true // Found a suffix that matches.
+		}
+	}
+
+	return false // No matching suffix found.
+}
+
+func containsAny(suffixes []string, target string) bool {
+	for _, suffix := range suffixes {
+		if strings.Contains(target, suffix) {
 			return true // Found a suffix that matches.
 		}
 	}

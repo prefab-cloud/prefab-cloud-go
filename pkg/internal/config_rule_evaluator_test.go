@@ -223,6 +223,126 @@ func (suite *ConfigRuleTestSuite) TestPropNotEndsWithCriteriaEvaluation() {
 	}
 }
 
+func (suite *ConfigRuleTestSuite) TestPropStartsWithCriteriaEvaluation() {
+	operator := prefabProto.Criterion_PROP_STARTS_WITH_ONE_OF
+	contextPropertyName := "user.testProperty"
+	defaultValueToMatch := testutils.CreateConfigValueAndAssertOk(suite.T(), []string{"one", "two"})
+
+	tests := []struct {
+		name               string
+		valueToMatch       *prefabProto.ConfigValue
+		contextValue       interface{}
+		contextValueExists bool
+		expected           bool
+	}{
+		{"returns true for testProperty starting with one", defaultValueToMatch, "one tree", true, true},
+		{"returns false for testProperty starting with three", defaultValueToMatch, "three dogs", true, false},
+		{"returns false when context does not exist", defaultValueToMatch, nil, false, false},
+		{"returns false when valueToMatch is not a string slice", testutils.CreateConfigValueAndAssertOk(suite.T(), "example.com"), "doesn't matter", true, false},
+	}
+
+	for _, testCase := range tests {
+		suite.Run(testCase.name, func() {
+			mockContext, assertMockCalled := suite.setupMockContext(contextPropertyName, testCase.contextValue, testCase.contextValueExists)
+			defer assertMockCalled()
+
+			criterion := &prefabProto.Criterion{Operator: operator, ValueToMatch: testCase.valueToMatch, PropertyName: contextPropertyName}
+			isMatch := suite.evaluator.EvaluateCriterion(criterion, mockContext)
+			suite.Equal(testCase.expected, isMatch)
+		})
+	}
+}
+
+func (suite *ConfigRuleTestSuite) TestPropDoesNotStartsWithCriteriaEvaluation() {
+	operator := prefabProto.Criterion_PROP_DOES_NOT_START_WITH_ONE_OF
+	contextPropertyName := "user.testProperty"
+	defaultValueToMatch := testutils.CreateConfigValueAndAssertOk(suite.T(), []string{"one", "two"})
+
+	tests := []struct {
+		name               string
+		valueToMatch       *prefabProto.ConfigValue
+		contextValue       interface{}
+		contextValueExists bool
+		expected           bool
+	}{
+		{"returns false for testProperty does not start with one", defaultValueToMatch, "one tree", true, false},
+		{"returns true for testProperty does not start with three", defaultValueToMatch, "three dogs", true, true},
+		{"returns true when context does not exist", defaultValueToMatch, nil, false, true},
+		{"returns true when valueToMatch is not a string slice", testutils.CreateConfigValueAndAssertOk(suite.T(), "example.com"), "doesn't matter", true, true},
+	}
+
+	for _, testCase := range tests {
+		suite.Run(testCase.name, func() {
+			mockContext, assertMockCalled := suite.setupMockContext(contextPropertyName, testCase.contextValue, testCase.contextValueExists)
+			defer assertMockCalled()
+
+			criterion := &prefabProto.Criterion{Operator: operator, ValueToMatch: testCase.valueToMatch, PropertyName: contextPropertyName}
+			isMatch := suite.evaluator.EvaluateCriterion(criterion, mockContext)
+			suite.Equal(testCase.expected, isMatch)
+		})
+	}
+}
+
+func (suite *ConfigRuleTestSuite) TestPropContainsCriteriaEvaluation() {
+	operator := prefabProto.Criterion_PROP_CONTAINS_ONE_OF
+	contextPropertyName := "user.testProperty"
+	defaultValueToMatch := testutils.CreateConfigValueAndAssertOk(suite.T(), []string{"one", "two"})
+
+	tests := []struct {
+		name               string
+		valueToMatch       *prefabProto.ConfigValue
+		contextValue       interface{}
+		contextValueExists bool
+		expected           bool
+	}{
+		{"returns true for testProperty contains one", defaultValueToMatch, "just one tree", true, true},
+		{"returns false for testProperty contains three", defaultValueToMatch, "three dogs", true, false},
+		{"returns false when context does not exist", defaultValueToMatch, nil, false, false},
+		{"returns false when valueToMatch is not a string slice", testutils.CreateConfigValueAndAssertOk(suite.T(), "example.com"), "doesn't matter", true, false},
+	}
+
+	for _, testCase := range tests {
+		suite.Run(testCase.name, func() {
+			mockContext, assertMockCalled := suite.setupMockContext(contextPropertyName, testCase.contextValue, testCase.contextValueExists)
+			defer assertMockCalled()
+
+			criterion := &prefabProto.Criterion{Operator: operator, ValueToMatch: testCase.valueToMatch, PropertyName: contextPropertyName}
+			isMatch := suite.evaluator.EvaluateCriterion(criterion, mockContext)
+			suite.Equal(testCase.expected, isMatch)
+		})
+	}
+}
+
+func (suite *ConfigRuleTestSuite) TestPropDoesNotContainCriteriaEvaluation() {
+	operator := prefabProto.Criterion_PROP_DOES_NOT_CONTAIN_ONE_OF
+	contextPropertyName := "user.testProperty"
+	defaultValueToMatch := testutils.CreateConfigValueAndAssertOk(suite.T(), []string{"one", "two"})
+
+	tests := []struct {
+		name               string
+		valueToMatch       *prefabProto.ConfigValue
+		contextValue       interface{}
+		contextValueExists bool
+		expected           bool
+	}{
+		{"returns fa for testProperty does not contain with one", defaultValueToMatch, "one tree", true, false},
+		{"returns false for testProperty does not contain three", defaultValueToMatch, "three dogs", true, true},
+		{"returns true when context does not exist", defaultValueToMatch, nil, false, true},
+		{"returns true when valueToMatch is not a string slice", testutils.CreateConfigValueAndAssertOk(suite.T(), "example.com"), "doesn't matter", true, true},
+	}
+
+	for _, testCase := range tests {
+		suite.Run(testCase.name, func() {
+			mockContext, assertMockCalled := suite.setupMockContext(contextPropertyName, testCase.contextValue, testCase.contextValueExists)
+			defer assertMockCalled()
+
+			criterion := &prefabProto.Criterion{Operator: operator, ValueToMatch: testCase.valueToMatch, PropertyName: contextPropertyName}
+			isMatch := suite.evaluator.EvaluateCriterion(criterion, mockContext)
+			suite.Equal(testCase.expected, isMatch)
+		})
+	}
+}
+
 func (suite *ConfigRuleTestSuite) TestPropIsOneOf() {
 	operator := prefabProto.Criterion_PROP_IS_ONE_OF
 	contextPropertyName := "user.email.domain"
