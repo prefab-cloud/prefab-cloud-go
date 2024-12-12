@@ -5,6 +5,9 @@ import (
 	"math"
 	"reflect"
 	"strings"
+	"time"
+
+	"github.com/prefab-cloud/prefab-cloud-go/pkg/internal/anyhelpers"
 
 	"github.com/prefab-cloud/prefab-cloud-go/pkg/internal/utils"
 	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
@@ -237,9 +240,82 @@ func (cve *ConfigRuleEvaluator) EvaluateCriterion(criterion *prefabProto.Criteri
 		}
 
 		return criterion.GetOperator() == prefabProto.Criterion_NOT_IN_SEG
+
+	case prefabProto.Criterion_PROP_GREATER_THAN, prefabProto.Criterion_PROP_GREATER_THAN_OR_EQUAL, prefabProto.Criterion_PROP_LESS_THAN, prefabProto.Criterion_PROP_LESS_THAN_OR_EQUAL:
+		if err == nil && contextValueExists && anyhelpers.IsNumber(contextValue) && anyhelpers.IsNumber(matchValue) {
+			comparisonResult, comparisonErr := compareNumbers(contextValue, matchValue)
+			if comparisonErr == nil {
+				if handler, ok := numericCriterionHandlers[criterion.GetOperator()]; ok {
+					return handler(comparisonResult)
+				}
+			}
+		}
+
+	case prefabProto.Criterion_PROP_BEFORE, prefabProto.Criterion_PROP_AFTER:
+		if err == nil && contextValueExists && (anyhelpers.IsNumber(contextValue) || anyhelpers.IsString(contextValue)) && (anyhelpers.IsNumber(matchValue) || anyhelpers.IsString(matchValue)) {
+			contextTimeMillis, contextTimeMillisErr := dateToMillis(contextValue)
+			matchValueTimeMillis, matchValueTimeMillisErr := dateToMillis(matchValue)
+			if contextTimeMillisErr == nil && matchValueTimeMillisErr == nil {
+				return (criterion.GetOperator() == prefabProto.Criterion_PROP_AFTER && contextTimeMillis > matchValueTimeMillis) || (criterion.GetOperator() == prefabProto.Criterion_PROP_BEFORE && contextTimeMillis < matchValueTimeMillis)
+			}
+		}
 	}
 
 	return false
+}
+
+func dateToMillis(val any) (int64, error) {
+	if anyhelpers.IsNumber(val) {
+		if int64Value, err := anyhelpers.ToInt64(val); err == nil {
+			return int64Value, nil
+		} else {
+			return 0, err
+		}
+	}
+	if anyhelpers.IsString(val) {
+		if parsedDate, err := parseDate(val.(string)); err == nil {
+			return parsedDate.UnixMilli(), nil
+		} else {
+			return 0, err
+		}
+	}
+
+	return 0, fmt.Errorf("unsupported type: %v", reflect.TypeOf(val))
+}
+
+var numericCriterionHandlers = map[prefabProto.Criterion_CriterionOperator]func(int) bool{
+	prefabProto.Criterion_PROP_GREATER_THAN: func(result int) bool {
+		return result > 0
+	},
+	prefabProto.Criterion_PROP_GREATER_THAN_OR_EQUAL: func(result int) bool {
+		return result >= 0
+	},
+	prefabProto.Criterion_PROP_LESS_THAN: func(result int) bool {
+		return result < 0
+	},
+	prefabProto.Criterion_PROP_LESS_THAN_OR_EQUAL: func(result int) bool {
+		return result <= 0
+	},
+}
+
+func compareNumbers(a, b any) (int, error) {
+	// Convert both numbers to float64 for comparison
+	aFloat, err := anyhelpers.ToFloat64(a)
+	if err != nil {
+		return 0, err
+	}
+	bFloat, err := anyhelpers.ToFloat64(b)
+	if err != nil {
+		return 0, err
+	}
+
+	// Perform comparison with compareTo semantics
+	if aFloat < bFloat {
+		return -1, nil
+	} else if aFloat > bFloat {
+		return 1, nil
+	}
+	return 0, nil
 }
 
 func defaultInt(maybeInt *int64, defaultValue int64) int64 {
@@ -309,4 +385,11 @@ func stringInSlice(a string, list []string) bool {
 	}
 
 	return false
+}
+
+func parseDate(value string) (time.Time, error) {
+	if parsed, err := time.Parse(time.RFC3339, value); err == nil {
+		return parsed, nil
+	}
+	return time.Time{}, fmt.Errorf("unable to parse date: %s", value)
 }

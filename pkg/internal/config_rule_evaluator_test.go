@@ -2,6 +2,7 @@ package internal_test
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/mock"
 
@@ -339,6 +340,94 @@ func (suite *ConfigRuleTestSuite) TestPropDoesNotContainCriteriaEvaluation() {
 			criterion := &prefabProto.Criterion{Operator: operator, ValueToMatch: testCase.valueToMatch, PropertyName: contextPropertyName}
 			isMatch := suite.evaluator.EvaluateCriterion(criterion, mockContext)
 			suite.Equal(testCase.expected, isMatch)
+		})
+	}
+}
+
+func (suite *ConfigRuleTestSuite) TestNumericOps() {
+	contextPropertyName := "user.orderCount"
+	tests := []struct {
+		name               string
+		contextValue       any
+		operator           prefabProto.Criterion_CriterionOperator
+		valueToMatch       any
+		contextValueExists bool
+		matchExpected      bool
+	}{
+		{"12 is less than 14", 12, prefabProto.Criterion_PROP_LESS_THAN, 14, true, true},
+		{"12.1 is less than 14", 12.1, prefabProto.Criterion_PROP_LESS_THAN, 14, true, true},
+		{"12.1 is less than 14.2", 12.1, prefabProto.Criterion_PROP_LESS_THAN, 14.2, true, true},
+		{"12 is not less than 12", 12, prefabProto.Criterion_PROP_LESS_THAN, 12, true, false},
+		{"14.2 is not less than 12", 14, prefabProto.Criterion_PROP_LESS_THAN, 12, true, false},
+		{"12 is less than or equal 14", 12, prefabProto.Criterion_PROP_LESS_THAN_OR_EQUAL, 14, true, true},
+		{"12.1 is less than or equal 14", 12.1, prefabProto.Criterion_PROP_LESS_THAN_OR_EQUAL, 14, true, true},
+		{"12.1 is less than or equal 14.2", 12.1, prefabProto.Criterion_PROP_LESS_THAN_OR_EQUAL, 14.2, true, true},
+		{"12 is less than or equal 12", 12, prefabProto.Criterion_PROP_LESS_THAN_OR_EQUAL, 12, true, true},
+		{"14.2 is not less than or equal 12", 14, prefabProto.Criterion_PROP_LESS_THAN_OR_EQUAL, 12, true, false},
+		{"14 is greater than 12", 14, prefabProto.Criterion_PROP_GREATER_THAN, 12, true, true},
+		{"14.1 is greater than 12", 14.1, prefabProto.Criterion_PROP_GREATER_THAN, 12, true, true},
+		{"14.1 is greater than 12.2", 14.1, prefabProto.Criterion_PROP_GREATER_THAN, 12.2, true, true},
+		{"14 is not greater than 14", 14, prefabProto.Criterion_PROP_GREATER_THAN, 14, true, false},
+		{"13 is not greater than 14", 13, prefabProto.Criterion_PROP_GREATER_THAN, 14, true, false},
+		{"14 is greater than or equal 12", 14, prefabProto.Criterion_PROP_GREATER_THAN_OR_EQUAL, 12, true, true},
+		{"14.1 is greater than or equal 12", 14.1, prefabProto.Criterion_PROP_GREATER_THAN_OR_EQUAL, 12, true, true},
+		{"14.1 is greater than or equal 12.2", 14.1, prefabProto.Criterion_PROP_GREATER_THAN_OR_EQUAL, 12.2, true, true},
+		{"14 is greater than or equal 14", 14, prefabProto.Criterion_PROP_GREATER_THAN_OR_EQUAL, 14, true, true},
+		{"13 is not greater than or equal 14", 13, prefabProto.Criterion_PROP_GREATER_THAN_OR_EQUAL, 14, true, false},
+		{"return false for missing context value", nil, prefabProto.Criterion_PROP_GREATER_THAN_OR_EQUAL, 14, false, false},
+		{"return false for string context value", "12", prefabProto.Criterion_PROP_GREATER_THAN_OR_EQUAL, 14, true, false},
+		{"return false for string match value", 14, prefabProto.Criterion_PROP_GREATER_THAN_OR_EQUAL, "12", true, false},
+	}
+	for _, testCase := range tests {
+		suite.Run(testCase.name, func() {
+			mockContext, assertMockCalled := suite.setupMockContext(contextPropertyName, testCase.contextValue, testCase.contextValueExists)
+			defer assertMockCalled()
+			criterion := &prefabProto.Criterion{Operator: testCase.operator, ValueToMatch: testutils.CreateConfigValueAndAssertOk(suite.T(), testCase.valueToMatch), PropertyName: contextPropertyName}
+			isMatch := suite.evaluator.EvaluateCriterion(criterion, mockContext)
+			suite.Equal(testCase.matchExpected, isMatch)
+		})
+	}
+}
+
+func (suite *ConfigRuleTestSuite) TestDateOps() {
+	decFirst24Str := "2024-12-01T00:00:00Z"
+	decFirst24Time, err := time.Parse(time.RFC3339, decFirst24Str)
+	suite.Assert().Nil(err)
+	decFirst24Millis := decFirst24Time.UnixMilli()
+	janFirst25Str := "2025-01-01T00:00:00Z"
+	janFirst25Time, err := time.Parse(time.RFC3339, janFirst25Str)
+	suite.Assert().Nil(err)
+	janFirst25Millis := janFirst25Time.UnixMilli()
+
+	contextPropertyName := "user.orderCount"
+	tests := []struct {
+		name               string
+		contextValue       any
+		operator           prefabProto.Criterion_CriterionOperator
+		valueToMatch       any
+		contextValueExists bool
+		matchExpected      bool
+	}{
+		{"dec 24 before jan 25", decFirst24Str, prefabProto.Criterion_PROP_BEFORE, janFirst25Str, true, true},
+		{"dec 24 millis before jan 25", decFirst24Millis, prefabProto.Criterion_PROP_BEFORE, janFirst25Str, true, true},
+		{"dec 24 millis before jan 25 millis", decFirst24Millis, prefabProto.Criterion_PROP_BEFORE, janFirst25Millis, true, true},
+		{"dec 24 before jan 25 millis", decFirst24Millis, prefabProto.Criterion_PROP_BEFORE, janFirst25Millis, true, true},
+		{"dec 24 not before dec 24", decFirst24Str, prefabProto.Criterion_PROP_BEFORE, decFirst24Str, true, false},
+		{"jan 25 not before dec 24", janFirst25Str, prefabProto.Criterion_PROP_BEFORE, decFirst24Str, true, false},
+		{"no context date not before dec 24", nil, prefabProto.Criterion_PROP_BEFORE, janFirst25Str, false, false},
+		{"bad context date returns false", "not a date", prefabProto.Criterion_PROP_BEFORE, janFirst25Str, true, false},
+		{"bad match date returns false", decFirst24Time, prefabProto.Criterion_PROP_BEFORE, "not a date", true, false},
+		{"jan 25 after dec 24", janFirst25Str, prefabProto.Criterion_PROP_AFTER, decFirst24Str, true, true},
+		{"jan 25 not after jan 25", janFirst25Str, prefabProto.Criterion_PROP_AFTER, janFirst25Str, true, false},
+		{"dec 24 not after jan 25", decFirst24Str, prefabProto.Criterion_PROP_AFTER, janFirst25Str, true, false},
+	}
+	for _, testCase := range tests {
+		suite.Run(testCase.name, func() {
+			mockContext, assertMockCalled := suite.setupMockContext(contextPropertyName, testCase.contextValue, testCase.contextValueExists)
+			defer assertMockCalled()
+			criterion := &prefabProto.Criterion{Operator: testCase.operator, ValueToMatch: testutils.CreateConfigValueAndAssertOk(suite.T(), testCase.valueToMatch), PropertyName: contextPropertyName}
+			isMatch := suite.evaluator.EvaluateCriterion(criterion, mockContext)
+			suite.Equal(testCase.matchExpected, isMatch)
 		})
 	}
 }
