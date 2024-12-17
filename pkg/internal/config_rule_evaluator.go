@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"math"
 	"reflect"
+	"regexp"
 	"strings"
 	"time"
 
 	"github.com/prefab-cloud/prefab-cloud-go/pkg/internal/anyhelpers"
-
+	"github.com/prefab-cloud/prefab-cloud-go/pkg/internal/semver"
 	"github.com/prefab-cloud/prefab-cloud-go/pkg/internal/utils"
 	prefabProto "github.com/prefab-cloud/prefab-cloud-go/proto"
 )
@@ -259,8 +260,26 @@ func (cve *ConfigRuleEvaluator) EvaluateCriterion(criterion *prefabProto.Criteri
 				return (criterion.GetOperator() == prefabProto.Criterion_PROP_AFTER && contextTimeMillis > matchValueTimeMillis) || (criterion.GetOperator() == prefabProto.Criterion_PROP_BEFORE && contextTimeMillis < matchValueTimeMillis)
 			}
 		}
-	}
+	case prefabProto.Criterion_PROP_MATCHES, prefabProto.Criterion_PROP_DOES_NOT_MATCH:
+		if err == nil && contextValueExists && anyhelpers.IsString(contextValue) && anyhelpers.IsString(matchValue) {
+			if matchvalueRegex, matchValueRegexErr := regexp.Compile(matchValue.(string)); matchValueRegexErr == nil {
+				matched := matchvalueRegex.MatchString(contextValue.(string))
+				return matched == (criterion.GetOperator() == prefabProto.Criterion_PROP_MATCHES)
+			}
+		}
+	case prefabProto.Criterion_PROP_SEMVER_LESS_THAN, prefabProto.Criterion_PROP_SEMVER_EQUAL, prefabProto.Criterion_PROP_SEMVER_GREATER_THAN:
+		if err == nil && contextValueExists && anyhelpers.IsString(contextValue) && anyhelpers.IsString(matchValue) {
+			semanticVersionFromMatch := semver.ParseQuietly(matchValue.(string))
+			semanticVersionFromContext := semver.ParseQuietly(contextValue.(string))
+			if semanticVersionFromMatch != nil && semanticVersionFromContext != nil {
+				comparisonResult := semanticVersionFromContext.Compare(*semanticVersionFromMatch)
+				if handler, ok := semverCriterionHandlers[criterion.GetOperator()]; ok {
+					return handler(comparisonResult)
+				}
+			}
 
+		}
+	}
 	return false
 }
 
@@ -281,6 +300,18 @@ func dateToMillis(val any) (int64, error) {
 	}
 
 	return 0, fmt.Errorf("unsupported type: %v", reflect.TypeOf(val))
+}
+
+var semverCriterionHandlers = map[prefabProto.Criterion_CriterionOperator]func(int) bool{
+	prefabProto.Criterion_PROP_SEMVER_GREATER_THAN: func(result int) bool {
+		return result > 0
+	},
+	prefabProto.Criterion_PROP_SEMVER_EQUAL: func(result int) bool {
+		return result == 0
+	},
+	prefabProto.Criterion_PROP_SEMVER_LESS_THAN: func(result int) bool {
+		return result < 0
+	},
 }
 
 var numericCriterionHandlers = map[prefabProto.Criterion_CriterionOperator]func(int) bool{

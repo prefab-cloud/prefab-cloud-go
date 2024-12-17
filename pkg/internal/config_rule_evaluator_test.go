@@ -432,6 +432,64 @@ func (suite *ConfigRuleTestSuite) TestDateOps() {
 	}
 }
 
+func (suite *ConfigRuleTestSuite) TestSemverOps() {
+	contextPropertyName := "app.version"
+	tests := []struct {
+		name               string
+		contextValue       any
+		operator           prefabProto.Criterion_CriterionOperator
+		valueToMatch       any
+		contextValueExists bool
+		matchExpected      bool
+	}{
+		{"2.0.0 equal to 2.0.0", "2.0.0", prefabProto.Criterion_PROP_SEMVER_EQUAL, "2.0.0", true, true},
+		{"2.0.0 not greater than 2.0.0", "2.0.0", prefabProto.Criterion_PROP_SEMVER_GREATER_THAN, "2.0.0", true, false},
+		{"2.0.0 not less than 2.0.0", "2.0.0", prefabProto.Criterion_PROP_SEMVER_LESS_THAN, "2.0.0", true, false},
+		{"2.0.1 is greater than 2.0.0", "2.0.1", prefabProto.Criterion_PROP_SEMVER_GREATER_THAN, "2.0.0", true, true},
+		{"2.0.0 is less than 2.0.1", "2.0.0", prefabProto.Criterion_PROP_SEMVER_LESS_THAN, "2.0.1", true, true},
+		{"missing context value isn't equal", "", prefabProto.Criterion_PROP_SEMVER_EQUAL, "2.0.1", false, false},
+		{"v2.0.0 is not equal to 2.0.0 because v prefix is invalid", "v2.0.0", prefabProto.Criterion_PROP_SEMVER_EQUAL, "2.0.1", true, false},
+		{"bad value in match rule returns false", "v2.0.0", prefabProto.Criterion_PROP_SEMVER_EQUAL, "foobar", true, false},
+	}
+	for _, testCase := range tests {
+		suite.Run(testCase.name, func() {
+			mockContext, assertMockCalled := suite.setupMockContext(contextPropertyName, testCase.contextValue, testCase.contextValueExists)
+			defer assertMockCalled()
+			criterion := &prefabProto.Criterion{Operator: testCase.operator, ValueToMatch: testutils.CreateConfigValueAndAssertOk(suite.T(), testCase.valueToMatch), PropertyName: contextPropertyName}
+			isMatch := suite.evaluator.EvaluateCriterion(criterion, mockContext)
+			suite.Equal(testCase.matchExpected, isMatch)
+		})
+	}
+}
+
+func (suite *ConfigRuleTestSuite) TestRegexOps() {
+	contextPropertyName := "user.code"
+	tests := []struct {
+		name               string
+		contextValue       any
+		operator           prefabProto.Criterion_CriterionOperator
+		valueToMatch       any
+		contextValueExists bool
+		matchExpected      bool
+	}{
+		{"ab matches a+b+", "ab", prefabProto.Criterion_PROP_MATCHES, "a+b+", true, true},
+		{"ab does not match a+b+ is false", "ab", prefabProto.Criterion_PROP_DOES_NOT_MATCH, "a+b+", true, false},
+		{"ab matches a+b+c is false", "ab", prefabProto.Criterion_PROP_MATCHES, "a+b+c", true, false},
+		{"ab does not match a+b+c is true", "ab", prefabProto.Criterion_PROP_DOES_NOT_MATCH, "a+b+c", true, true},
+		{"bad regex returns false", "ab", prefabProto.Criterion_PROP_MATCHES, "[a+b+", true, false},
+		{"missing context returns false", "", prefabProto.Criterion_PROP_MATCHES, "[a+b+", false, false},
+	}
+	for _, testCase := range tests {
+		suite.Run(testCase.name, func() {
+			mockContext, assertMockCalled := suite.setupMockContext(contextPropertyName, testCase.contextValue, testCase.contextValueExists)
+			defer assertMockCalled()
+			criterion := &prefabProto.Criterion{Operator: testCase.operator, ValueToMatch: testutils.CreateConfigValueAndAssertOk(suite.T(), testCase.valueToMatch), PropertyName: contextPropertyName}
+			isMatch := suite.evaluator.EvaluateCriterion(criterion, mockContext)
+			suite.Equal(testCase.matchExpected, isMatch)
+		})
+	}
+}
+
 func (suite *ConfigRuleTestSuite) TestPropIsOneOf() {
 	operator := prefabProto.Criterion_PROP_IS_ONE_OF
 	contextPropertyName := "user.email.domain"
