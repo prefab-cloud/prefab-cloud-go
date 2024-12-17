@@ -1,6 +1,9 @@
 package anyhelpers
 
 import (
+	"errors"
+	"fmt"
+	"math"
 	"reflect"
 )
 
@@ -52,7 +55,55 @@ func CanonicalizeSlice(input any) (any, bool) {
 	return input, true // Return as is if already a specific slice type
 }
 
-// Generic function to get the pointer of any type
-func Ptr[T any](v T) *T {
-	return &v
+func IsNumber(val any) bool {
+	switch val.(type) {
+	case int, int8, int16, int32, int64:
+		return true
+	case uint, uint8, uint16, uint32, uint64:
+		return true
+	case float32, float64:
+		return true
+	default:
+		return false
+	}
+}
+
+func ToFloat64(val any) (float64, error) {
+	switch v := val.(type) {
+	case int, int8, int16, int32, int64:
+		return float64(reflect.ValueOf(v).Int()), nil
+	case uint, uint8, uint16, uint32, uint64:
+		return float64(reflect.ValueOf(v).Uint()), nil
+	case float32:
+		return float64(v), nil
+	case float64:
+		return v, nil
+	default:
+		if v, ok := val.(float64); ok {
+			return v, nil
+		}
+	}
+	return 0, fmt.Errorf("unsupported type: %v", reflect.TypeOf(val))
+}
+
+func ToInt64(val any) (int64, error) {
+	switch v := val.(type) {
+	case int, int8, int16, int32, int64:
+		return reflect.ValueOf(v).Int(), nil
+	case uint, uint8, uint16, uint32, uint64:
+		u := reflect.ValueOf(v).Uint()
+		if u > math.MaxInt64 { // Use constant from math package
+			return 0, errors.New("value too large to fit in int64")
+		}
+		return int64(u), nil
+	case float32, float64:
+		return int64(reflect.ValueOf(v).Float()), nil // Truncate float
+	default:
+		return 0, fmt.Errorf("unsupported type: %v", reflect.TypeOf(val))
+	}
+}
+
+func IsString(val any) bool {
+	_, ok := val.(string)
+	return ok
 }
