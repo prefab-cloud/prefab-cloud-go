@@ -102,6 +102,7 @@ func TestCompare(t *testing.T) {
 		v2       string
 		expected int
 	}{
+		// Original test cases
 		{"1.2.3", "1.2.3", 0},
 		{"2.0.0", "1.9.9", 1},
 		{"1.2.3", "1.2.4", -1},
@@ -111,6 +112,39 @@ func TestCompare(t *testing.T) {
 		{"1.0.0+build.1", "1.0.0+build.2", 0},
 		{"2.1.1", "2.1.0", 1},
 		{"2.1.1", "2.2.0", -1},
+
+		// New test cases for numeric prerelease identifiers
+		{"1.0.0-alpha.1", "1.0.0-alpha.2", -1},
+		{"1.0.0-alpha.2", "1.0.0-alpha.11", -1},
+		{"1.0.0-2", "1.0.0-11", -1},
+		{"1.0.0-alpha.1", "1.0.0-beta.1", -1},
+		{"1.0.0-alpha.beta", "1.0.0-beta.alpha", -1},
+
+		// Test numeric vs non-numeric identifiers
+		{"1.0.0-1", "1.0.0-alpha", -1},
+		{"1.0.0-alpha", "1.0.0-1", 1},
+
+		// Test identifier length differences
+		{"1.0.0-alpha", "1.0.0-alpha.1", -1},
+		{"1.0.0-alpha.1", "1.0.0-alpha.1.1", -1},
+		{"1.0.0-alpha.1.1", "1.0.0-alpha.1", 1},
+
+		// Test identical prefixes but different lengths
+		{"1.0.0-alpha.1", "1.0.0-alpha.1.0", -1},
+		{"1.0.0-alpha.1.0", "1.0.0-alpha.1", 1},
+
+		// Test numeric ordering
+		{"1.0.0-1.1.1", "1.0.0-1.1.2", -1},
+		{"1.0.0-1.2.1", "1.0.0-1.11.1", -1},
+
+		// Test mixed numeric and non-numeric
+		{"1.0.0-alpha.1.beta", "1.0.0-alpha.1.1", 1},
+		{"1.0.0-alpha.1.1", "1.0.0-alpha.1.beta", -1},
+
+		// Edge cases
+		{"1.0.0-rc.1", "1.0.0-rc.1.0", -1},
+		{"1.0.0-alpha", "1.0.0-alpha.0", -1},
+		{"1.0.0-alpha.0", "1.0.0-alpha.0.0", -1},
 	}
 
 	for _, tt := range tests {
@@ -125,6 +159,13 @@ func TestCompare(t *testing.T) {
 			if result != tt.expected {
 				t.Errorf("Compare(%q, %q) = %d; want %d",
 					tt.v1, tt.v2, result, tt.expected)
+			}
+
+			// Test symmetry of comparison
+			reverseResult := v2.Compare(*v1)
+			if reverseResult != -tt.expected {
+				t.Errorf("Reverse Compare(%q, %q) = %d; want %d",
+					tt.v2, tt.v1, reverseResult, -tt.expected)
 			}
 		})
 	}
