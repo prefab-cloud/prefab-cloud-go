@@ -17,6 +17,87 @@ type SemanticVersion struct {
 	buildMetadata string
 }
 
+// isNumeric returns true if the string contains only digits
+func isNumeric(s string) bool {
+	_, err := strconv.Atoi(s)
+	return err == nil
+}
+
+// comparePreReleaseIdentifiers compares individual prerelease identifiers
+func comparePreReleaseIdentifiers(id1, id2 string) int {
+	// If both are numeric, compare numerically
+	if isNumeric(id1) && isNumeric(id2) {
+		num1, _ := strconv.Atoi(id1)
+		num2, _ := strconv.Atoi(id2)
+		if num1 < num2 {
+			return -1
+		}
+		if num1 > num2 {
+			return 1
+		}
+		return 0
+	}
+
+	// If only one is numeric, numeric ones have lower precedence
+	if isNumeric(id1) {
+		return -1
+	}
+	if isNumeric(id2) {
+		return 1
+	}
+
+	// Neither is numeric, compare as strings
+	if id1 < id2 {
+		return -1
+	}
+	if id1 > id2 {
+		return 1
+	}
+	return 0
+}
+
+// comparePreRelease compares prerelease strings according to semver rules
+func comparePreRelease(pre1, pre2 string) int {
+	// If both are empty, they're equal
+	if pre1 == "" && pre2 == "" {
+		return 0
+	}
+
+	// A version without prerelease has higher precedence
+	if pre1 == "" {
+		return 1
+	}
+	if pre2 == "" {
+		return -1
+	}
+
+	// Split into identifiers
+	ids1 := strings.Split(pre1, ".")
+	ids2 := strings.Split(pre2, ".")
+
+	// Compare each identifier until we find a difference
+	minLen := len(ids1)
+	if len(ids2) < minLen {
+		minLen = len(ids2)
+	}
+
+	for i := 0; i < minLen; i++ {
+		if cmp := comparePreReleaseIdentifiers(ids1[i], ids2[i]); cmp != 0 {
+			return cmp
+		}
+	}
+
+	// If all identifiers match up to the length of the shorter one,
+	// the longer one has higher precedence
+	if len(ids1) < len(ids2) {
+		return -1
+	}
+	if len(ids1) > len(ids2) {
+		return 1
+	}
+	return 0
+}
+
 // ParseQuietly attempts to parse a version string, returning nil if parsing fails
 func ParseQuietly(version string) *SemanticVersion {
 	semver, err := Parse(version)
@@ -108,23 +189,7 @@ func (s SemanticVersion) Compare(other SemanticVersion) int {
 		return -1
 	}
 
-	// If one has prerelease and the other doesn't, the one without prerelease is greater
-	if s.prerelease == "" && other.prerelease != "" {
-		return 1
-	}
-	if s.prerelease != "" && other.prerelease == "" {
-		return -1
-	}
-	if s.prerelease != "" && other.prerelease != "" {
-		if s.prerelease > other.prerelease {
-			return 1
-		}
-		if s.prerelease < other.prerelease {
-			return -1
-		}
-	}
-
-	return 0 // Build metadata doesn't affect precedence
+	return comparePreRelease(s.prerelease, other.prerelease)
 }
 
 func (s SemanticVersion) String() string {
