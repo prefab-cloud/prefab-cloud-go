@@ -46,6 +46,49 @@
       "rows": [{ "values": [{ "value": { "string": "hello world" } }] }],
       "configType": "CONFIG",
       "valueType": "STRING"
+    },
+    {
+      "id": "17381662797792732",
+      "projectId": "202",
+      "key": "test.with.rule",
+      "changedBy": { "email": "jeffrey.chupp@prefab.cloud" },
+      "rows": [
+        {
+          "values": [
+            {
+              "value": {
+                "string": "default"
+              }
+            }
+          ]
+        },
+        {
+          "projectEnvId": "308",
+          "values": [
+            {
+              "criteria": [
+                {
+                  "propertyName": "prefab-api-key.user-id",
+                  "operator": "PROP_IS_ONE_OF",
+                  "valueToMatch": {
+                    "stringList": {
+                      "values": [
+                        "1039"
+                      ]
+                    }
+                  }
+                }
+              ],
+              "value": {
+                "string": "targeted"
+              }
+            }
+          ]
+        }
+      ],
+      "configType": "CONFIG",
+      "valueType": "STRING",
+      "sendToClientSdk": true
     }
   ],
   "configServicePointer": { "projectId": "202", "projectEnvId": "308" }

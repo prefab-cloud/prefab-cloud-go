@@ -476,7 +476,8 @@ func (c *ContextBoundClient) GetConfig(key string) (*prefabProto.Config, bool) {
 
 // GetConfigMatch returns a ConfigMatch object for a given key and context. You're unlikely to need this method.
 func (c *ContextBoundClient) GetConfigMatch(key string, contextSet ContextSet) (*ConfigMatch, error) {
-	getResult, err := c.client.internalGetValue(key, contextSet)
+	mergedContextSet := *contexts.Merge(c.context, &contextSet)
+	getResult, err := c.client.internalGetValue(key, mergedContextSet)
 	if err != nil {
 		return nil, err
 	}
