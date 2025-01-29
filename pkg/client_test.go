@@ -1,6 +1,7 @@
 package prefab_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -120,4 +121,39 @@ func TestWithAJSONConfigDump(t *testing.T) {
 	_, ok, err = client.GetLogLevelStringValue("log-level", prefab.ContextSet{})
 	require.ErrorContains(t, err, "config did not produce a result and no default is specified")
 	assert.False(t, ok)
+}
+
+func TestGetConfigMatchWithAJSONConfigDumpAndGlobalContext(t *testing.T) {
+	ctx := prefab.NewContextSet().WithNamedContextValues("prefab-api-key", map[string]any{"user-id": 1039})
+	client, err := prefab.NewClient(prefab.WithOfflineSources([]string{
+		fmt.Sprintf("datafile://%s", "testdata/download.json"),
+	}), prefab.WithGlobalContext(ctx))
+	require.NoError(t, err)
+
+	str, ok, err := client.GetStringValue("test.with.rule", *prefab.NewContextSet())
+	require.NoError(t, err)
+	assert.True(t, ok)
+	assert.Equal(t, "targeted", str)
+
+	// this tests client.GetConfigMatch which is used internally
+	configMatch, err := client.GetConfigMatch("test.with.rule", *prefab.NewContextSet())
+	require.NoError(t, err)
+	assert.Equal(t, "targeted", configMatch.OriginalMatch.GetString_())
+
+	valueAny, ok, err := prefab.ExtractValue(configMatch.OriginalMatch)
+	require.NoError(t, err)
+	require.True(t, ok)
+	assert.Equal(t, "targeted", valueAny)
+
+	// now show that shadowing the default context produces a different result
+	contextSet := prefab.NewContextSet().
+		WithNamedContextValues("prefab-api-key", map[string]interface{}{
+			"user-id": 0,
+		})
+
+	str, ok, err = client.GetStringValue("test.with.rule", *contextSet)
+	require.NoError(t, err)
+	assert.True(t, ok)
+	assert.Equal(t, "default", str)
+
 }
