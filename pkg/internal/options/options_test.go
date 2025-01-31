@@ -1,6 +1,7 @@
 package options_test
 
 import (
+	prefab "github.com/prefab-cloud/prefab-cloud-go/pkg"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -40,4 +41,21 @@ func TestGetDefaultOptions(t *testing.T) {
 
 	o = options.GetDefaultOptions()
 	assert.Equal(t, []options.ConfigSource([]options.ConfigSource{{Store: "DataFile", Raw: "testdata/download.json", Path: "testdata/download.json", Default: false}}), o.Sources)
+}
+
+func TestOptions_TelemetryEnabledOverride(t *testing.T) {
+	defaultOptions := options.GetDefaultOptions()
+	assert.True(t, defaultOptions.TelemetryEnabled())
+	_ = prefab.WithAllTelemetryDisabled()(&defaultOptions)
+	assert.False(t, defaultOptions.TelemetryEnabled())
+}
+func TestOptions_TelemetryEnabledCalculatesBasedOnOptions(t *testing.T) {
+	defaultOptions := options.GetDefaultOptions()
+	assert.True(t, defaultOptions.TelemetryEnabled())
+
+	_ = prefab.WithCollectEvaluationSummaries(false)(&defaultOptions)
+	assert.True(t, defaultOptions.TelemetryEnabled())
+
+	_ = prefab.WithContextTelemetryMode(options.ContextTelemetryModes.None)(&defaultOptions)
+	assert.False(t, defaultOptions.TelemetryEnabled())
 }

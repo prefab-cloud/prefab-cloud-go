@@ -146,7 +146,9 @@ func NewClient(opts ...Option) (*Client, error) {
 
 	client.boundClient = &ContextBoundClient{client: &client, context: options.GlobalContext}
 
-	client.telemetry.StartPeriodicSubmission(options.TelemetrySyncInterval)
+	if options.TelemetryEnabled() {
+		client.telemetry.StartPeriodicSubmission(options.TelemetrySyncInterval)
+	}
 
 	return &client, nil
 }

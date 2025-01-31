@@ -185,3 +185,12 @@ func WithCollectEvaluationSummaries(collect bool) Option {
 		return nil
 	}
 }
+
+func WithAllTelemetryDisabled() Option {
+	return func(o *options.Options) error {
+		o.ContextTelemetryMode = options.ContextTelemetryModes.None
+		o.CollectEvaluationSummaries = false
+		return nil
+	}
+
+}
