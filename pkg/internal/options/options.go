@@ -97,6 +97,10 @@ func GetDefaultOptions() Options {
 	}
 }
 
+func (o *Options) TelemetryEnabled() bool {
+	return o.CollectEvaluationSummaries || o.ContextTelemetryMode != ContextTelemetryModes.None
+}
+
 func (o *Options) APIKeySettingOrEnvVar() (string, error) {
 	if o.APIKey == "" {
 		// Attempt to read from an environment variable if APIKey is not directly set
