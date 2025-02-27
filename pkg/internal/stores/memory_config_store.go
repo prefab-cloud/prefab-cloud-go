@@ -17,6 +17,12 @@ func NewMemoryConfigStore(projectEnvID int64, rawConfigs map[string]interface{})
 	configs := make(map[string]*prefabProto.Config, len(rawConfigs))
 
 	for key, rawValue := range rawConfigs {
+		// Check if rawValue is already a prefabProto.Config
+		if existingConfig, ok := rawValue.(*prefabProto.Config); ok {
+			configs[key] = existingConfig
+			continue
+		}
+
 		configValue, ok := utils.Create(rawValue)
 		if !ok {
 			return nil, fmt.Errorf("failed to create config value for key %s", key)
