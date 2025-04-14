@@ -55,3 +55,10 @@ func main() {
 ## Notable pending features
 
 - Telemetry
+
+
+## Publishing 
+
+1) Bump version in pkg/internal/version.go (this is the version header clients send)
+2) Commit that change on a branch and merge into main
+3) git tag with the new version number and push that to origin 
