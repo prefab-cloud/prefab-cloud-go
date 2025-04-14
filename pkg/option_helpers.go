@@ -192,5 +192,4 @@ func WithAllTelemetryDisabled() Option {
 		o.CollectEvaluationSummaries = false
 		return nil
 	}
-
 }

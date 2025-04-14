@@ -1,8 +1,9 @@
 package options_test
 
 import (
-	prefab "github.com/prefab-cloud/prefab-cloud-go/pkg"
 	"testing"
+
+	prefab "github.com/prefab-cloud/prefab-cloud-go/pkg"
 
 	"github.com/stretchr/testify/assert"
 
@@ -49,6 +50,7 @@ func TestOptions_TelemetryEnabledOverride(t *testing.T) {
 	_ = prefab.WithAllTelemetryDisabled()(&defaultOptions)
 	assert.False(t, defaultOptions.TelemetryEnabled())
 }
+
 func TestOptions_TelemetryEnabledCalculatesBasedOnOptions(t *testing.T) {
 	defaultOptions := options.GetDefaultOptions()
 	assert.True(t, defaultOptions.TelemetryEnabled())

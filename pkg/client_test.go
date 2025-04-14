@@ -155,5 +155,4 @@ func TestGetConfigMatchWithAJSONConfigDumpAndGlobalContext(t *testing.T) {
 	require.NoError(t, err)
 	assert.True(t, ok)
 	assert.Equal(t, "default", str)
-
 }
