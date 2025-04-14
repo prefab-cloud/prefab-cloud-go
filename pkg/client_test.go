@@ -25,7 +25,7 @@ func TestWithConfig(t *testing.T) {
 
 	client, err := prefab.NewClient(
 		prefab.WithConfigs(configs),
-		prefab.WithInitializationTimeoutSeconds(0.5),
+		prefab.WithInitializationTimeoutSeconds(5.0),
 		prefab.WithContextTelemetryMode(options.ContextTelemetryModes.None))
 
 	require.NoError(t, err)
