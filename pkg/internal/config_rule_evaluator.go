@@ -121,6 +121,15 @@ func contextValueToStringSlice(contextValue interface{}) []string {
 func (cve *ConfigRuleEvaluator) EvaluateCriterion(criterion *prefabProto.Criterion, contextSet ContextValueGetter) bool {
 	// get the value from context
 	contextValue, contextValueExists := contextSet.GetContextValue(criterion.GetPropertyName())
+
+	// Special handling for "prefab.current-time" property
+	if criterion.GetPropertyName() == "prefab.current-time" {
+		// Create a ConfigValue with the current UTC time in milliseconds since epoch
+		currentTimeMillis := time.Now().UTC().UnixMilli()
+		contextValue = currentTimeMillis
+		contextValueExists = true
+	}
+
 	matchValue, _, err := utils.ExtractValue(criterion.GetValueToMatch())
 
 	switch criterion.GetOperator() {
