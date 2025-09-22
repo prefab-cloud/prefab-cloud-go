@@ -848,6 +848,50 @@ func (suite *ConfigRuleTestSuite) TestCurrentTimeProperty() {
 	suite.True(result)
 }
 
+func (suite *ConfigRuleTestSuite) TestReforgeCurrentTimeProperty() {
+	// Create a criterion with the "reforge.current-time" property
+	criterion := &prefabProto.Criterion{
+		PropertyName: "reforge.current-time",
+		Operator:     prefabProto.Criterion_PROP_GREATER_THAN,
+		ValueToMatch: &prefabProto.ConfigValue{
+			Type: &prefabProto.ConfigValue_Int{
+				Int: time.Now().UTC().UnixMilli() - 1000, // 1 second ago
+			},
+		},
+	}
+
+	// Create a mock context getter
+	mockContextGetter := &MockContextGetter{}
+
+	// Set up the mock to return nil, false for any property name
+	// This is because our implementation will handle the "reforge.current-time" property
+	// regardless of what the context getter returns
+	mockContextGetter.On("GetContextValue", mock.Anything).Return(nil, false)
+
+	// Evaluate the criterion
+	result := suite.evaluator.EvaluateCriterion(criterion, mockContextGetter)
+
+	// The result should be true because the current time is greater than 1 second ago
+	suite.True(result)
+
+	// Test the opposite case - current time should be less than a future time
+	futureCriterion := &prefabProto.Criterion{
+		PropertyName: "reforge.current-time",
+		Operator:     prefabProto.Criterion_PROP_LESS_THAN,
+		ValueToMatch: &prefabProto.ConfigValue{
+			Type: &prefabProto.ConfigValue_Int{
+				Int: time.Now().UTC().UnixMilli() + 1000, // 1 second in the future
+			},
+		},
+	}
+
+	// Evaluate the criterion
+	result = suite.evaluator.EvaluateCriterion(futureCriterion, mockContextGetter)
+
+	// The result should be true because the current time is less than 1 second in the future
+	suite.True(result)
+}
+
 // In order for 'go test' to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run
 func TestConfigRuleTestSuite(t *testing.T) {

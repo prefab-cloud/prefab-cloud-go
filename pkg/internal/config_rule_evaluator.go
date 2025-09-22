@@ -122,8 +122,8 @@ func (cve *ConfigRuleEvaluator) EvaluateCriterion(criterion *prefabProto.Criteri
 	// get the value from context
 	contextValue, contextValueExists := contextSet.GetContextValue(criterion.GetPropertyName())
 
-	// Special handling for "prefab.current-time" property
-	if criterion.GetPropertyName() == "prefab.current-time" {
+	// Special handling for "prefab.current-time" and "reforge.current-time" properties
+	if criterion.GetPropertyName() == "prefab.current-time" || criterion.GetPropertyName() == "reforge.current-time" {
 		// Create a ConfigValue with the current UTC time in milliseconds since epoch
 		currentTimeMillis := time.Now().UTC().UnixMilli()
 		contextValue = currentTimeMillis
