@@ -62,7 +62,12 @@ func (cs *APIConfigStore) SetConfigs(configs []*prefabProto.Config, envID int64)
 	cs.Lock()
 	defer cs.Unlock()
 	cs.Initialized = true
-	cs.projectEnvID = envID
+
+	// Only update projectEnvID if we have configs to process
+	// Empty config lists from SSE shouldn't change the environment context
+	if len(configs) > 0 {
+		cs.projectEnvID = envID
+	}
 
 	for _, config := range configs {
 		cs.setConfig(config)
