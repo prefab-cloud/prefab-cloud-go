@@ -52,6 +52,11 @@ func StartSSEConnection(client *sse.Client, apiConfigStore ConfigStore) {
 		client.Headers["x-prefab-start-at-id"] = strconv.FormatInt(apiConfigStore.GetHighWatermark(), 10)
 
 		err := client.Subscribe("", func(msg *sse.Event) {
+			// Skip empty events (phantom events from SSE library bug when processing comments)
+			if len(msg.Data) == 0 {
+				return
+			}
+
 			decoded := make([]byte, base64.StdEncoding.DecodedLen(len(msg.Data)))
 
 			numberOfBytesWritten, err := base64.StdEncoding.Decode(decoded, msg.Data)
