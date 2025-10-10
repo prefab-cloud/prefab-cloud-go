@@ -193,3 +193,23 @@ func WithAllTelemetryDisabled() Option {
 		return nil
 	}
 }
+
+// WithEnvLookup allows providing a custom environment variable lookup implementation.
+// This is useful for embedded scenarios where environment variable access needs to be controlled.
+//
+// Example:
+//
+//	type NoOpEnvLookup struct{}
+//	func (n *NoOpEnvLookup) LookupEnv(key string) (string, bool) {
+//		return "", false
+//	}
+//
+//	client, err := prefab.NewClient(
+//		prefab.WithEnvLookup(&NoOpEnvLookup{}),
+//	)
+func WithEnvLookup(envLookup options.EnvLookup) Option {
+	return func(o *options.Options) error {
+		o.CustomEnvLookup = envLookup
+		return nil
+	}
+}

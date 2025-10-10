@@ -447,6 +447,7 @@ func TestConfigResolver_ResolveValue(t *testing.T) {
 				RuleEvaluator:         mockConfigEvaluator,
 				WeightedValueResolver: mockWeightedValueResolver,
 				Decrypter:             mockDecrypter,
+				EnvLookup:             &internal.RealEnvLookup{},
 			}
 
 			match, err := resolver.ResolveValue(testCase.configKey, mockContextGetter)

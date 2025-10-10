@@ -53,13 +53,16 @@ type ConfigResolver struct {
 	ContextGetter         ContextValueGetter
 }
 
-func NewConfigResolver(configStore ConfigStoreGetter) *ConfigResolver {
+func NewConfigResolver(configStore ConfigStoreGetter, envLookup EnvLookup) *ConfigResolver {
+	if envLookup == nil {
+		envLookup = &RealEnvLookup{}
+	}
 	return &ConfigResolver{
 		ConfigStore:           configStore,
 		RuleEvaluator:         NewConfigRuleEvaluator(configStore, configStore),
 		WeightedValueResolver: NewWeightedValueResolver(time.Now().UnixNano(), &Hashing{}),
 		Decrypter:             &Encryption{},
-		EnvLookup:             &RealEnvLookup{},
+		EnvLookup:             envLookup,
 		ContextGetter:         configStore,
 	}
 }
@@ -130,7 +133,7 @@ func (c ConfigResolver) ResolveValueForConfig(config *prefabProto.Config, contex
 func (c ConfigResolver) handleProvided(provided *prefabProto.Provided) (string, bool) {
 	if provided.GetSource() == prefabProto.ProvidedSource_ENV_VAR {
 		if provided.Lookup != nil {
-			envValue, envValueExists := os.LookupEnv(provided.GetLookup())
+			envValue, envValueExists := c.EnvLookup.LookupEnv(provided.GetLookup())
 
 			return envValue, envValueExists
 		}
