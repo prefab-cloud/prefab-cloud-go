@@ -127,7 +127,7 @@ func NewClient(opts ...Option) (*Client, error) {
 
 	configStore := stores.BuildCompositeConfigStore(configStores...)
 
-	configResolver := internal.NewConfigResolver(configStore)
+	configResolver := internal.NewConfigResolver(configStore, options.CustomEnvLookup)
 
 	client = Client{
 		options:                &options,

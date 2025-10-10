@@ -11,6 +11,20 @@ import (
 	"github.com/prefab-cloud/prefab-cloud-go/pkg/internal/contexts"
 )
 
+// EnvLookup is an interface for looking up environment variables
+// This is defined in pkg/internal/interfaces.go but we reference it here
+// to avoid circular imports
+type EnvLookup interface {
+	LookupEnv(key string) (string, bool)
+}
+
+// RealEnvLookup implements EnvLookup using os.LookupEnv
+type RealEnvLookup struct{}
+
+func (RealEnvLookup) LookupEnv(key string) (string, bool) {
+	return os.LookupEnv(key)
+}
+
 type OnInitializationFailure int
 
 const (
@@ -58,6 +72,7 @@ type Options struct {
 	TelemetrySyncInterval        time.Duration
 	TelemetryHost                string
 	InstanceHash                 string
+	CustomEnvLookup              EnvLookup
 }
 
 const timeoutDefault = 10.0
@@ -94,6 +109,7 @@ func GetDefaultOptions() Options {
 		TelemetryHost:                "https://telemetry.prefab.cloud",
 		CollectEvaluationSummaries:   true,
 		InstanceHash:                 uuid.New().String(),
+		CustomEnvLookup:              &RealEnvLookup{},
 	}
 }
 
